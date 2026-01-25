@@ -18,12 +18,12 @@ struct SweepApp: App {
 
         eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             switch event.keyCode {
-            case 123: gameState.moveSelection(.left)
-            case 124: gameState.moveSelection(.right)
-            case 125: gameState.moveSelection(.down)
-            case 126: gameState.moveSelection(.up)
-            case 49: gameState.revealSelected()
-            case 3: gameState.toggleFlagSelected()
+            case 123: gameState.moveSelection(.left)   // Left arrow
+            case 124: gameState.moveSelection(.right)  // Right arrow
+            case 125: gameState.moveSelection(.down)   // Down arrow
+            case 126: gameState.moveSelection(.up)     // Up arrow
+            case 49: gameState.revealSelected()        // Space
+            case 3: gameState.toggleFlagSelected()     // F key
             default: break
             }
             return event
