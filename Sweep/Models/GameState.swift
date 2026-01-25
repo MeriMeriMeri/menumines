@@ -70,6 +70,11 @@ final class GameState {
 
     private var timer: Timer?
 
+    /// Whether reset is allowed. Reset is locked once today's puzzle is completed.
+    var canReset: Bool {
+        !isDailyPuzzleComplete()
+    }
+
     init(board: Board, dailySeed: Int64 = seedFromDate(Date())) {
         self.board = board
         self.dailySeed = dailySeed
@@ -172,12 +177,11 @@ final class GameState {
         switch result {
         case .mine:
             status = .lost
-            stopTimer()
+            handleGameComplete(won: false)
         case .safe:
             if checkWinCondition() {
                 status = .won
-                stopTimer()
-                markDailyPuzzleComplete()
+                handleGameComplete(won: true)
             }
         }
     }
@@ -200,7 +204,9 @@ final class GameState {
     }
 
     /// Resets the game to a fresh state with today's daily board.
+    /// Does nothing if reset is locked (daily puzzle already completed).
     func reset() {
+        guard canReset else { return }
         stopTimer()
         let seed = seedFromDate(Date())
         board = Board(seed: seed)
@@ -236,6 +242,11 @@ final class GameState {
 
     /// Creates a GameState by restoring from a saved snapshot if available,
     /// otherwise creates a fresh game with today's daily board.
+    ///
+    /// Error recovery behavior:
+    /// - If snapshot exists and is valid: restore full state
+    /// - If snapshot is corrupted but daily is complete: restore completed state from stats
+    /// - If snapshot is corrupted and daily is not complete: create fresh game
     static func restored() -> GameState {
         if let snapshot = GameSnapshot.load() {
             let state = GameState(board: snapshot.board, dailySeed: snapshot.dailySeed)
@@ -246,8 +257,21 @@ final class GameState {
             state.selectedCol = snapshot.selectedCol
             return state
         }
+
         let seed = seedFromDate(Date())
-        return GameState(board: Board(seed: seed), dailySeed: seed)
+        let board = Board(seed: seed)
+
+        // If daily is marked complete but snapshot is missing/corrupted,
+        // try to restore minimal completed state from stats
+        if isDailyPuzzleComplete(), let stats = getStats(for: Date()) {
+            let state = GameState(board: board, dailySeed: seed)
+            state.status = stats.won ? .won : .lost
+            state.elapsedTime = stats.elapsedTime
+            state.flagCount = stats.flagCount
+            return state
+        }
+
+        return GameState(board: board, dailySeed: seed)
     }
 
     /// Pauses the timer (e.g., when popover closes).
@@ -298,12 +322,11 @@ final class GameState {
         switch board.chordReveal(row: row, col: col) {
         case .mine:
             status = .lost
-            stopTimer()
+            handleGameComplete(won: false)
         case .safe:
             if checkWinCondition() {
                 status = .won
-                stopTimer()
-                markDailyPuzzleComplete()
+                handleGameComplete(won: true)
             }
         }
     }
@@ -337,5 +360,13 @@ final class GameState {
             }
         }
         return true
+    }
+
+    /// Handles game completion (win or loss).
+    /// Marks daily puzzle as complete and records stats.
+    private func handleGameComplete(won: Bool) {
+        stopTimer()
+        markDailyPuzzleComplete()
+        recordStats(won: won, elapsedTime: elapsedTime, flagCount: flagCount)
     }
 }
