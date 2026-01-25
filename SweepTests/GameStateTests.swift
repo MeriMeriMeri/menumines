@@ -1802,7 +1802,7 @@ struct GameStatePersistenceTests {
         #expect(restoredState.board.cells[2][3].state == .flagged)
     }
 
-    @Test("GameState restored does not restore stale snapshot")
+    @Test("GameState restored does not restore stale snapshot when game was completed")
     func testGameStateRestoredIgnoresStaleSnapshot() {
         GameSnapshot.clear()
         UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
@@ -1816,12 +1816,13 @@ struct GameStatePersistenceTests {
             UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
         }
 
-        // Create a snapshot with yesterday's seed
+        // Create a snapshot with yesterday's seed and a completed game (won)
+        // Completed games should roll over to today's puzzle
         let board = Board(seed: 12345)
         let staleSeed = seedFromDate(Date()) - 1
         let staleSnapshot = GameSnapshot(
             board: board,
-            status: .playing,
+            status: .won, // Completed game should trigger rollover
             elapsedTime: 100.0,
             flagCount: 5,
             selectedRow: 4,
@@ -1830,7 +1831,7 @@ struct GameStatePersistenceTests {
         )
         staleSnapshot.save()
 
-        // Restore should create fresh game
+        // Restore should create fresh game for today
         let restoredState = GameState.restored()
 
         #expect(restoredState.status == .notStarted)
