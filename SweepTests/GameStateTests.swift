@@ -459,4 +459,42 @@ struct GameStateTests {
         gameState.reveal(row: mineRow, col: mineCol)
         #expect(gameState.status == .won, "Status should still be won")
     }
+
+    // MARK: - Bounds Safety
+
+    @Test("Reveal ignores out-of-bounds coordinates")
+    func testRevealOutOfBoundsIsNoOp() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        #expect(gameState.status == .notStarted)
+        #expect(gameState.elapsedTime == 0)
+        #expect(gameState.board.cells[0][0].state == .hidden)
+
+        gameState.reveal(row: -1, col: 0)
+        gameState.reveal(row: 0, col: -1)
+        gameState.reveal(row: 8, col: 0)
+        gameState.reveal(row: 0, col: 8)
+
+        #expect(gameState.status == .notStarted)
+        #expect(gameState.elapsedTime == 0)
+        #expect(gameState.board.cells[0][0].state == .hidden)
+    }
+
+    @Test("Toggle flag ignores out-of-bounds coordinates")
+    func testToggleFlagOutOfBoundsIsNoOp() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        #expect(gameState.flagCount == 0)
+        #expect(gameState.board.cells[0][0].state == .hidden)
+
+        gameState.toggleFlag(row: -1, col: 0)
+        gameState.toggleFlag(row: 0, col: -1)
+        gameState.toggleFlag(row: 8, col: 0)
+        gameState.toggleFlag(row: 0, col: 8)
+
+        #expect(gameState.flagCount == 0)
+        #expect(gameState.board.cells[0][0].state == .hidden)
+    }
 }

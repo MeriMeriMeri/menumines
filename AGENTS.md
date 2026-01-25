@@ -82,6 +82,7 @@ xcodebuild clean -scheme Sweep
 - Board size: 8x8 (64 cells)
 - Mine count: 10
 - First click is always safe (relocate mine if needed)
+- If the first click hits a mine, relocation uses system randomness (boards can diverge after that first click)
 
 ## Workflow
 

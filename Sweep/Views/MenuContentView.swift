@@ -30,6 +30,12 @@ struct MenuContentView: View {
         }
         .padding()
         .frame(width: 300)
+        .onAppear {
+            gameState.resumeTimer()
+        }
+        .onDisappear {
+            gameState.pauseTimer()
+        }
     }
 }
 

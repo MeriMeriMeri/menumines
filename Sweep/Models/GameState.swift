@@ -32,6 +32,7 @@ final class GameState {
     /// Reveals the cell at the given position.
     func reveal(row: Int, col: Int) {
         guard status == .notStarted || status == .playing else { return }
+        guard row >= 0, row < Board.rows, col >= 0, col < Board.cols else { return }
         guard case .hidden = board.cells[row][col].state else { return }
 
         let isFirstClick = (status == .notStarted)
@@ -61,6 +62,7 @@ final class GameState {
     /// Toggles the flag on the cell at the given position.
     func toggleFlag(row: Int, col: Int) {
         guard status == .notStarted || status == .playing else { return }
+        guard row >= 0, row < Board.rows, col >= 0, col < Board.cols else { return }
 
         let previousState = board.cells[row][col].state
         board.toggleFlag(row: row, col: col)
