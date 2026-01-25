@@ -11,3 +11,11 @@
 
 /* SweepApp - MenuBarExtra title */
 "menubar_title" = "Sweep";
+
+/* Share feature */
+"share_button" = "Share";
+"share_copied" = "Copied!";
+"share_header" = "Sweep - %@";
+"share_solved" = "Solved in %@";
+"share_failed" = "Failed in %@";
+"share_marked" = "Marked: %d/%d";

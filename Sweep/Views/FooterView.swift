@@ -3,12 +3,17 @@ import SwiftUI
 struct FooterView: View {
     @Environment(\.openSettings) private var openSettings
 
+    let isGameComplete: Bool
     let onReset: () -> Void
+    let onShare: () -> Void
     let onAbout: () -> Void
+
+    @State private var showCopiedFeedback = false
 
     var body: some View {
         HStack {
             Button(String(localized: "reset_button")) {
+                showCopiedFeedback = false
                 onReset()
             }
             .buttonStyle(.bordered)
@@ -16,6 +21,20 @@ struct FooterView: View {
             .accessibilityLabel(String(localized: "reset_accessibility_label"))
 
             Spacer()
+
+            if isGameComplete {
+                Button(showCopiedFeedback ? String(localized: "share_copied") : String(localized: "share_button")) {
+                    onShare()
+                    showCopiedFeedback = true
+                    AccessibilityNotification.Announcement(String(localized: "share_copied")).post()
+                    Task {
+                        try? await Task.sleep(for: .seconds(1.5))
+                        showCopiedFeedback = false
+                    }
+                }
+                .buttonStyle(.bordered)
+                .accessibilityLabel(String(localized: "share_button"))
+            }
 
             Menu {
                 Button(String(localized: "about_menu_item")) {
@@ -46,7 +65,12 @@ struct FooterView: View {
 
 // MARK: - Previews
 
-#Preview("Footer") {
-    FooterView(onReset: {}, onAbout: {})
+#Preview("Footer - Game In Progress") {
+    FooterView(isGameComplete: false, onReset: {}, onShare: {}, onAbout: {})
+        .padding()
+}
+
+#Preview("Footer - Game Complete") {
+    FooterView(isGameComplete: true, onReset: {}, onShare: {}, onAbout: {})
         .padding()
 }

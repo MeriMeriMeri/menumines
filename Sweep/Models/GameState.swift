@@ -29,6 +29,76 @@ final class GameState {
         self.board = board
     }
 
+    /// Generates a Wordle-style share text for the completed game.
+    /// The grid encodes only the revealed/marked/hidden outcome without exposing mine locations.
+    /// - Parameter date: The date to use for the header (defaults to current date formatted in UTC).
+    /// - Returns: The formatted share text, or nil if the game is not complete.
+    func shareText(for date: Date = Date()) -> String? {
+        guard status == .won || status == .lost else { return nil }
+
+        var lines: [String] = []
+
+        // Header with UTC date
+        let timeZone = TimeZone(identifier: "UTC") ?? TimeZone(secondsFromGMT: 0) ?? .current
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.timeZone = timeZone
+        formatter.locale = Locale.current
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        let dateString = formatter.string(from: date)
+        lines.append(String(format: String(localized: "share_header"), dateString))
+
+        // Result line with formatted time
+        let minutes = Int(elapsedTime) / 60
+        let seconds = Int(elapsedTime) % 60
+        let timeString = String(format: "%d:%02d", minutes, seconds)
+        if status == .won {
+            lines.append(String(format: String(localized: "share_solved"), timeString))
+        } else {
+            lines.append(String(format: String(localized: "share_failed"), timeString))
+        }
+
+        // Emoji grid - encode only visual outcome, not mine locations
+        // 🟩 = revealed safe cell
+        // 🚩 = flagged cell
+        // ⬛️ = unrevealed/hidden cell
+        for row in 0..<Board.rows {
+            var rowEmojis = ""
+            for col in 0..<Board.cols {
+                let cell = board.cells[row][col]
+                switch cell.state {
+                case .revealed:
+                    rowEmojis += "🟩"
+                case .flagged:
+                    rowEmojis += "🚩"
+                case .hidden:
+                    rowEmojis += "⬛️"
+                }
+            }
+            lines.append(rowEmojis)
+        }
+
+        // Marked count
+        let markedCorrect = countCorrectlyMarkedMines()
+        lines.append(String(format: String(localized: "share_marked"), markedCorrect, Board.mineCount))
+
+        return lines.joined(separator: "\n")
+    }
+
+    /// Counts the number of flags placed on actual mines.
+    private func countCorrectlyMarkedMines() -> Int {
+        var count = 0
+        for row in board.cells {
+            for cell in row {
+                if case .flagged = cell.state, cell.hasMine {
+                    count += 1
+                }
+            }
+        }
+        return count
+    }
+
     /// Reveals the cell at the given position.
     /// If the cell is already revealed with a number, performs a chord reveal instead.
     func reveal(row: Int, col: Int) {
