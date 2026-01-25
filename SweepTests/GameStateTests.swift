@@ -1,3 +1,4 @@
+import Foundation
 import Testing
 @testable import Sweep
 
@@ -517,5 +518,192 @@ struct GameStateTests {
 
         #expect(gameState.flagCount == 0)
         #expect(gameState.board.cells[0][0].state == .hidden)
+    }
+
+    // MARK: - Story 8: Timer Logic
+
+    /// Helper to run the main RunLoop for a duration, allowing Timer to fire
+    private func runLoopFor(seconds: TimeInterval) {
+        let deadline = Date(timeIntervalSinceNow: seconds)
+        while Date() < deadline {
+            RunLoop.main.run(until: Date(timeIntervalSinceNow: 0.1))
+        }
+    }
+
+    @Test("Timer starts on first reveal")
+    @MainActor
+    func testTimerStartsOnFirstReveal() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        #expect(gameState.status == .notStarted)
+        #expect(gameState.elapsedTime == 0)
+
+        gameState.reveal(row: 0, col: 0)
+
+        #expect(gameState.status == .playing)
+
+        // Run RunLoop to let timer fire
+        runLoopFor(seconds: 1.2)
+
+        #expect(gameState.elapsedTime >= 1)
+    }
+
+    @Test("Timer does not start before first click")
+    @MainActor
+    func testTimerDoesNotStartBeforeFirstClick() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        #expect(gameState.status == .notStarted)
+        #expect(gameState.elapsedTime == 0)
+
+        // Wait without clicking
+        runLoopFor(seconds: 1.2)
+
+        #expect(gameState.elapsedTime == 0, "Timer should not run before first click")
+        #expect(gameState.status == .notStarted)
+    }
+
+    @Test("Timer stops on win")
+    @MainActor
+    func testTimerStopsOnWin() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Reveal all non-mine cells to win
+        for r in 0..<8 {
+            for c in 0..<8 {
+                if !gameState.board.cells[r][c].hasMine {
+                    gameState.reveal(row: r, col: c)
+                }
+            }
+        }
+
+        #expect(gameState.status == .won)
+        let timeAtWin = gameState.elapsedTime
+
+        // Wait and verify timer has stopped
+        runLoopFor(seconds: 1.2)
+
+        #expect(gameState.elapsedTime == timeAtWin, "Timer should stop after winning")
+    }
+
+    @Test("Timer stops on lose")
+    @MainActor
+    func testTimerStopsOnLose() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Make a safe first click to start the game
+        var safeRow = -1, safeCol = -1
+        outer: for r in 0..<8 {
+            for c in 0..<8 {
+                if !gameState.board.cells[r][c].hasMine {
+                    safeRow = r
+                    safeCol = c
+                    break outer
+                }
+            }
+        }
+        gameState.reveal(row: safeRow, col: safeCol)
+        #expect(gameState.status == .playing)
+
+        // Find a mine and click it to lose
+        var mineRow = -1, mineCol = -1
+        outer2: for r in 0..<8 {
+            for c in 0..<8 {
+                if gameState.board.cells[r][c].hasMine {
+                    mineRow = r
+                    mineCol = c
+                    break outer2
+                }
+            }
+        }
+        gameState.reveal(row: mineRow, col: mineCol)
+
+        #expect(gameState.status == .lost)
+        let timeAtLoss = gameState.elapsedTime
+
+        // Wait and verify timer has stopped
+        runLoopFor(seconds: 1.2)
+
+        #expect(gameState.elapsedTime == timeAtLoss, "Timer should stop after losing")
+    }
+
+    @Test("Elapsed time is initially zero")
+    func testElapsedTimeInitiallyZero() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        #expect(gameState.elapsedTime == 0)
+    }
+
+    @Test("Pause timer stops time increment")
+    @MainActor
+    func testPauseTimerStopsTimeIncrement() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Start game
+        gameState.reveal(row: 0, col: 0)
+        #expect(gameState.status == .playing)
+
+        // Wait for timer to tick
+        runLoopFor(seconds: 1.2)
+        let timeBeforePause = gameState.elapsedTime
+        #expect(timeBeforePause >= 1)
+
+        // Pause timer
+        gameState.pauseTimer()
+
+        // Wait and verify time doesn't increase
+        runLoopFor(seconds: 1.2)
+
+        #expect(gameState.elapsedTime == timeBeforePause, "Timer should not increment while paused")
+    }
+
+    @Test("Resume timer continues from paused time")
+    @MainActor
+    func testResumeTimerContinuesFromPausedTime() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Start game
+        gameState.reveal(row: 0, col: 0)
+        #expect(gameState.status == .playing)
+
+        // Wait for timer to tick
+        runLoopFor(seconds: 1.2)
+        let timeBeforePause = gameState.elapsedTime
+        #expect(timeBeforePause >= 1)
+
+        // Pause and resume
+        gameState.pauseTimer()
+        let pausedTime = gameState.elapsedTime
+        gameState.resumeTimer()
+
+        // Wait for timer to tick after resume
+        runLoopFor(seconds: 1.2)
+
+        #expect(gameState.elapsedTime > pausedTime, "Timer should continue incrementing after resume")
+    }
+
+    @Test("Resume timer does nothing if game not playing")
+    @MainActor
+    func testResumeTimerDoesNothingIfNotPlaying() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        #expect(gameState.status == .notStarted)
+        #expect(gameState.elapsedTime == 0)
+
+        // Try to resume when not playing
+        gameState.resumeTimer()
+
+        // Wait and verify timer didn't start
+        runLoopFor(seconds: 1.2)
+
+        #expect(gameState.elapsedTime == 0, "Resume should not start timer when game not in .playing status")
     }
 }
