@@ -2,6 +2,7 @@ import SwiftUI
 
 struct FooterView: View {
     @Environment(\.openSettings) private var openSettings
+    @Environment(\.openWindow) private var openWindow
 
     let isGameComplete: Bool
     let canReset: Bool
@@ -41,6 +42,11 @@ struct FooterView: View {
 
                 Button(String(localized: "about_menu_item")) {
                     onAbout()
+                }
+
+                Button(String(localized: "stats_menu_item")) {
+                    NSApp.activate(ignoringOtherApps: true)
+                    openWindow(id: "stats")
                 }
 
                 Button(String(localized: "settings_menu_item")) {

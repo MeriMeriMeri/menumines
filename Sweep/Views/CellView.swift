@@ -173,7 +173,12 @@ private class ClickableNSView: NSView {
     var onRightClick: (() -> Void)?
 
     override func mouseDown(with event: NSEvent) {
-        onLeftClick?()
+        if event.modifierFlags.contains(.control) {
+            // Control+Click is the macOS convention for secondary click
+            onRightClick?()
+        } else {
+            onLeftClick?()
+        }
     }
 
     override func rightMouseDown(with event: NSEvent) {

@@ -362,6 +362,18 @@ final class GameState {
         isPaused = false
     }
 
+    /// Records the game result to the stats store.
+    private func recordGameResult(won: Bool) {
+        let result = GameResult(
+            won: won,
+            elapsedTime: elapsedTime,
+            dailySeed: dailySeed
+        )
+        Task { @MainActor in
+            StatsStore.shared.record(result)
+        }
+    }
+
     private func checkWinCondition() -> Bool {
         for row in board.cells {
             for cell in row where !cell.hasMine {
@@ -374,9 +386,10 @@ final class GameState {
     }
 
     /// Handles game completion (win or loss).
-    /// Atomically marks daily puzzle as complete and records stats.
+    /// Atomically marks daily puzzle as complete and records stats to both systems.
     private func handleGameComplete(won: Bool) {
         stopTimer()
         markCompleteAndRecordStats(won: won, elapsedTime: elapsedTime, flagCount: flagCount)
+        recordGameResult(won: won)
     }
 }

@@ -28,6 +28,10 @@
 		A1000070229E0070 /* MenuBarIconState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000071229E0071 /* MenuBarIconState.swift */; };
 		A1000062229E0062 /* MenuBarIconStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000063229E0063 /* MenuBarIconStateTests.swift */; };
 		A1000064229E0064 /* DailyCompletionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000065229E0065 /* DailyCompletionTests.swift */; };
+		A1000080229E0080 /* GameResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000081229E0081 /* GameResult.swift */; };
+		A1000082229E0082 /* StatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000083229E0083 /* StatsStore.swift */; };
+		A1000084229E0084 /* StatsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000085229E0085 /* StatsWindow.swift */; };
+		A1000086229E0086 /* StatsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000087229E0087 /* StatsStoreTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -63,6 +67,10 @@
 		A1000071229E0071 /* MenuBarIconState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarIconState.swift; sourceTree = "<group>"; };
 		A1000063229E0063 /* MenuBarIconStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarIconStateTests.swift; sourceTree = "<group>"; };
 		A1000065229E0065 /* DailyCompletionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyCompletionTests.swift; sourceTree = "<group>"; };
+		A1000081229E0081 /* GameResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameResult.swift; sourceTree = "<group>"; };
+		A1000083229E0083 /* StatsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsStore.swift; sourceTree = "<group>"; };
+		A1000085229E0085 /* StatsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsWindow.swift; sourceTree = "<group>"; };
+		A1000087229E0087 /* StatsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsStoreTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXVariantGroup section */
@@ -135,6 +143,7 @@
 				A1000040229E0040 /* ConfettiView.swift */,
 				A1000042229E0042 /* AboutWindow.swift */,
 				A1000061229E0061 /* SettingsView.swift */,
+				A1000085229E0085 /* StatsWindow.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -146,7 +155,9 @@
 				A100001C229E001C /* Board.swift */,
 				A100001E229E001E /* GameState.swift */,
 				A1000020229E0020 /* DailyBoard.swift */,
+				A1000081229E0081 /* GameResult.swift */,
 				A1000071229E0071 /* MenuBarIconState.swift */,
+				A1000083229E0083 /* StatsStore.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -167,6 +178,7 @@
 				A100003E229E003E /* BoardTests.swift */,
 				A1000063229E0063 /* MenuBarIconStateTests.swift */,
 				A1000065229E0065 /* DailyCompletionTests.swift */,
+				A1000087229E0087 /* StatsStoreTests.swift */,
 			);
 			path = SweepTests;
 			sourceTree = "<group>";
@@ -283,7 +295,9 @@
 				A100001B229E001B /* Board.swift in Sources */,
 				A100001D229E001D /* GameState.swift in Sources */,
 				A100001F229E001F /* DailyBoard.swift in Sources */,
+				A1000080229E0080 /* GameResult.swift in Sources */,
 				A1000070229E0070 /* MenuBarIconState.swift in Sources */,
+				A1000082229E0082 /* StatsStore.swift in Sources */,
 				A1000021229E0021 /* CellView.swift in Sources */,
 				A1000023229E0023 /* GameBoardView.swift in Sources */,
 				A1000025229E0025 /* HeaderView.swift in Sources */,
@@ -291,6 +305,7 @@
 				A100003F229E003F /* ConfettiView.swift in Sources */,
 				A1000041229E0041 /* AboutWindow.swift in Sources */,
 				A1000060229E0060 /* SettingsView.swift in Sources */,
+				A1000084229E0084 /* StatsWindow.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -302,6 +317,7 @@
 				A100003D229E003D /* BoardTests.swift in Sources */,
 				A1000062229E0062 /* MenuBarIconStateTests.swift in Sources */,
 				A1000064229E0064 /* DailyCompletionTests.swift in Sources */,
+				A1000086229E0086 /* StatsStoreTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
