@@ -46,8 +46,6 @@ struct ConfettiView: View {
         Text("🎉")
             .font(.system(size: 48))
             .opacity(isActive ? 1 : 0)
-            .scaleEffect(isActive ? 1 : 0.5)
-            .animation(.easeOut(duration: 0.3), value: isActive)
     }
 
     private func calculatePhase(at date: Date) -> CGFloat {

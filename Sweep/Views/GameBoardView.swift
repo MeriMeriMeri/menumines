@@ -15,6 +15,8 @@ struct GameBoardView: View {
                     ForEach(0..<Board.cols, id: \.self) { col in
                         CellView(
                             cell: board.cells[row][col],
+                            row: row,
+                            col: col,
                             gameStatus: gameStatus,
                             isSelected: row == selectedRow && col == selectedCol,
                             onReveal: { onReveal(row, col) },

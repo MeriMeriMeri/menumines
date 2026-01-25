@@ -21,6 +21,7 @@ struct FooterView: View {
             }
             .buttonStyle(.borderless)
             .help(String(localized: "about_help"))
+            .accessibilityLabel(String(localized: "about_help"))
 
             Button(String(localized: "quit_button")) {
                 NSApplication.shared.terminate(nil)
