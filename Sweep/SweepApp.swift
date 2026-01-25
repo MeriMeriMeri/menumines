@@ -1,4 +1,5 @@
 import AppKit
+import Sentry
 import SwiftUI
 
 @main
@@ -8,6 +9,15 @@ struct SweepApp: App {
     private static var eventMonitor: Any?
 
     init() {
+        SentrySDK.start { options in
+            options.dsn = "https://f8ecbb949a8bf0fd4753391a9947b061@o4510771621789696.ingest.us.sentry.io/4510771626311680"
+            #if DEBUG
+            options.debug = true
+            #endif
+            options.tracesSampleRate = 1.0
+            options.enableAutoSessionTracking = true
+        }
+
         let state = GameState(board: dailyBoard())
         _gameState = State(initialValue: state)
         Self.setupKeyboardMonitor(for: state)
