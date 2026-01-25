@@ -1,0 +1,74 @@
+# Sweep
+
+A minimalist Minesweeper for your menu bar.
+
+## What is Sweep?
+
+Sweep is a menu bar Minesweeper game for macOS that brings the classic puzzle to your fingertips:
+
+- **Always accessible** - Lives in your menu bar, one click away
+- **Daily puzzle** - Same board for everyone, every day
+- **No decisions** - Just open and play, no setup required
+- **Distraction-free** - No dock icon, no clutter
+
+## Screenshots
+
+<!-- TODO: Add screenshots -->
+
+## Installation
+
+### Download
+
+Download the latest release from the [Releases](https://github.com/yourusername/sweep/releases) page.
+
+1. Download `Sweep.dmg`
+2. Open the DMG and drag Sweep to Applications
+3. Launch Sweep from Applications
+4. Click the mine icon in your menu bar to play
+
+### Build from Source
+
+Requires Xcode 15+ and macOS 13+ (Ventura).
+
+```bash
+git clone https://github.com/yourusername/sweep.git
+cd sweep
+xcodebuild -scheme Sweep -configuration Release
+```
+
+The built app will be in `build/Release/Sweep.app`.
+
+## How to Play
+
+Clear the 8x8 board without hitting any of the 10 hidden mines.
+
+### Controls
+
+| Action | Mouse | Keyboard |
+|--------|-------|----------|
+| Reveal cell | Left-click | Space |
+| Toggle flag | Right-click | F |
+| Move selection | - | Arrow keys |
+
+### Rules
+
+- Numbers show how many mines are in adjacent cells (including diagonals)
+- Flag cells you think contain mines
+- Reveal all non-mine cells to win
+- Hit a mine and it's game over
+
+## Daily Board
+
+Every day, Sweep generates a new puzzle using a deterministic seed based on the date. This means:
+
+- Everyone gets the same board on the same day
+- You can compare times with friends
+- Come back tomorrow for a fresh challenge
+
+## Requirements
+
+- macOS 13.0 (Ventura) or later
+
+## License
+
+GPL-3.0 - See [LICENSE](LICENSE) for details.
