@@ -23,6 +23,7 @@
 		A100003D229E003D /* BoardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100003E229E003E /* BoardTests.swift */; };
 		A100003F229E003F /* ConfettiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000040229E0040 /* ConfettiView.swift */; };
 		A1000041229E0041 /* AboutWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000042229E0042 /* AboutWindow.swift */; };
+		A1000060229E0060 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000061229E0061 /* SettingsView.swift */; };
 		A1000050229E0050 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = A1000051229E0051 /* Sentry */; };
 /* End PBXBuildFile section */
 
@@ -54,6 +55,7 @@
 		A100003E229E003E /* BoardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardTests.swift; sourceTree = "<group>"; };
 		A1000040229E0040 /* ConfettiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfettiView.swift; sourceTree = "<group>"; };
 		A1000042229E0042 /* AboutWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutWindow.swift; sourceTree = "<group>"; };
+		A1000061229E0061 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		A1000044229E0044 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -126,6 +128,7 @@
 				A1000028229E0028 /* FooterView.swift */,
 				A1000040229E0040 /* ConfettiView.swift */,
 				A1000042229E0042 /* AboutWindow.swift */,
+				A1000061229E0061 /* SettingsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -277,6 +280,7 @@
 				A1000027229E0027 /* FooterView.swift in Sources */,
 				A100003F229E003F /* ConfettiView.swift in Sources */,
 				A1000041229E0041 /* AboutWindow.swift in Sources */,
+				A1000060229E0060 /* SettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -73,5 +73,9 @@ struct SweepApp: App {
             MenuContentView(gameState: gameState)
         }
         .menuBarExtraStyle(.window)
+
+        Settings {
+            SettingsView()
+        }
     }
 }
