@@ -104,12 +104,11 @@ private struct ConfettiParticleView: View {
     }
 
     private var opacity: CGFloat {
-        if adjustedPhase < 0.1 {
-            return adjustedPhase * 10
-        } else if adjustedPhase > 0.8 {
-            return (1 - adjustedPhase) * 5
+        switch adjustedPhase {
+        case ..<0.1: adjustedPhase * 10
+        case 0.8...: (1 - adjustedPhase) * 5
+        default: 1
         }
-        return 1
     }
 
     var body: some View {
