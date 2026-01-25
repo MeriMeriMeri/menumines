@@ -1,4 +1,5 @@
 import Foundation
+import Sentry
 
 /// Returns today's daily board using a UTC date-based seed.
 func dailyBoard() -> Board {
@@ -103,8 +104,22 @@ func recordStats(for date: Date, won: Bool, elapsedTime: TimeInterval, flagCount
     let seed = seedFromDate(date)
     let stats = DailyStats(seed: seed, won: won, elapsedTime: elapsedTime, flagCount: flagCount)
 
-    // Encode stats - fail fast if encoding fails
-    guard let data = try? JSONEncoder().encode(stats) else { return false }
+    // Encode stats
+    let data: Data
+    do {
+        data = try JSONEncoder().encode(stats)
+    } catch {
+        SentrySDK.capture(error: error) { scope in
+            scope.setTag(value: "daily_stats_save", key: "operation")
+            scope.setContext(value: [
+                "daily_seed": seed,
+                "won": won,
+                "elapsed_time": elapsedTime,
+                "flag_count": flagCount
+            ], key: "game_state")
+        }
+        return false
+    }
 
     // Save the stats record
     UserDefaults.standard.set(data, forKey: statsKey(for: seed))
