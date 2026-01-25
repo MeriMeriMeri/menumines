@@ -27,13 +27,13 @@ struct HeaderView: View {
     private var statusDescription: String {
         switch status {
         case .notStarted:
-            return "Ready to play"
+            return String(localized: "status_ready")
         case .playing:
-            return "Game in progress"
+            return String(localized: "status_playing")
         case .won:
-            return "You won!"
+            return String(localized: "status_won")
         case .lost:
-            return "Game over"
+            return String(localized: "status_lost")
         }
     }
 
@@ -80,7 +80,7 @@ struct HeaderView: View {
                     .font(.system(size: 24))
             }
             .buttonStyle(.plain)
-            .accessibilityLabel(String(localized: "reset_accessibility_label"))
+            .accessibilityLabel(String(format: String(localized: "reset_accessibility_combined"), statusDescription))
             .accessibilityHint(String(localized: "reset_accessibility_hint"))
 
             Spacer()
