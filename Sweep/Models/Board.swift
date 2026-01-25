@@ -89,7 +89,6 @@ struct Board: Equatable {
 
     /// Toggles the flag state of a hidden cell.
     mutating func toggleFlag(row: Int, col: Int) {
-        // Stub: Track A will implement
         guard row >= 0, row < Board.rows, col >= 0, col < Board.cols else { return }
 
         switch cells[row][col].state {
@@ -111,7 +110,6 @@ struct Board: Equatable {
     /// Relocates a mine from the given position to a random empty cell.
     /// Used for first-click safety.
     mutating func relocateMine(from row: Int, col: Int) {
-        // Stub: Track A (Story 5A) will implement
         guard row >= 0, row < Board.rows, col >= 0, col < Board.cols else { return }
         guard cells[row][col].hasMine else { return }
 
