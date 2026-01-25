@@ -20,6 +20,9 @@ struct MenuContentView: View {
     }
 
     private func handleResetRequest() {
+        // Prevent multiple reset requests while confirmation dialog is already showing
+        guard !showResetConfirmation else { return }
+
         if confirmBeforeReset {
             showResetConfirmation = true
         } else {
@@ -28,7 +31,6 @@ struct MenuContentView: View {
     }
 
     private func performReset() {
-        showCelebration = false
         gameState.reset()
     }
 
@@ -95,7 +97,7 @@ struct MenuContentView: View {
             gameState.pauseTimer()
             gameState.save()
         }
-        .onChange(of: gameState.status) { _, newStatus in
+        .onChange(of: gameState.status) { oldStatus, newStatus in
             switch newStatus {
             case .won:
                 showCelebration = true
@@ -104,8 +106,16 @@ struct MenuContentView: View {
             case .lost:
                 announceGameResult(won: false)
                 gameState.save()
-            default:
-                break
+            case .playing:
+                // Clear celebration when resetting from won state
+                if oldStatus == .won {
+                    showCelebration = false
+                }
+            case .notStarted:
+                // Clear celebration when resetting from won state
+                if oldStatus == .won {
+                    showCelebration = false
+                }
             }
         }
         .alert(
