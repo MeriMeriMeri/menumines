@@ -141,7 +141,7 @@ User stories are tracked in Linear under the Sweep project.
 
 **When done:**
 - Ensure all acceptance criteria are met
-- Move the issue to "Done" status
+- Leave the issue in "In Progress" status (do NOT move to "Done" - another process handles that)
 
 ### Linear Details
 - Organization: `merimerimeri`
