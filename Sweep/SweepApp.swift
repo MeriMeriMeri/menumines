@@ -98,6 +98,12 @@ struct SweepApp: App {
         Settings {
             SettingsView()
         }
+
+        Window(String(localized: "stats_window_title"), id: "stats") {
+            StatsWindow()
+        }
+        .windowResizability(.contentSize)
+        .defaultPosition(.center)
     }
 }
 
