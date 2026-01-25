@@ -19,6 +19,8 @@
 "settings_show_menu_bar_indicators_footer" = "When off, the menu bar icon stays constant.";
 "settings_confirm_before_reset" = "Confirm before reset";
 "settings_confirm_before_reset_footer" = "Show a confirmation dialog before resetting the game.";
+"settings_allow_refresh_after_completion" = "Allow refresh after completion";
+"settings_allow_refresh_after_completion_footer" = "When on, you can replay today's puzzle after winning or losing. Only your first game counts toward stats.";
 
 /* Reset confirmation dialog */
 "reset_confirmation_title" = "Reset Game?";

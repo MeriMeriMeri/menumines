@@ -62,6 +62,108 @@ struct SettingsTests {
         }
     }
 
+    // MARK: - Allow Refresh After Completion Setting
+
+    @Test("Allow refresh after completion key is properly namespaced")
+    func testAllowRefreshAfterCompletionKeyIsNamespaced() {
+        #expect(Constants.SettingsKeys.allowRefreshAfterCompletion == "com.sweep.allowRefreshAfterCompletion")
+    }
+
+    @Test("Allow refresh after completion can be toggled via UserDefaults")
+    func testAllowRefreshAfterCompletionCanBeToggled() {
+        let key = Constants.SettingsKeys.allowRefreshAfterCompletion
+
+        // Save initial state to restore after test
+        let initialValue = UserDefaults.standard.object(forKey: key)
+
+        // Test setting to true
+        UserDefaults.standard.set(true, forKey: key)
+        #expect(UserDefaults.standard.bool(forKey: key) == true)
+
+        // Test setting to false
+        UserDefaults.standard.set(false, forKey: key)
+        #expect(UserDefaults.standard.bool(forKey: key) == false)
+
+        // Restore initial state
+        if let initial = initialValue {
+            UserDefaults.standard.set(initial, forKey: key)
+        } else {
+            UserDefaults.standard.removeObject(forKey: key)
+        }
+    }
+
+    @Test("canReset is true after completion when allowRefreshAfterCompletion is enabled")
+    func testCanResetTrueAfterCompletionWhenSettingEnabled() {
+        let settingKey = Constants.SettingsKeys.allowRefreshAfterCompletion
+
+        // Save initial states
+        let initialSettingValue = UserDefaults.standard.object(forKey: settingKey)
+        UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+        let todaySeed = seedFromDate(Date())
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+
+        defer {
+            // Restore initial states
+            if let initial = initialSettingValue {
+                UserDefaults.standard.set(initial, forKey: settingKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: settingKey)
+            }
+            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        }
+
+        // Enable the setting
+        UserDefaults.standard.set(true, forKey: settingKey)
+
+        // Mark daily as complete
+        markDailyPuzzleComplete()
+
+        // Create a game state and check canReset
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        #expect(gameState.canReset == true, "canReset should be true when allowRefreshAfterCompletion is enabled")
+    }
+
+    @Test("canReset is false after completion when allowRefreshAfterCompletion is disabled")
+    func testCanResetFalseAfterCompletionWhenSettingDisabled() {
+        let settingKey = Constants.SettingsKeys.allowRefreshAfterCompletion
+
+        // Save initial states
+        let initialSettingValue = UserDefaults.standard.object(forKey: settingKey)
+        UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+        let todaySeed = seedFromDate(Date())
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+
+        defer {
+            // Restore initial states
+            if let initial = initialSettingValue {
+                UserDefaults.standard.set(initial, forKey: settingKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: settingKey)
+            }
+            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        }
+
+        // Disable the setting (default behavior)
+        UserDefaults.standard.set(false, forKey: settingKey)
+
+        // Mark daily as complete
+        markDailyPuzzleComplete()
+
+        // Create a game state and check canReset
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        #expect(gameState.canReset == false, "canReset should be false when allowRefreshAfterCompletion is disabled")
+    }
+
     @Test("Menu bar indicators can be toggled via UserDefaults")
     func testMenuBarIndicatorsCanBeToggled() {
         let key = Constants.SettingsKeys.showMenuBarIndicators

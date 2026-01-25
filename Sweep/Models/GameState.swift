@@ -104,9 +104,12 @@ final class GameState {
     /// Cache the last date we checked for rollover to avoid redundant calculations
     private var lastRolloverCheckDate: Date?
 
-    /// Whether reset is allowed. Reset is locked once today's puzzle is completed.
+    /// Whether reset is allowed.
+    /// Reset is locked once today's puzzle is completed, unless the user has enabled
+    /// the "allow refresh after completion" setting.
     var canReset: Bool {
-        !isDailyPuzzleComplete()
+        let allowRefresh = UserDefaults.standard.bool(forKey: Constants.SettingsKeys.allowRefreshAfterCompletion)
+        return allowRefresh || !isDailyPuzzleComplete()
     }
 
     init(board: Board, dailySeed: Int64 = seedFromDate(Date())) {
