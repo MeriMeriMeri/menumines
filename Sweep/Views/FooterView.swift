@@ -1,12 +1,14 @@
 import SwiftUI
 
 struct FooterView: View {
+    @Environment(\.openSettings) private var openSettings
+
     let onReset: () -> Void
     let onAbout: () -> Void
 
     var body: some View {
         HStack {
-            Button(String(localized: "reset_button")) {
+            Button("Reset") {
                 onReset()
             }
             .buttonStyle(.bordered)
@@ -20,14 +22,26 @@ struct FooterView: View {
                 Image(systemName: "info.circle")
             }
             .buttonStyle(.borderless)
-            .help(String(localized: "about_help"))
-            .accessibilityLabel(String(localized: "about_help"))
+            .help("About Sweep")
 
-            Button(String(localized: "quit_button")) {
-                NSApplication.shared.terminate(nil)
+            Menu {
+                Button("Settings...") {
+                    openSettings()
+                }
+                .keyboardShortcut(",", modifiers: .command)
+
+                Divider()
+
+                Button("Quit Sweep") {
+                    NSApplication.shared.terminate(nil)
+                }
+                .keyboardShortcut("q", modifiers: .command)
+            } label: {
+                Image(systemName: "gearshape")
             }
-            .buttonStyle(.bordered)
-            .keyboardShortcut("q", modifiers: .command)
+            .menuStyle(.borderlessButton)
+            .menuIndicator(.hidden)
+            .help("Settings")
         }
         .padding(.horizontal, 8)
     }
