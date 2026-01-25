@@ -17,11 +17,8 @@ struct CellView: View {
         .frame(width: Self.cellSize, height: Self.cellSize)
         .overlay(selectionBorder)
         .onTapGesture(perform: onReveal)
-        .onTapGesture(count: 1) {
-            // Handled by contextMenu for right-click
-        }
         .contextMenu {
-            Button("Flag") { onFlag() }
+            Button(cell.state == .flagged ? "Unflag" : "Flag") { onFlag() }
         }
     }
 
@@ -104,33 +101,40 @@ struct CellView: View {
 // MARK: - Raised Cell Background
 
 private struct RaisedCellBackground: View {
+    private let bevelWidth: CGFloat = 3
+
     var body: some View {
-        ZStack {
-            Color(nsColor: .controlColor)
+        GeometryReader { geometry in
+            let size = geometry.size.width
+            let inset = bevelWidth
 
-            // Top and left highlight
-            Path { path in
-                path.move(to: CGPoint(x: 0, y: 32))
-                path.addLine(to: CGPoint(x: 0, y: 0))
-                path.addLine(to: CGPoint(x: 32, y: 0))
-                path.addLine(to: CGPoint(x: 29, y: 3))
-                path.addLine(to: CGPoint(x: 3, y: 3))
-                path.addLine(to: CGPoint(x: 3, y: 29))
-                path.closeSubpath()
-            }
-            .fill(Color.white.opacity(0.5))
+            ZStack {
+                Color(nsColor: .controlColor)
 
-            // Bottom and right shadow
-            Path { path in
-                path.move(to: CGPoint(x: 32, y: 0))
-                path.addLine(to: CGPoint(x: 32, y: 32))
-                path.addLine(to: CGPoint(x: 0, y: 32))
-                path.addLine(to: CGPoint(x: 3, y: 29))
-                path.addLine(to: CGPoint(x: 29, y: 29))
-                path.addLine(to: CGPoint(x: 29, y: 3))
-                path.closeSubpath()
+                // Top and left highlight
+                Path { path in
+                    path.move(to: CGPoint(x: 0, y: size))
+                    path.addLine(to: CGPoint(x: 0, y: 0))
+                    path.addLine(to: CGPoint(x: size, y: 0))
+                    path.addLine(to: CGPoint(x: size - inset, y: inset))
+                    path.addLine(to: CGPoint(x: inset, y: inset))
+                    path.addLine(to: CGPoint(x: inset, y: size - inset))
+                    path.closeSubpath()
+                }
+                .fill(Color.white.opacity(0.5))
+
+                // Bottom and right shadow
+                Path { path in
+                    path.move(to: CGPoint(x: size, y: 0))
+                    path.addLine(to: CGPoint(x: size, y: size))
+                    path.addLine(to: CGPoint(x: 0, y: size))
+                    path.addLine(to: CGPoint(x: inset, y: size - inset))
+                    path.addLine(to: CGPoint(x: size - inset, y: size - inset))
+                    path.addLine(to: CGPoint(x: size - inset, y: inset))
+                    path.closeSubpath()
+                }
+                .fill(Color.black.opacity(0.3))
             }
-            .fill(Color.black.opacity(0.3))
         }
     }
 }
