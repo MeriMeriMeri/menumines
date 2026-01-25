@@ -71,6 +71,27 @@ struct GameStateTests {
         #expect(gameState.board.cells[0][0].state == .flagged)
     }
 
+    @Test("Cannot flag a revealed cell")
+    func testCannotFlagRevealedCell() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Reveal a cell first
+        gameState.reveal(row: 0, col: 0)
+        let initialFlagCount = gameState.flagCount
+
+        // Try to flag the revealed cell
+        gameState.toggleFlag(row: 0, col: 0)
+
+        // Cell should still be revealed, flag count unchanged
+        if case .revealed = gameState.board.cells[0][0].state {
+            // Cell is still revealed
+        } else {
+            Issue.record("Expected cell to remain revealed")
+        }
+        #expect(gameState.flagCount == initialFlagCount)
+    }
+
     @Test("Reset restores initial state")
     func testResetRestoresInitialState() {
         let board = Board(seed: 12345)
