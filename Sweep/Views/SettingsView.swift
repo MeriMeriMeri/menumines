@@ -38,6 +38,7 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
+        // Fixed frame for initial release. Adjust when adding more settings (currently 3 settings).
         .frame(width: 350, height: 290)
     }
 }
