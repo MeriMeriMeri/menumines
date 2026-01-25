@@ -42,10 +42,9 @@ struct Board: Equatable {
         }
     }
 
-    /// Reveals the cell at the given position.
+    /// Reveals the cell at the given position with flood-fill cascade for zero-adjacent cells.
     /// - Returns: `.mine` if the cell contains a mine, `.safe(cellsRevealed:)` otherwise.
     mutating func reveal(row: Int, col: Int) -> RevealResult {
-        // Stub: Track A (Story 4A) will implement
         guard row >= 0, row < Board.rows, col >= 0, col < Board.cols else {
             return .safe(cellsRevealed: 0)
         }
@@ -58,9 +57,34 @@ struct Board: Equatable {
             return .mine
         }
 
-        let adjacent = adjacentMineCount(row: row, col: col)
-        cells[row][col].state = .revealed(adjacentMines: adjacent)
-        return .safe(cellsRevealed: 1)
+        // Flood-fill reveal using a stack
+        var stack = [(row, col)]
+        var cellsRevealed = 0
+
+        while let (r, c) = stack.popLast() {
+            // Skip if out of bounds
+            guard r >= 0, r < Board.rows, c >= 0, c < Board.cols else { continue }
+            // Skip if not hidden (already revealed or flagged)
+            guard case .hidden = cells[r][c].state else { continue }
+            // Skip mines
+            guard !cells[r][c].hasMine else { continue }
+
+            let adjacent = adjacentMineCount(row: r, col: c)
+            cells[r][c].state = .revealed(adjacentMines: adjacent)
+            cellsRevealed += 1
+
+            // If zero adjacent mines, add all 8 neighbors to the stack
+            if adjacent == 0 {
+                for dr in -1...1 {
+                    for dc in -1...1 {
+                        if dr == 0 && dc == 0 { continue }
+                        stack.append((r + dr, c + dc))
+                    }
+                }
+            }
+        }
+
+        return .safe(cellsRevealed: cellsRevealed)
     }
 
     /// Toggles the flag state of a hidden cell.
