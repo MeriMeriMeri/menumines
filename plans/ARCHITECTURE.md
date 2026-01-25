@@ -11,10 +11,10 @@
 │   (GameBoardView, CellView, MenuContentView)        │
 ├─────────────────────────────────────────────────────┤
 │                 Game Logic Layer                     │
-│   (Board, Cell, GameState, SeededGenerator)         │
+│           (Board, Cell, GameState)                  │
 ├─────────────────────────────────────────────────────┤
-│               Daily Board Service                    │
-│             (DailyBoardService)                      │
+│                 Daily Board                          │
+│         (free functions for seed/date)              │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -24,7 +24,7 @@
 
 ### Module A: Game Logic (No UI Dependencies)
 
-Pure Swift types with no UI framework imports. Uses GameplayKit for deterministic RNG.
+Pure Swift types with no UI framework imports. Board uses GameplayKit directly for deterministic RNG.
 
 #### Cell.swift
 ```swift
@@ -60,8 +60,8 @@ struct Board {
 enum RevealResult {
     case safe(cellsRevealed: Int)
     case mine
-    case alreadyRevealed
 }
+// Note: GameState guards against revealing already-revealed cells, so Board doesn't need to handle it
 ```
 
 #### GameState.swift
@@ -110,7 +110,7 @@ func reveal(row: Int, col: Int) {
         status = .lost
         stopTimer()
         board.cells[row][col].isExploded = true
-    case .safe, .alreadyRevealed:
+    case .safe:
         if checkWinCondition() {
             status = .won
             stopTimer()
@@ -146,46 +146,37 @@ enum GameStatus {
 
 **Reveal Cascading:** When revealing a cell with 0 adjacent mines, automatically reveal all adjacent cells (recursive flood fill). Board only handles mechanics—it doesn't check win/lose.
 
-#### SeededGenerator.swift
+#### DailyBoard.swift
 ```swift
 import GameplayKit
 
-final class SeededGenerator {
-    private let source: GKLinearCongruentialRandomSource
+/// Free functions for daily board generation. No class needed—these are pure functions.
+func dailyBoard() -> Board {
+    return boardForDate(Date())
+}
 
-    init(seed: Int64) {
-        source = GKLinearCongruentialRandomSource(seed: UInt64(bitPattern: seed))
-    }
+func boardForDate(_ date: Date) -> Board {
+    let seed = seedFromDate(date)
+    return Board(seed: seed)
+}
 
-    func nextInt(upperBound: Int) -> Int {
-        return source.nextInt(upperBound: upperBound)
-    }
+private func seedFromDate(_ date: Date) -> Int64 {
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = TimeZone(identifier: "UTC")!
+    let year = calendar.component(.year, from: date)
+    let month = calendar.component(.month, from: date)
+    let day = calendar.component(.day, from: date)
+    return Int64(year * 10000 + month * 100 + day)
 }
 ```
 
----
-
-### Module B: Daily Board Service (Depends on A)
-
-#### DailyBoardService.swift
+#### Board RNG Usage
 ```swift
-final class DailyBoardService {
-    func boardForToday() -> Board {
-        return boardForDate(Date())
-    }
-
-    func boardForDate(_ date: Date) -> Board {
-        let seed = seedFromDate(date)
-        return Board(seed: seed)
-    }
-
-    private func seedFromDate(_ date: Date) -> Int64 {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(identifier: "UTC")!
-        let year = calendar.component(.year, from: date)
-        let month = calendar.component(.month, from: date)
-        let day = calendar.component(.day, from: date)
-        return Int64(year * 10000 + month * 100 + day)
+// Board.init uses GameplayKit directly—no wrapper class needed
+struct Board {
+    init(seed: Int64) {
+        let rng = GKLinearCongruentialRandomSource(seed: UInt64(bitPattern: seed))
+        // Use rng.nextInt(upperBound:) directly for mine placement
     }
 }
 ```
@@ -254,8 +245,7 @@ struct SweepApp: App {
     @State private var gameState: GameState
 
     init() {
-        let service = DailyBoardService()
-        _gameState = State(initialValue: GameState(board: service.boardForToday()))
+        _gameState = State(initialValue: GameState(board: dailyBoard()))
     }
 
     var body: some Scene {
@@ -292,31 +282,16 @@ NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak gameState] event in
 
 ---
 
-## Parallel Work Streams
-
-| Stream | Module | Dependencies | Can Start |
-|--------|--------|--------------|-----------|
-| 1 | Game Logic (Cell, Board, GameState, SeededGenerator) | None (GameplayKit only) | Immediately |
-| 2 | Daily Board Service | Game Logic | After SeededGenerator defined |
-| 3 | UI Components | Game Logic | After GameState defined |
-| 4 | App Shell | All modules | After modules stubbed |
-
----
-
 ## Implementation Phases
 
 ### Phase 1: Foundation
 
 **Game Logic:**
 - [ ] `Cell` struct and `CellState` enum
-- [ ] `SeededGenerator` wrapping GameplayKit
-- [ ] `Board` struct with initializer (no mines yet)
+- [ ] `Board` struct with seeded RNG (uses GameplayKit directly)
 - [ ] `GameState` class with `@Observable`
-- [ ] Unit tests for basic types
-
-**Daily Service:**
-- [ ] `DailyBoardService` with seed calculation
-- [ ] Unit tests verifying deterministic output
+- [ ] `dailyBoard()` and `boardForDate()` free functions
+- [ ] Unit tests for basic types and deterministic output
 
 **Verification:**
 - All unit tests passing
@@ -325,15 +300,12 @@ NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak gameState] event in
 ### Phase 2: Core Features
 
 **Game Logic:**
-- [ ] Mine placement using SeededGenerator
+- [ ] Mine placement using seeded RNG
 - [ ] `reveal()` with cascade for zero-adjacent cells
 - [ ] Win/lose detection
 - [ ] First-click safety (relocate mine to random empty cell)
 - [ ] Timer integration (start/pause/resume/stop)
 - [ ] Selection movement with bounds checking
-
-**Daily Service:**
-- [ ] Board caching (optional optimization)
 
 **UI Components:**
 - [ ] `CellView` with all state renderings
@@ -364,12 +336,14 @@ NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak gameState] event in
 - [ ] Mine counter display
 - [ ] Visual feedback (selection highlight, hover states)
 - [ ] App icon design
-- [ ] Sound effects (optional)
-- [ ] Smooth reveal animations (optional)
 
 **Verification:**
 - App feels polished and responsive
 - All controls documented in README work
+
+**Future ideas (not in scope):**
+- Sound effects
+- Reveal animations
 
 ---
 
@@ -382,10 +356,9 @@ Since we use concrete types without protocols, thorough unit testing of core gam
 | Test File | Coverage |
 |-----------|----------|
 | `CellTests.swift` | State transitions |
-| `BoardTests.swift` | Mine placement, reveal logic, cascade, first-click safety |
+| `BoardTests.swift` | Mine placement, reveal logic, cascade, first-click safety, deterministic seeding |
 | `GameStateTests.swift` | Win/lose detection after cascade, timer start/pause/resume, flag counting, selection movement |
-| `SeededGeneratorTests.swift` | Deterministic output |
-| `DailyBoardServiceTests.swift` | Seed calculation, UTC date handling |
+| `DailyBoardTests.swift` | Seed calculation, UTC date handling |
 
 ### Key Test Cases
 
@@ -459,7 +432,8 @@ func testWinDetectedAfterCascadeRevealsLastCells() {
 | Game mode | Daily only | Aligns with "no decisions" philosophy |
 | First click | Always safe | Standard Minesweeper UX |
 | State management | @Observable | Modern Swift, simpler than Combine |
-| RNG | GKLinearCongruentialRandomSource | Built-in, seedable, deterministic |
+| RNG | GKLinearCongruentialRandomSource (used directly in Board) | Built-in, seedable, deterministic; no wrapper class needed |
+| Daily board | Free functions, not a class | No state = no class; simpler for beginners |
 | Window style | .window (not .menu) | Allows rich custom UI |
 | Daily seed timezone | UTC | Same puzzle globally at same moment |
 | Daily board identity | Pre-click (initial mine layout) | First-click safety may relocate a mine, so post-click boards can vary by starting cell. Standard Minesweeper behavior. |

@@ -21,11 +21,9 @@ Sweep/
 ├── SweepApp.swift              # App entry point, MenuBarExtra setup
 ├── Models/
 │   ├── Cell.swift              # Cell state enum
-│   ├── Board.swift             # 8x8 grid, mine placement, reveal logic
+│   ├── Board.swift             # 8x8 grid, mine placement, reveal logic (uses GameplayKit directly)
 │   ├── GameState.swift         # @Observable game state
-│   └── SeededGenerator.swift   # Wraps GKLinearCongruentialRandomSource
-├── Services/
-│   └── DailyBoardService.swift # Date-based board generation
+│   └── DailyBoard.swift        # Free functions for date-based board generation
 ├── Views/
 │   ├── GameBoardView.swift     # 8x8 grid of cells
 │   ├── CellView.swift          # Individual cell rendering
@@ -36,8 +34,7 @@ Sweep/
     ├── CellTests.swift
     ├── BoardTests.swift
     ├── GameStateTests.swift
-    ├── SeededGeneratorTests.swift
-    └── DailyBoardServiceTests.swift
+    └── DailyBoardTests.swift
 ```
 
 ## Key Patterns
@@ -91,7 +88,7 @@ xcodebuild clean -scheme Sweep
 Core game logic must be thoroughly tested since we use concrete types without protocols. Test the actual classes directly—no mocks needed.
 
 **Required coverage:**
-- Unit test all game logic (Board, GameState, DailyBoardService, SeededGenerator)
+- Unit test all game logic (Board, GameState, DailyBoard functions)
 - Test win/lose conditions
 - Test reveal cascading behavior
 - Test first-click safety (mine relocation)
