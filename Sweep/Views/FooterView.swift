@@ -2,6 +2,7 @@ import SwiftUI
 
 struct FooterView: View {
     let onReset: () -> Void
+    let onAbout: () -> Void
 
     var body: some View {
         HStack {
@@ -11,6 +12,14 @@ struct FooterView: View {
             .buttonStyle(.bordered)
 
             Spacer()
+
+            Button {
+                onAbout()
+            } label: {
+                Image(systemName: "info.circle")
+            }
+            .buttonStyle(.borderless)
+            .help("About Sweep")
 
             Button("Quit") {
                 NSApplication.shared.terminate(nil)
@@ -25,6 +34,6 @@ struct FooterView: View {
 // MARK: - Previews
 
 #Preview("Footer") {
-    FooterView(onReset: {})
+    FooterView(onReset: {}, onAbout: {})
         .padding()
 }
