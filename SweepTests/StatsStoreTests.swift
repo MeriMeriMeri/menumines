@@ -173,6 +173,44 @@ struct StatsStoreTests {
         #expect(store.wins == 1)
     }
 
+    // MARK: - Deduplication
+
+    @Test("Recording with same dailySeed replaces existing result")
+    @MainActor
+    func testRecordDeduplicatesByDailySeed() {
+        clearStats()
+        let store = StatsStore.forTesting()
+        let seed: Int64 = 20260125
+
+        // Record first result for today
+        let result1 = makeResult(won: true, elapsedTime: 100, dailySeed: seed)
+        store.record(result1)
+        #expect(store.gamesPlayed == 1)
+        #expect(store.bestTime == 100)
+
+        // Record second result with same seed - should be ignored
+        let result2 = makeResult(won: true, elapsedTime: 50, dailySeed: seed)
+        store.record(result2)
+        #expect(store.gamesPlayed == 1, "Should still have 1 game, not 2")
+        #expect(store.bestTime == 100, "Should keep first result's time")
+    }
+
+    @Test("Recording with different dailySeed adds new result")
+    @MainActor
+    func testRecordAllowsDifferentSeeds() {
+        clearStats()
+        let store = StatsStore.forTesting()
+
+        // Record for different days
+        let result1 = makeResult(won: true, elapsedTime: 100, dailySeed: 20260125)
+        let result2 = makeResult(won: true, elapsedTime: 80, dailySeed: 20260126)
+        store.record(result1)
+        store.record(result2)
+
+        #expect(store.gamesPlayed == 2, "Should have 2 games from different days")
+        #expect(store.bestTime == 80, "Best time should be from faster game")
+    }
+
     // MARK: - Reset
 
     @Test("Reset clears all results")
