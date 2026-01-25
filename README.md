@@ -11,15 +11,11 @@ Sweep is a menu bar Minesweeper game for macOS that brings the classic puzzle to
 - **No decisions** - Just open and play, no setup required
 - **Distraction-free** - No dock icon, no clutter
 
-## Screenshots
-
-<!-- TODO: Add screenshots -->
-
 ## Installation
 
 ### Download
 
-Download the latest release from the [Releases](https://github.com/yourusername/sweep/releases) page.
+Download the latest release from the Releases page.
 
 1. Download `Sweep.dmg`
 2. Open the DMG and drag Sweep to Applications
@@ -28,10 +24,10 @@ Download the latest release from the [Releases](https://github.com/yourusername/
 
 ### Build from Source
 
-Requires Xcode 15+ and macOS 13+ (Ventura).
+Requires Xcode 15+ and macOS 14+ (Sonoma).
 
 ```bash
-git clone https://github.com/yourusername/sweep.git
+git clone <repository-url>
 cd sweep
 xcodebuild -scheme Sweep -configuration Release
 ```
@@ -47,8 +43,16 @@ Clear the 8x8 board without hitting any of the 10 hidden mines.
 | Action | Mouse | Keyboard |
 |--------|-------|----------|
 | Reveal cell | Left-click | Space |
-| Toggle flag | Right-click | F |
+| Toggle flag | Right-click or Control+Click | F |
 | Move selection | - | Arrow keys |
+
+### Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| ⌘R | Reset game |
+| ⌘, | Settings |
+| ⌘Q | Quit |
 
 ### Rules
 
@@ -79,7 +83,7 @@ To enable VoiceOver, press Cmd+F5 or go to System Settings → Accessibility →
 
 ## Requirements
 
-- macOS 13.0 (Ventura) or later
+- macOS 14.0 (Sonoma) or later
 
 ## License
 
