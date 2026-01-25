@@ -1,0 +1,71 @@
+import Foundation
+
+/// The base SF Symbol for the menu bar icon.
+let menuBarBaseIcon = "circle.grid.3x3.fill"
+
+/// Represents the visual state of the menu bar icon.
+enum MenuBarIconState: Equatable {
+    /// Default icon with no indicator (daily complete, no active game or won).
+    case normal
+
+    /// Daily puzzle not yet completed.
+    case incomplete
+
+    /// Game is in progress but paused (popover closed).
+    case paused
+
+    /// Game is lost.
+    case lost
+
+    /// Returns the SF Symbol name for the overlay indicator, or nil for normal state.
+    var overlaySymbol: String? {
+        switch self {
+        case .normal:
+            return nil
+        case .incomplete:
+            return "ellipsis.circle.fill"
+        case .paused:
+            return "pause.circle.fill"
+        case .lost:
+            return "xmark.circle.fill"
+        }
+    }
+
+    /// Returns the SF Symbol name for this icon state (legacy, for tests).
+    var systemImageName: String {
+        switch self {
+        case .normal:
+            return "circle.grid.3x3.fill"
+        case .incomplete:
+            return "circle.grid.3x3.fill.badge.ellipsis"
+        case .paused:
+            return "pause.circle.fill"
+        case .lost:
+            return "xmark.circle.fill"
+        }
+    }
+}
+
+/// Derives the menu bar icon state from game state and daily completion status.
+func menuBarIconState(
+    gameStatus: GameStatus,
+    isPaused: Bool,
+    isDailyComplete: Bool
+) -> MenuBarIconState {
+    switch gameStatus {
+    case .lost:
+        return .lost
+    case .playing:
+        if isPaused {
+            return .paused
+        }
+        return .normal
+    case .won:
+        return .normal
+    case .notStarted:
+        if isDailyComplete {
+            return .normal
+        }
+        return .incomplete
+    }
+}

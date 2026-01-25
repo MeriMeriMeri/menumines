@@ -4,6 +4,7 @@ struct HeaderView: View {
     let status: GameStatus
     let elapsedTime: TimeInterval
     let flagCount: Int
+    let onReset: () -> Void
 
     private var timeDisplay: String {
         let totalSeconds = Int(elapsedTime)
@@ -26,13 +27,13 @@ struct HeaderView: View {
     private var statusDescription: String {
         switch status {
         case .notStarted:
-            return "Ready to play"
+            return String(localized: "status_ready")
         case .playing:
-            return "Game in progress"
+            return String(localized: "status_playing")
         case .won:
-            return "You won!"
+            return String(localized: "status_won")
         case .lost:
-            return "Game over"
+            return String(localized: "status_lost")
         }
     }
 
@@ -73,10 +74,14 @@ struct HeaderView: View {
 
             Spacer()
 
-            // Status emoji
-            Text(statusEmoji)
-                .font(.system(size: 24))
-                .accessibilityLabel(statusDescription)
+            // Status emoji - clickable to reset game
+            Button(action: onReset) {
+                Text(statusEmoji)
+                    .font(.system(size: 24))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(String(format: String(localized: "reset_accessibility_combined"), statusDescription))
+            .accessibilityHint(String(localized: "reset_accessibility_hint"))
 
             Spacer()
 
@@ -93,21 +98,21 @@ struct HeaderView: View {
 // MARK: - Previews
 
 #Preview("Not Started") {
-    HeaderView(status: .notStarted, elapsedTime: 0, flagCount: 0)
+    HeaderView(status: .notStarted, elapsedTime: 0, flagCount: 0, onReset: {})
         .padding()
 }
 
 #Preview("Playing") {
-    HeaderView(status: .playing, elapsedTime: 125, flagCount: 3)
+    HeaderView(status: .playing, elapsedTime: 125, flagCount: 3, onReset: {})
         .padding()
 }
 
 #Preview("Won") {
-    HeaderView(status: .won, elapsedTime: 89, flagCount: 10)
+    HeaderView(status: .won, elapsedTime: 89, flagCount: 10, onReset: {})
         .padding()
 }
 
 #Preview("Lost") {
-    HeaderView(status: .lost, elapsedTime: 45, flagCount: 5)
+    HeaderView(status: .lost, elapsedTime: 45, flagCount: 5, onReset: {})
         .padding()
 }

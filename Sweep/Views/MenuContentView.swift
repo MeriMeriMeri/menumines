@@ -38,7 +38,11 @@ struct MenuContentView: View {
                 HeaderView(
                     status: gameState.status,
                     elapsedTime: gameState.elapsedTime,
-                    flagCount: gameState.flagCount
+                    flagCount: gameState.flagCount,
+                    onReset: {
+                        showCelebration = false
+                        gameState.reset()
+                    }
                 )
 
                 GameBoardView(
