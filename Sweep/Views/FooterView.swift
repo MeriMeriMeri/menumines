@@ -10,6 +10,7 @@ struct FooterView: View {
                 onReset()
             }
             .buttonStyle(.bordered)
+            .keyboardShortcut("r", modifiers: .command)
 
             Spacer()
 
