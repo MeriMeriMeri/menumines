@@ -1,4 +1,5 @@
 import Foundation
+import Sentry
 
 /// Snapshot of game state for persistence.
 /// Includes all data needed to restore an in-progress game.
@@ -38,11 +39,19 @@ struct GameSnapshot: Codable {
     /// - Returns: The snapshot if one exists and can be decoded, nil otherwise.
     static func loadAnyDay() -> GameSnapshot? {
         guard let data = UserDefaults.standard.data(forKey: storageKey) else { return nil }
-        guard let snapshot = try? JSONDecoder().decode(GameSnapshot.self, from: data) else {
+
+        do {
+            let snapshot = try JSONDecoder().decode(GameSnapshot.self, from: data)
+            return snapshot
+        } catch {
+            // Snapshot corruption detected - log to Sentry and clear
+            SentrySDK.capture(error: error) { scope in
+                scope.setLevel(.warning)
+                scope.setContext(value: ["dataSize": data.count], key: "snapshotCorruption")
+            }
             clear()
             return nil
         }
-        return snapshot
     }
 
     /// Clears any stored snapshot.
@@ -77,6 +86,8 @@ final class GameState {
     private(set) var isPaused: Bool = false
 
     private var timer: Timer?
+    /// Cache the last date we checked for rollover to avoid redundant calculations
+    private var lastRolloverCheckDate: Date?
 
     /// Whether reset is allowed. Reset is locked once today's puzzle is completed.
     var canReset: Bool {
@@ -264,44 +275,61 @@ final class GameState {
     static func restored() -> GameState {
         let todaySeed = seedFromDate(Date())
 
+        // Try to restore from snapshot
         if let snapshot = GameSnapshot.loadAnyDay() {
-            // If snapshot is from today, restore it
             if snapshot.dailySeed == todaySeed {
                 return restoreFromSnapshot(snapshot)
             }
 
-            // Snapshot is from a previous day - check if we should delay rollover
-            if snapshot.status == .playing {
-                // Game was in progress - delay rollover
+            if shouldDelayRollover(snapshot: snapshot) {
                 return restoreFromSnapshot(snapshot)
             }
 
-            // Game was not in progress (notStarted, won, or lost) - allow rollover
+            // Snapshot from previous day, game not in progress - allow rollover
             GameSnapshot.clear()
         }
 
-        // No valid snapshot to restore from - create fresh game for today
+        // Create fresh board for today
         let board = Board(seed: todaySeed)
 
-        // Try to restore from stats if today's daily was already completed
-        if let stats = getStats(for: Date()) {
-            guard stats.seed == todaySeed else {
-                return GameState(board: board, dailySeed: todaySeed)
-            }
-
-            let state = GameState(board: board, dailySeed: todaySeed)
-            state.status = stats.won ? .won : .lost
-            state.elapsedTime = stats.elapsedTime
-            state.flagCount = stats.flagCount
-
-            if !isDailyPuzzleComplete() {
-                markDailyPuzzleComplete()
-            }
-
-            return state
+        // Try to restore completion state from stats if available
+        if let restoredState = tryRestoreFromStats(seed: todaySeed, board: board) {
+            return restoredState
         }
 
         return GameState(board: board, dailySeed: todaySeed)
+    }
+
+    /// Determines if rollover should be delayed for a previous day's snapshot.
+    /// Rollover is delayed when the game is still in progress.
+    private static func shouldDelayRollover(snapshot: GameSnapshot) -> Bool {
+        snapshot.status == .playing
+    }
+
+    /// Attempts to restore game state from stats if today's puzzle was already completed.
+    /// - Returns: GameState restored from stats, or nil if stats don't exist or are invalid
+    private static func tryRestoreFromStats(seed: Int64, board: Board) -> GameState? {
+        guard let stats = getStats(for: Date()) else { return nil }
+
+        guard stats.seed == seed else {
+            // Data corruption - stats seed doesn't match expected seed
+            SentrySDK.capture(message: "Stats seed mismatch: expected \(seed), got \(stats.seed)") { scope in
+                scope.setLevel(.warning)
+                scope.setContext(value: ["expectedSeed": seed, "actualSeed": stats.seed], key: "seedMismatch")
+            }
+            return nil
+        }
+
+        let state = GameState(board: board, dailySeed: seed)
+        state.status = stats.won ? .won : .lost
+        state.elapsedTime = stats.elapsedTime
+        state.flagCount = stats.flagCount
+
+        if !isDailyPuzzleComplete() {
+            markDailyPuzzleComplete()
+        }
+
+        return state
     }
 
     /// Helper to restore a GameState from a snapshot.
@@ -340,7 +368,16 @@ final class GameState {
     ///
     /// If game is in progress, it continues until completion.
     func checkForDailyRollover() {
-        let todaySeed = seedFromDate(Date())
+        let now = Date()
+
+        // Check if we've already checked today (cache optimization)
+        if let lastCheck = lastRolloverCheckDate,
+           Calendar.current.isDate(lastCheck, inSameDayAs: now) {
+            return
+        }
+
+        lastRolloverCheckDate = now
+        let todaySeed = seedFromDate(now)
 
         // Already on today's puzzle
         guard dailySeed != todaySeed else { return }
@@ -354,15 +391,16 @@ final class GameState {
 
     /// Performs a rollover to a new day's puzzle.
     private func rolloverToNewDay(seed: Int64) {
+        // Stop timer and reset isPaused flag (stopTimer handles both)
         stopTimer()
         board = Board(seed: seed)
         dailySeed = seed
         status = .notStarted
         elapsedTime = 0
         flagCount = 0
+        // Reset to top-left cell selection
         selectedRow = 0
         selectedCol = 0
-        isPaused = false
         GameSnapshot.clear()
     }
 
