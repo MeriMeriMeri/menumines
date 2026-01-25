@@ -5,6 +5,21 @@ struct MenuContentView: View {
 
     @State private var showCelebration = false
 
+    private func announceGameResult(won: Bool) {
+        let message: String
+        if won {
+            let seconds = Int(gameState.elapsedTime)
+            if seconds == 1 {
+                message = "Congratulations! You won in 1 second"
+            } else {
+                message = "Congratulations! You won in \(seconds) seconds"
+            }
+        } else {
+            message = "Game over. You hit a mine"
+        }
+        AccessibilityNotification.Announcement(message).post()
+    }
+
     var body: some View {
         ZStack {
             VStack(spacing: 12) {
@@ -49,8 +64,14 @@ struct MenuContentView: View {
             gameState.pauseTimer()
         }
         .onChange(of: gameState.status) { _, newStatus in
-            if newStatus == .won {
+            switch newStatus {
+            case .won:
                 showCelebration = true
+                announceGameResult(won: true)
+            case .lost:
+                announceGameResult(won: false)
+            default:
+                break
             }
         }
     }

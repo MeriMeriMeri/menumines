@@ -3,6 +3,8 @@ import SwiftUI
 
 struct CellView: View {
     let cell: Cell
+    let row: Int
+    let col: Int
     let gameStatus: GameStatus
     let isSelected: Bool
     let onReveal: () -> Void
@@ -20,6 +22,63 @@ struct CellView: View {
         .overlay(
             ClickHandlerView(onLeftClick: onReveal, onRightClick: onFlag)
         )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityHint(accessibilityHint)
+        .accessibilityAddTraits(accessibilityTraits)
+    }
+
+    // MARK: - Accessibility
+
+    private var accessibilityLabel: String {
+        let position = "Row \(row + 1), Column \(col + 1)"
+
+        if cell.isExploded {
+            return "\(position), exploded mine"
+        }
+
+        if gameStatus == .lost && cell.hasMine {
+            return "\(position), mine"
+        }
+
+        switch cell.state {
+        case .hidden:
+            return "\(position), covered"
+        case .flagged:
+            return "\(position), flagged"
+        case .revealed(let adjacentMines):
+            if adjacentMines == 0 {
+                return "\(position), empty"
+            } else if adjacentMines == 1 {
+                return "\(position), 1 adjacent mine"
+            } else {
+                return "\(position), \(adjacentMines) adjacent mines"
+            }
+        }
+    }
+
+    private var accessibilityHint: String {
+        guard gameStatus == .notStarted || gameStatus == .playing else {
+            return ""
+        }
+
+        switch cell.state {
+        case .hidden:
+            return "Double-tap to reveal, or press F to flag"
+        case .flagged:
+            return "Press F to remove flag"
+        case .revealed:
+            return ""
+        }
+    }
+
+    private var accessibilityTraits: AccessibilityTraits {
+        switch cell.state {
+        case .hidden, .flagged:
+            return .isButton
+        case .revealed:
+            return .isStaticText
+        }
     }
 
     // MARK: - Background
@@ -168,6 +227,8 @@ private struct RaisedCellBackground: View {
 #Preview("Hidden Cell") {
     CellView(
         cell: Cell(state: .hidden, hasMine: false),
+        row: 0,
+        col: 0,
         gameStatus: .playing,
         isSelected: false,
         onReveal: {},
@@ -179,6 +240,8 @@ private struct RaisedCellBackground: View {
 #Preview("Hidden Cell (Selected)") {
     CellView(
         cell: Cell(state: .hidden, hasMine: false),
+        row: 0,
+        col: 0,
         gameStatus: .playing,
         isSelected: true,
         onReveal: {},
@@ -190,6 +253,8 @@ private struct RaisedCellBackground: View {
 #Preview("Revealed - Zero") {
     CellView(
         cell: Cell(state: .revealed(adjacentMines: 0), hasMine: false),
+        row: 0,
+        col: 0,
         gameStatus: .playing,
         isSelected: false,
         onReveal: {},
@@ -203,6 +268,8 @@ private struct RaisedCellBackground: View {
         ForEach(1...8, id: \.self) { count in
             CellView(
                 cell: Cell(state: .revealed(adjacentMines: count), hasMine: false),
+                row: 0,
+                col: count - 1,
                 gameStatus: .playing,
                 isSelected: false,
                 onReveal: {},
@@ -216,6 +283,8 @@ private struct RaisedCellBackground: View {
 #Preview("Flagged Cell") {
     CellView(
         cell: Cell(state: .flagged, hasMine: true),
+        row: 0,
+        col: 0,
         gameStatus: .playing,
         isSelected: false,
         onReveal: {},
@@ -227,6 +296,8 @@ private struct RaisedCellBackground: View {
 #Preview("Mine (Game Over)") {
     CellView(
         cell: Cell(state: .hidden, hasMine: true),
+        row: 0,
+        col: 0,
         gameStatus: .lost,
         isSelected: false,
         onReveal: {},
@@ -238,6 +309,8 @@ private struct RaisedCellBackground: View {
 #Preview("Exploded Mine") {
     CellView(
         cell: Cell(state: .revealed(adjacentMines: 0), hasMine: true, isExploded: true),
+        row: 0,
+        col: 0,
         gameStatus: .lost,
         isSelected: false,
         onReveal: {},

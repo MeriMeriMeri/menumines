@@ -23,6 +23,42 @@ struct HeaderView: View {
         }
     }
 
+    private var statusDescription: String {
+        switch status {
+        case .notStarted:
+            return "Ready to play"
+        case .playing:
+            return "Game in progress"
+        case .won:
+            return "You won!"
+        case .lost:
+            return "Game over"
+        }
+    }
+
+    private var timerAccessibilityLabel: String {
+        let totalSeconds = Int(elapsedTime)
+        let minutes = totalSeconds / 60
+        let seconds = totalSeconds % 60
+
+        if minutes == 0 {
+            return seconds == 1 ? "Elapsed time: 1 second" : "Elapsed time: \(seconds) seconds"
+        } else if minutes == 1 {
+            return seconds == 0 ? "Elapsed time: 1 minute" : "Elapsed time: 1 minute, \(seconds) seconds"
+        } else {
+            return seconds == 0 ? "Elapsed time: \(minutes) minutes" : "Elapsed time: \(minutes) minutes, \(seconds) seconds"
+        }
+    }
+
+    private var flagCountAccessibilityLabel: String {
+        let remaining = Board.mineCount - flagCount
+        if remaining == 1 {
+            return "\(flagCount) flags placed, 1 mine remaining"
+        } else {
+            return "\(flagCount) flags placed, \(remaining) mines remaining"
+        }
+    }
+
     var body: some View {
         HStack {
             // Flag count
@@ -32,12 +68,15 @@ struct HeaderView: View {
                     .font(.system(size: 14, weight: .medium, design: .monospaced))
             }
             .frame(minWidth: 60, alignment: .leading)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(flagCountAccessibilityLabel)
 
             Spacer()
 
             // Status emoji
             Text(statusEmoji)
                 .font(.system(size: 24))
+                .accessibilityLabel(statusDescription)
 
             Spacer()
 
@@ -45,6 +84,7 @@ struct HeaderView: View {
             Text(timeDisplay)
                 .font(.system(size: 14, weight: .medium, design: .monospaced))
                 .frame(minWidth: 60, alignment: .trailing)
+                .accessibilityLabel(timerAccessibilityLabel)
         }
         .padding(.horizontal, 8)
     }
