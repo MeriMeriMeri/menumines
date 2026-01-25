@@ -19,9 +19,6 @@ struct CellView: View {
         .onTapGesture {
             onReveal()
         }
-        .onTapGesture(count: 1) {
-            // Primary click handled above
-        }
         .contextMenu {
             Button("Toggle Flag") {
                 onFlag()
@@ -33,9 +30,7 @@ struct CellView: View {
     private var background: some View {
         switch cell.state {
         case .hidden, .flagged:
-            if cell.isExploded {
-                Color.red
-            } else if gameStatus == .lost && cell.hasMine {
+            if gameStatus == .lost && cell.hasMine {
                 Color.gray.opacity(0.3)
             } else {
                 RoundedRectangle(cornerRadius: 4)
@@ -56,9 +51,7 @@ struct CellView: View {
 
     @ViewBuilder
     private var content: some View {
-        if cell.isExploded {
-            mineIcon
-        } else if gameStatus == .lost && cell.hasMine {
+        if cell.isExploded || (gameStatus == .lost && cell.hasMine) {
             mineIcon
         } else {
             switch cell.state {
@@ -90,8 +83,8 @@ struct CellView: View {
         }
     }
 
-    private func colorForNumber(_ n: Int) -> Color {
-        switch n {
+    private func colorForNumber(_ adjacentMines: Int) -> Color {
+        switch adjacentMines {
         case 1: return .blue
         case 2: return .green
         case 3: return .red

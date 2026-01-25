@@ -32,21 +32,6 @@ struct GameStateTests {
         }
     }
 
-    @Test("Cannot reveal when game is won")
-    func testCannotRevealWhenWon() {
-        var board = Board(seed: 12345)
-        let gameState = GameState(board: board)
-
-        // Manually set status to won (simulating game end)
-        gameState.reveal(row: 0, col: 0)
-
-        // Record state before any further action
-        let stateBefore = gameState.board.cells[1][1].state
-
-        // This test is limited because we can't easily set status to .won without actually winning
-        // The main point is that the guard clause exists in reveal()
-    }
-
     @Test("Toggle flag on hidden cell")
     func testToggleFlagOnHiddenCell() {
         let board = Board(seed: 12345)

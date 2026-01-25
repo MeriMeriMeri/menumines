@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MenuContentView: View {
-    @Bindable var gameState: GameState
+    var gameState: GameState
 
     var body: some View {
         VStack(spacing: 12) {
