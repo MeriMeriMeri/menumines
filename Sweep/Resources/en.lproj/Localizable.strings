@@ -1,0 +1,7 @@
+/* FooterView */
+"reset_button" = "Reset";
+"quit_button" = "Quit";
+"about_help" = "About Sweep";
+
+/* SweepApp - MenuBarExtra title */
+"menubar_title" = "Sweep";

@@ -35,7 +35,7 @@ struct SweepApp: App {
     }
 
     var body: some Scene {
-        MenuBarExtra("Sweep", systemImage: "circle.grid.3x3.fill") {
+        MenuBarExtra(String(localized: "menubar_title"), systemImage: "circle.grid.3x3.fill") {
             MenuContentView(gameState: gameState)
         }
         .menuBarExtraStyle(.window)
