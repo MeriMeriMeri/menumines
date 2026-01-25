@@ -261,13 +261,24 @@ final class GameState {
         let seed = seedFromDate(Date())
         let board = Board(seed: seed)
 
-        // If daily is marked complete but snapshot is missing/corrupted,
-        // try to restore minimal completed state from stats
-        if isDailyPuzzleComplete(), let stats = getStats(for: Date()) {
+        // If snapshot is missing/corrupted, try to restore from stats
+        // Check both completion flag and stats existence for robustness
+        if let stats = getStats(for: Date()) {
+            // Defensive check: ensure stats match today's seed
+            guard stats.seed == seed else {
+                return GameState(board: board, dailySeed: seed)
+            }
+
             let state = GameState(board: board, dailySeed: seed)
             state.status = stats.won ? .won : .lost
             state.elapsedTime = stats.elapsedTime
             state.flagCount = stats.flagCount
+
+            // If stats exist but completion flag is missing, restore it
+            if !isDailyPuzzleComplete() {
+                markDailyPuzzleComplete()
+            }
+
             return state
         }
 
@@ -363,10 +374,9 @@ final class GameState {
     }
 
     /// Handles game completion (win or loss).
-    /// Marks daily puzzle as complete and records stats.
+    /// Atomically marks daily puzzle as complete and records stats.
     private func handleGameComplete(won: Bool) {
         stopTimer()
-        markDailyPuzzleComplete()
-        recordStats(won: won, elapsedTime: elapsedTime, flagCount: flagCount)
+        markCompleteAndRecordStats(won: won, elapsedTime: elapsedTime, flagCount: flagCount)
     }
 }

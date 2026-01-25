@@ -1846,7 +1846,14 @@ struct GameStatePersistenceTests {
     @Test("canReset is false after daily completion")
     func testCanResetFalseAfterCompletion() {
         UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
-        defer { UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed") }
+        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+        let todaySeed = seedFromDate(Date())
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        defer {
+            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        }
 
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
@@ -1861,7 +1868,14 @@ struct GameStatePersistenceTests {
     @Test("canReset is false after losing")
     func testCanResetFalseAfterLoss() {
         UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
-        defer { UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed") }
+        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+        let todaySeed = seedFromDate(Date())
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        defer {
+            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        }
 
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
@@ -1887,7 +1901,14 @@ struct GameStatePersistenceTests {
     @Test("reset does nothing when daily is complete")
     func testResetBlockedWhenComplete() {
         UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
-        defer { UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed") }
+        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+        let todaySeed = seedFromDate(Date())
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        defer {
+            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        }
 
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
@@ -2060,7 +2081,14 @@ struct GameStatePersistenceTests {
     @Test("Daily puzzle marked complete on loss")
     func testDailyCompleteOnLoss() {
         UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
-        defer { UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed") }
+        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+        let todaySeed = seedFromDate(Date())
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        defer {
+            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        }
 
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
@@ -2113,7 +2141,14 @@ struct GameStatePersistenceTests {
     @Test("Reset is blocked after winning (completion lock)")
     func testResetBlockedAfterWinning() {
         UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
-        defer { UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed") }
+        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+        let todaySeed = seedFromDate(Date())
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        defer {
+            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        }
 
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
