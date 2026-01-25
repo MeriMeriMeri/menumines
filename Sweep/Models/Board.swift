@@ -54,6 +54,7 @@ struct Board: Equatable {
 
         if cells[row][col].hasMine {
             cells[row][col].state = .revealed(adjacentMines: 0)
+            cells[row][col].isExploded = true
             return .mine
         }
 
@@ -132,24 +133,18 @@ struct Board: Equatable {
 
     /// Returns the count of mines in adjacent cells (including diagonals).
     func adjacentMineCount(row: Int, col: Int) -> Int {
-        var count = 0
-        for dr in -1...1 {
-            for dc in -1...1 {
-                if dr == 0 && dc == 0 { continue }
-                let r = row + dr
-                let c = col + dc
-                if r >= 0, r < Board.rows, c >= 0, c < Board.cols {
-                    if cells[r][c].hasMine {
-                        count += 1
-                    }
-                }
-            }
-        }
-        return count
+        countAdjacentCells(row: row, col: col) { $0.hasMine }
     }
 
     /// Returns the count of flagged cells adjacent to the given position.
     func adjacentFlagCount(row: Int, col: Int) -> Int {
+        countAdjacentCells(row: row, col: col) { cell in
+            if case .flagged = cell.state { return true }
+            return false
+        }
+    }
+
+    private func countAdjacentCells(row: Int, col: Int, matching predicate: (Cell) -> Bool) -> Int {
         var count = 0
         for dr in -1...1 {
             for dc in -1...1 {
@@ -157,7 +152,7 @@ struct Board: Equatable {
                 let r = row + dr
                 let c = col + dc
                 if r >= 0, r < Board.rows, c >= 0, c < Board.cols {
-                    if case .flagged = cells[r][c].state {
+                    if predicate(cells[r][c]) {
                         count += 1
                     }
                 }
@@ -192,8 +187,7 @@ struct Board: Equatable {
                 guard r >= 0, r < Board.rows, c >= 0, c < Board.cols else { continue }
                 guard case .hidden = cells[r][c].state else { continue }
 
-                let result = reveal(row: r, col: c)
-                switch result {
+                switch reveal(row: r, col: c) {
                 case .mine:
                     return .mine
                 case .safe(let count):

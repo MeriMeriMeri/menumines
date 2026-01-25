@@ -57,7 +57,6 @@ final class GameState {
         case .mine:
             status = .lost
             stopTimer()
-            board.markExploded(row: row, col: col)
         case .safe:
             if checkWinCondition() {
                 status = .won
@@ -135,20 +134,10 @@ final class GameState {
         guard status == .playing else { return }
         guard row >= 0, row < Board.rows, col >= 0, col < Board.cols else { return }
 
-        let result = board.chordReveal(row: row, col: col)
-
-        switch result {
+        switch board.chordReveal(row: row, col: col) {
         case .mine:
             status = .lost
             stopTimer()
-            for r in 0..<Board.rows {
-                for c in 0..<Board.cols {
-                    if board.cells[r][c].hasMine, case .hidden = board.cells[r][c].state {
-                        board.markExploded(row: r, col: c)
-                        return
-                    }
-                }
-            }
         case .safe:
             if checkWinCondition() {
                 status = .won
