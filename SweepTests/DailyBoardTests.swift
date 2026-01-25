@@ -58,4 +58,32 @@ final class DailyBoardTests: XCTestCase {
 
         XCTAssertEqual(board1.cells, board2.cells)
     }
+
+    func testDifferentDaysProduceDifferentBoards() {
+        // 2024-03-15 00:00:00 UTC
+        let date1 = Date(timeIntervalSince1970: 1_710_465_600)
+        // 2024-03-16 00:00:00 UTC (24 hours later)
+        let date2 = Date(timeIntervalSince1970: 1_710_465_600 + 86400)
+
+        let board1 = boardForDate(date1)
+        let board2 = boardForDate(date2)
+
+        XCTAssertNotEqual(board1.cells, board2.cells)
+        XCTAssertEqual(seedFromDate(date1), 20240315)
+        XCTAssertEqual(seedFromDate(date2), 20240316)
+    }
+
+    func testLateNightUTCConsistency() {
+        // 2024-03-15 00:00:00 UTC (start of day)
+        let startOfDay = Date(timeIntervalSince1970: 1_710_465_600)
+        // 2024-03-15 23:00:00 UTC (late night same day)
+        let lateNight = Date(timeIntervalSince1970: 1_710_465_600 + 23 * 3600)
+
+        XCTAssertEqual(seedFromDate(startOfDay), seedFromDate(lateNight))
+        XCTAssertEqual(seedFromDate(lateNight), 20240315)
+
+        let board1 = boardForDate(startOfDay)
+        let board2 = boardForDate(lateNight)
+        XCTAssertEqual(board1.cells, board2.cells)
+    }
 }
