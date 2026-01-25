@@ -19,6 +19,7 @@
 		A1000025229E0025 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000026229E0026 /* HeaderView.swift */; };
 		A1000027229E0027 /* FooterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000028229E0028 /* FooterView.swift */; };
 		A1000029229E0029 /* GameStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002A229E002A /* GameStateTests.swift */; };
+		A100003D229E003D /* BoardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100003E229E003E /* BoardTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +47,7 @@
 		A1000028229E0028 /* FooterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FooterView.swift; sourceTree = "<group>"; };
 		A100002A229E002A /* GameStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStateTests.swift; sourceTree = "<group>"; };
 		A100002C229E002C /* SweepTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SweepTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A100003E229E003E /* BoardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -130,6 +132,7 @@
 			isa = PBXGroup;
 			children = (
 				A100002A229E002A /* GameStateTests.swift */,
+				A100003E229E003E /* BoardTests.swift */,
 			);
 			path = SweepTests;
 			sourceTree = "<group>";
@@ -251,6 +254,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1000029229E0029 /* GameStateTests.swift in Sources */,
+				A100003D229E003D /* BoardTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
