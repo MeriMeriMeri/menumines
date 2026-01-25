@@ -67,6 +67,16 @@ Every day, Sweep generates a new puzzle using a deterministic seed based on the 
 
 Note: if the first click lands on a mine, the mine is relocated using system randomness. In that edge case, boards may diverge across players after the first click.
 
+## Accessibility
+
+Sweep is designed to be fully playable with VoiceOver:
+
+- **Screen reader support** - All cells and controls have descriptive labels
+- **Keyboard navigation** - Full game control via arrow keys, Space, and F
+- **State announcements** - Win/loss states are announced automatically
+
+To enable VoiceOver, press Cmd+F5 or go to System Settings → Accessibility → VoiceOver.
+
 ## Requirements
 
 - macOS 13.0 (Ventura) or later
