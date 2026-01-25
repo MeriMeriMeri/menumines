@@ -42,7 +42,7 @@ extension Board {
     }
 
     static func mockWithMines() -> Board {
-        var board = Board(seed: 12345)
+        let board = Board(seed: 12345)
         // Manually set some mines for preview
         // Note: This is a test helper, real mine placement comes from Story 3A
         return board
