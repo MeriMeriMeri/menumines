@@ -1202,8 +1202,10 @@ struct GameStateTests {
             return
         }
 
-        // The time format should be "Solved in M:SS" or similar
-        #expect(shareText.contains("Solved in"), "Share text should include 'Solved in' for winning")
+        // Use localized format string and extract prefix (everything before %@)
+        let solvedFormat = String(localized: "share_solved")
+        let solvedPrefix = solvedFormat.replacingOccurrences(of: "%@", with: "")
+        #expect(shareText.contains(solvedPrefix), "Share text should include localized solved prefix")
     }
 
     @Test("Share text includes failed message on loss")
@@ -1228,7 +1230,10 @@ struct GameStateTests {
             return
         }
 
-        #expect(shareText.contains("Failed in"), "Share text should include 'Failed in' for losing")
+        // Use localized format string and extract prefix (everything before %@)
+        let failedFormat = String(localized: "share_failed")
+        let failedPrefix = failedFormat.replacingOccurrences(of: "%@", with: "")
+        #expect(shareText.contains(failedPrefix), "Share text should include localized failed prefix")
     }
 
     @Test("Share text includes 8x8 emoji grid")
@@ -1328,7 +1333,11 @@ struct GameStateTests {
             return
         }
 
-        #expect(shareText.contains("Marked:"), "Share text should include 'Marked:' count")
+        // Use localized format string to check for marked count
+        // Format is "Marked: %d/%d" - extract prefix before first %d
+        let markedFormat = String(localized: "share_marked")
+        let markedPrefix = markedFormat.components(separatedBy: "%").first ?? ""
+        #expect(shareText.contains(markedPrefix), "Share text should include localized marked prefix")
         #expect(shareText.contains("/10"), "Share text should include '/10' for total mines")
     }
 
