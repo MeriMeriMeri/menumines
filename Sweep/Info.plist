@@ -4,5 +4,7 @@
 <dict>
 	<key>LSUIElement</key>
 	<true/>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright © 2026 MeriMeriMeri Software. All rights reserved.</string>
 </dict>
 </plist>
