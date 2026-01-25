@@ -52,10 +52,6 @@ struct FooterView: View {
 
                 Divider()
 
-                Button(String(localized: "about_menu_item")) {
-                    onAbout()
-                }
-
                 Button(String(localized: "stats_menu_item")) {
                     NSApp.activate(ignoringOtherApps: true)
                     openWindow(id: "stats")
@@ -65,6 +61,10 @@ struct FooterView: View {
                     openSettings()
                 }
                 .keyboardShortcut(",", modifiers: .command)
+
+                Button(String(localized: "about_menu_item")) {
+                    onAbout()
+                }
 
                 Divider()
 
