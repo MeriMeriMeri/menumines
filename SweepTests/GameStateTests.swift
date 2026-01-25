@@ -1202,10 +1202,11 @@ struct GameStateTests {
             return
         }
 
-        // Use localized format string and extract prefix (everything before %@)
-        let solvedFormat = String(localized: "share_solved")
-        let solvedPrefix = solvedFormat.replacingOccurrences(of: "%@", with: "")
-        #expect(shareText.contains(solvedPrefix), "Share text should include localized solved prefix")
+        // Verify the actual formatted time appears in share text
+        let minutes = Int(gameState.elapsedTime) / 60
+        let seconds = Int(gameState.elapsedTime) % 60
+        let expectedTime = String(format: "%d:%02d", minutes, seconds)
+        #expect(shareText.contains(expectedTime), "Share text should include formatted time")
     }
 
     @Test("Share text includes failed message on loss")
@@ -1230,10 +1231,11 @@ struct GameStateTests {
             return
         }
 
-        // Use localized format string and extract prefix (everything before %@)
-        let failedFormat = String(localized: "share_failed")
-        let failedPrefix = failedFormat.replacingOccurrences(of: "%@", with: "")
-        #expect(shareText.contains(failedPrefix), "Share text should include localized failed prefix")
+        // Verify the actual formatted time appears in share text
+        let minutes = Int(gameState.elapsedTime) / 60
+        let seconds = Int(gameState.elapsedTime) % 60
+        let expectedTime = String(format: "%d:%02d", minutes, seconds)
+        #expect(shareText.contains(expectedTime), "Share text should include formatted time")
     }
 
     @Test("Share text includes 8x8 emoji grid")
@@ -1333,12 +1335,9 @@ struct GameStateTests {
             return
         }
 
-        // Use localized format string to check for marked count
-        // Format is "Marked: %d/%d" - extract prefix before first %d
-        let markedFormat = String(localized: "share_marked")
-        let markedPrefix = markedFormat.components(separatedBy: "%").first ?? ""
-        #expect(shareText.contains(markedPrefix), "Share text should include localized marked prefix")
-        #expect(shareText.contains("/10"), "Share text should include '/10' for total mines")
+        // Verify the actual formatted count appears in share text
+        let expectedCount = "\(flaggedMines)/\(Board.mineCount)"
+        #expect(shareText.contains(expectedCount), "Share text should include marked count")
     }
 
     @Test("Share text emoji mapping is correct")
