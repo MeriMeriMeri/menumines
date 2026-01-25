@@ -61,8 +61,13 @@ final class StatsStore {
     // MARK: - Recording
 
     /// Records a game result and persists to storage.
+    /// Deduplicates by dailySeed - only one result per day is stored.
     @MainActor
     func record(_ result: GameResult) {
+        // Check if we already have a result for this daily seed
+        if results.contains(where: { $0.dailySeed == result.dailySeed }) {
+            return
+        }
         results.insert(result, at: 0)
         saveResults()
     }
