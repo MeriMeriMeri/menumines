@@ -12,6 +12,9 @@ enum Constants {
         /// When false (default), reset happens immediately.
         static let confirmBeforeReset = "com.sweep.confirmBeforeReset"
 
+        /// Controls whether streaks are displayed in the Stats window.
+        /// When false, streak data is still collected but hidden in the UI.
+        static let showStreaks = "com.sweep.showStreaks"
         /// Controls whether the game can be refreshed after completing the daily puzzle.
         /// When true, users can reset and replay even after winning or losing.
         /// Stats are only recorded for the first completion regardless of this setting.

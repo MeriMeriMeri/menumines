@@ -12,7 +12,20 @@ struct GameSnapshot: Codable {
     let selectedCol: Int
     let dailySeed: Int64
 
-    private static let storageKey = "gameSnapshot"
+    private static let baseStorageKey = "gameSnapshot"
+    @TaskLocal private static var storageKeySuffix: String?
+
+    private static var storageKey: String {
+        guard let suffix = storageKeySuffix, !suffix.isEmpty else {
+            return baseStorageKey
+        }
+        return "\(baseStorageKey).\(suffix)"
+    }
+
+    /// Executes a closure using a namespaced snapshot storage key.
+    static func withStorageKey<T>(_ suffix: String, _ body: () throws -> T) rethrows -> T {
+        try $storageKeySuffix.withValue(suffix, operation: body)
+    }
 
     /// Saves the snapshot to UserDefaults.
     func save() {

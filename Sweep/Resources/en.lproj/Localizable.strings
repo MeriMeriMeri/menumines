@@ -17,6 +17,8 @@
 /* SettingsView */
 "settings_show_menu_bar_indicators" = "Show menu bar status indicators";
 "settings_show_menu_bar_indicators_footer" = "When off, the menu bar icon stays constant.";
+"settings_show_streaks" = "Show streaks";
+"settings_show_streaks_footer" = "Show current and longest streaks in Stats.";
 "settings_confirm_before_reset" = "Confirm before reset";
 "settings_confirm_before_reset_footer" = "Show a confirmation dialog before resetting the game.";
 "settings_allow_refresh_after_completion" = "Allow refresh after completion";
@@ -49,8 +51,11 @@
 "stats_win_rate" = "Win Rate";
 "stats_best_time" = "Best Time";
 "stats_avg_time" = "Avg Time (wins)";
+"stats_current_streak" = "Current Streak";
+"stats_longest_streak" = "Longest Streak";
 "stats_tracked_since" = "Tracked since %@";
 "stats_reset_button" = "Reset Statistics…";
+"stats_reset_accessibility_hint" = "Permanently deletes all game statistics";
 "stats_reset_confirmation_title" = "Reset Statistics?";
 "stats_reset_confirmation_message" = "This will permanently delete all your game statistics. This action cannot be undone.";
 "stats_reset_confirmation_cancel" = "Cancel";

@@ -32,6 +32,8 @@ struct StatsStoreTests {
         #expect(store.averageTime == nil)
         #expect(store.trackedSince == nil)
         #expect(!store.hasResults)
+        #expect(store.currentStreak == 0)
+        #expect(store.longestStreak == 0)
     }
 
     // MARK: - Games Played
@@ -156,6 +158,44 @@ struct StatsStoreTests {
             makeResult(won: true, completedAt: middle)
         ])
         #expect(store.trackedSince == earliest)
+    }
+
+    // MARK: - Streaks
+
+    @Test("Current streak counts consecutive days ending at most recent completion")
+    func testCurrentStreakCountsMostRecentRun() {
+        let store = StatsStore.forTesting(with: [
+            makeResult(won: true, dailySeed: 20260125),
+            makeResult(won: false, dailySeed: 20260126),
+            makeResult(won: true, dailySeed: 20260128)
+        ])
+
+        #expect(store.currentStreak == 1)
+        #expect(store.longestStreak == 2)
+    }
+
+    @Test("Longest streak counts the maximum consecutive run")
+    func testLongestStreakCountsMaximumRun() {
+        let store = StatsStore.forTesting(with: [
+            makeResult(won: true, dailySeed: 20260125),
+            makeResult(won: true, dailySeed: 20260126),
+            makeResult(won: false, dailySeed: 20260127),
+            makeResult(won: true, dailySeed: 20260129)
+        ])
+
+        #expect(store.currentStreak == 1)
+        #expect(store.longestStreak == 3)
+    }
+
+    @Test("Streaks count across month boundaries")
+    func testStreaksCountAcrossMonthBoundaries() {
+        let store = StatsStore.forTesting(with: [
+            makeResult(won: true, dailySeed: 20260131),
+            makeResult(won: true, dailySeed: 20260201)
+        ])
+
+        #expect(store.currentStreak == 2)
+        #expect(store.longestStreak == 2)
     }
 
     // MARK: - Recording

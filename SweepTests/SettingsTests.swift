@@ -62,6 +62,35 @@ struct SettingsTests {
         }
     }
 
+    // MARK: - Streaks Setting
+
+    @Test("Show streaks key is properly namespaced")
+    func testShowStreaksKeyIsNamespaced() {
+        #expect(Constants.SettingsKeys.showStreaks == "com.sweep.showStreaks")
+    }
+
+    @Test("Show streaks can be toggled via UserDefaults")
+    func testShowStreaksCanBeToggled() {
+        let key = Constants.SettingsKeys.showStreaks
+        // Save initial state to restore after test
+        let initialValue = UserDefaults.standard.object(forKey: key)
+
+        // Test setting to false
+        UserDefaults.standard.set(false, forKey: key)
+        #expect(UserDefaults.standard.bool(forKey: key) == false)
+
+        // Test setting to true
+        UserDefaults.standard.set(true, forKey: key)
+        #expect(UserDefaults.standard.bool(forKey: key) == true)
+
+        // Restore initial state
+        if let initial = initialValue {
+            UserDefaults.standard.set(initial, forKey: key)
+        } else {
+            UserDefaults.standard.removeObject(forKey: key)
+        }
+    }
+
     // MARK: - Allow Refresh After Completion Setting
 
     @Test("Allow refresh after completion key is properly namespaced")
@@ -76,13 +105,13 @@ struct SettingsTests {
         // Save initial state to restore after test
         let initialValue = UserDefaults.standard.object(forKey: key)
 
-        // Test setting to true
-        UserDefaults.standard.set(true, forKey: key)
-        #expect(UserDefaults.standard.bool(forKey: key) == true)
-
         // Test setting to false
         UserDefaults.standard.set(false, forKey: key)
         #expect(UserDefaults.standard.bool(forKey: key) == false)
+
+        // Test setting to true
+        UserDefaults.standard.set(true, forKey: key)
+        #expect(UserDefaults.standard.bool(forKey: key) == true)
 
         // Restore initial state
         if let initial = initialValue {
@@ -163,7 +192,6 @@ struct SettingsTests {
 
         #expect(gameState.canReset == false, "canReset should be false when allowRefreshAfterCompletion is disabled")
     }
-
     @Test("Menu bar indicators can be toggled via UserDefaults")
     func testMenuBarIndicatorsCanBeToggled() {
         let key = Constants.SettingsKeys.showMenuBarIndicators

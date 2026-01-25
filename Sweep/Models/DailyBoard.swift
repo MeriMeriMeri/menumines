@@ -17,11 +17,30 @@ func boardForDate(_ date: Date) -> Board {
 /// Example: 2024-03-15 -> 20240315
 func seedFromDate(_ date: Date) -> Int64 {
     var calendar = Calendar(identifier: .gregorian)
-    calendar.timeZone = TimeZone(identifier: "UTC")!
+    calendar.timeZone = .gmt
     let year = calendar.component(.year, from: date)
     let month = calendar.component(.month, from: date)
     let day = calendar.component(.day, from: date)
     return Int64(year * 10000 + month * 100 + day)
+}
+
+/// Converts a deterministic seed (YYYYMMDD) into a UTC date at the start of day.
+func dateFromSeed(_ seed: Int64) -> Date? {
+    let year = Int(seed / 10000)
+    let month = Int((seed / 100) % 100)
+    let day = Int(seed % 100)
+
+    var calendar = Calendar(identifier: .gregorian)
+    calendar.timeZone = .gmt
+
+    var components = DateComponents()
+    components.calendar = calendar
+    components.timeZone = .gmt
+    components.year = year
+    components.month = month
+    components.day = day
+
+    return calendar.date(from: components)
 }
 
 // MARK: - Daily Completion Tracking
