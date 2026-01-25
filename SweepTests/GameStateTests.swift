@@ -530,6 +530,30 @@ struct GameStateTests {
         }
     }
 
+    /// Helper to find the first safe (non-mine) cell in a board
+    private func findSafeCell(in board: Board) -> (row: Int, col: Int)? {
+        for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                if !board.cells[r][c].hasMine {
+                    return (r, c)
+                }
+            }
+        }
+        return nil
+    }
+
+    /// Helper to find the first mine cell in a board
+    private func findMineCell(in board: Board) -> (row: Int, col: Int)? {
+        for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                if board.cells[r][c].hasMine {
+                    return (r, c)
+                }
+            }
+        }
+        return nil
+    }
+
     @Test("Timer starts on first reveal")
     @MainActor
     func testTimerStartsOnFirstReveal() {
@@ -596,31 +620,19 @@ struct GameStateTests {
         let gameState = GameState(board: board)
 
         // Make a safe first click to start the game
-        var safeRow = -1, safeCol = -1
-        outer: for r in 0..<8 {
-            for c in 0..<8 {
-                if !gameState.board.cells[r][c].hasMine {
-                    safeRow = r
-                    safeCol = c
-                    break outer
-                }
-            }
+        guard let safe = findSafeCell(in: gameState.board) else {
+            Issue.record("No safe cell found")
+            return
         }
-        gameState.reveal(row: safeRow, col: safeCol)
+        gameState.reveal(row: safe.row, col: safe.col)
         #expect(gameState.status == .playing)
 
         // Find a mine and click it to lose
-        var mineRow = -1, mineCol = -1
-        outer2: for r in 0..<8 {
-            for c in 0..<8 {
-                if gameState.board.cells[r][c].hasMine {
-                    mineRow = r
-                    mineCol = c
-                    break outer2
-                }
-            }
+        guard let mine = findMineCell(in: gameState.board) else {
+            Issue.record("No mine cell found")
+            return
         }
-        gameState.reveal(row: mineRow, col: mineCol)
+        gameState.reveal(row: mine.row, col: mine.col)
 
         #expect(gameState.status == .lost)
         let timeAtLoss = gameState.elapsedTime
@@ -705,5 +717,85 @@ struct GameStateTests {
         runLoopFor(seconds: 1.2)
 
         #expect(gameState.elapsedTime == 0, "Resume should not start timer when game not in .playing status")
+    }
+
+    @Test("Resume timer does nothing after win")
+    @MainActor
+    func testResumeTimerDoesNothingAfterWin() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Win the game by revealing all non-mine cells
+        for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                if !gameState.board.cells[r][c].hasMine {
+                    gameState.reveal(row: r, col: c)
+                }
+            }
+        }
+
+        #expect(gameState.status == .won)
+        let timeAtWin = gameState.elapsedTime
+
+        // Try to resume after winning
+        gameState.resumeTimer()
+
+        // Wait and verify timer didn't restart
+        runLoopFor(seconds: 1.2)
+
+        #expect(gameState.elapsedTime == timeAtWin, "Resume should not restart timer after winning")
+    }
+
+    @Test("Resume timer does nothing after loss")
+    @MainActor
+    func testResumeTimerDoesNothingAfterLoss() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Make a safe first click to start the game
+        guard let safe = findSafeCell(in: gameState.board) else {
+            Issue.record("No safe cell found")
+            return
+        }
+        gameState.reveal(row: safe.row, col: safe.col)
+        #expect(gameState.status == .playing)
+
+        // Find a mine and click it to lose
+        guard let mine = findMineCell(in: gameState.board) else {
+            Issue.record("No mine cell found")
+            return
+        }
+        gameState.reveal(row: mine.row, col: mine.col)
+
+        #expect(gameState.status == .lost)
+        let timeAtLoss = gameState.elapsedTime
+
+        // Try to resume after losing
+        gameState.resumeTimer()
+
+        // Wait and verify timer didn't restart
+        runLoopFor(seconds: 1.2)
+
+        #expect(gameState.elapsedTime == timeAtLoss, "Resume should not restart timer after losing")
+    }
+
+    @Test("Flag does not start timer")
+    @MainActor
+    func testFlagDoesNotStartTimer() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        #expect(gameState.status == .notStarted)
+        #expect(gameState.elapsedTime == 0)
+
+        // Toggle flag on a cell (should not start timer)
+        gameState.toggleFlag(row: 0, col: 0)
+
+        #expect(gameState.status == .notStarted, "Flagging should not start the game")
+
+        // Wait and verify timer didn't start
+        runLoopFor(seconds: 1.2)
+
+        #expect(gameState.elapsedTime == 0, "Timer should not run after flagging without revealing")
     }
 }
