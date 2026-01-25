@@ -5,6 +5,7 @@ struct FooterView: View {
     @Environment(\.openWindow) private var openWindow
 
     let isGameComplete: Bool
+    let canReset: Bool
     let onReset: () -> Void
     let onShare: () -> Void
     let onAbout: () -> Void
@@ -35,6 +36,7 @@ struct FooterView: View {
                     onReset()
                 }
                 .keyboardShortcut("r", modifiers: .command)
+                .disabled(!canReset)
 
                 Divider()
 
@@ -72,11 +74,16 @@ struct FooterView: View {
 // MARK: - Previews
 
 #Preview("Footer - Game In Progress") {
-    FooterView(isGameComplete: false, onReset: {}, onShare: {}, onAbout: {})
+    FooterView(isGameComplete: false, canReset: true, onReset: {}, onShare: {}, onAbout: {})
         .padding()
 }
 
 #Preview("Footer - Game Complete") {
-    FooterView(isGameComplete: true, onReset: {}, onShare: {}, onAbout: {})
+    FooterView(isGameComplete: true, canReset: true, onReset: {}, onShare: {}, onAbout: {})
+        .padding()
+}
+
+#Preview("Footer - Reset Locked") {
+    FooterView(isGameComplete: true, canReset: false, onReset: {}, onShare: {}, onAbout: {})
         .padding()
 }

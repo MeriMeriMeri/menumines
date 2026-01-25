@@ -39,6 +39,7 @@ struct MenuContentView: View {
                     status: gameState.status,
                     elapsedTime: gameState.elapsedTime,
                     flagCount: gameState.flagCount,
+                    canReset: gameState.canReset,
                     onReset: {
                         showCelebration = false
                         gameState.reset()
@@ -60,6 +61,7 @@ struct MenuContentView: View {
 
                 FooterView(
                     isGameComplete: isGameComplete,
+                    canReset: gameState.canReset,
                     onReset: {
                         showCelebration = false
                         gameState.reset()

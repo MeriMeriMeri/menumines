@@ -149,6 +149,49 @@ User stories are tracked in Linear under the Sweep project.
 - Issue prefix: `MER` (e.g., `MER-23`)
 - Workflow: Todo → In Progress → Done
 
+## State Management Rules
+
+The app maintains consistent behavior across resume, pause, completion, and recovery scenarios.
+
+### Completion
+- **Completion = win or loss**: A daily puzzle is complete when the game status becomes `.won` or `.lost`
+- Both outcomes mark `dailyCompletionSeed` in UserDefaults
+- Both outcomes record stats (once per day, deduped by seed)
+
+### Timer Behavior
+- **Starts**: On first `reveal()` call (not on flag)
+- **Pauses**: When menu bar popover closes (`onDisappear`)
+- **Resumes**: When popover reopens (`onAppear`) if status is `.playing`
+- **Stops**: On win, loss, or reset
+
+### Reset Lock
+- Once today's puzzle is complete (win or loss), reset is disabled for the rest of the day
+- `canReset` checks `isDailyPuzzleComplete()` using UTC date
+- Enforced in: HeaderView emoji, FooterView menu, keyboard shortcut (⌘R)
+
+### Persistence
+- **GameSnapshot**: Saves/restores full game state (board, status, time, flags, selection)
+- **dailyCompletionSeed**: Tracks if today's puzzle was completed
+- **dailyStatsRecordedSeed**: Prevents duplicate stats recording
+- **dailyStats_<seed>**: Stores DailyStats struct for each completed day
+
+### Error Recovery
+When app launches:
+1. Try to load snapshot → restore full state if valid and today's seed
+2. If snapshot missing/corrupted but daily complete → restore from stats (won/lost, time, flags)
+3. Otherwise → fresh game with today's board
+
+### Share Availability
+- Share button visible when `status == .won || status == .lost`
+- Persists after relaunch because snapshot preserves status
+
+### Daily Seed
+```swift
+// All date-based logic uses UTC timezone
+let seed = Int64(year * 10000 + month * 100 + day)
+// Example: 2026-01-25 → 20260125
+```
+
 ## Testing Strategy
 
 Core game logic must be thoroughly tested since we use concrete types without protocols. Test the actual classes directly—no mocks needed.

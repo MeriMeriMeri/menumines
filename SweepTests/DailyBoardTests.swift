@@ -86,4 +86,60 @@ final class DailyBoardTests: XCTestCase {
         let board2 = boardForDate(lateNight)
         XCTAssertEqual(board1.cells, board2.cells)
     }
+
+    // MARK: - Stats Recording Tests
+
+    private func clearStats() {
+        let todaySeed = seedFromDate(Date())
+        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+    }
+
+    override func tearDown() {
+        super.tearDown()
+        clearStats()
+    }
+
+    func testHasStatsBeenRecordedDefaultsFalse() {
+        clearStats()
+        XCTAssertFalse(hasStatsBeenRecorded())
+    }
+
+    func testRecordStatsSucceedsFirstTime() {
+        clearStats()
+        let result = recordStats(won: true, elapsedTime: 100.0, flagCount: 5)
+        XCTAssertTrue(result)
+        XCTAssertTrue(hasStatsBeenRecorded())
+    }
+
+    func testRecordStatsFailsSecondTime() {
+        clearStats()
+        _ = recordStats(won: true, elapsedTime: 100.0, flagCount: 5)
+        let result = recordStats(won: false, elapsedTime: 200.0, flagCount: 10)
+        XCTAssertFalse(result, "Second recording should fail")
+    }
+
+    func testGetStatsReturnsRecordedData() {
+        clearStats()
+        _ = recordStats(won: true, elapsedTime: 123.5, flagCount: 7)
+
+        let stats = getStats(for: Date())
+        XCTAssertNotNil(stats)
+        XCTAssertEqual(stats?.won, true)
+        XCTAssertEqual(stats?.elapsedTime, 123.5)
+        XCTAssertEqual(stats?.flagCount, 7)
+    }
+
+    func testGetStatsReturnsNilWhenNotRecorded() {
+        clearStats()
+        let stats = getStats(for: Date())
+        XCTAssertNil(stats)
+    }
+
+    func testDailyStatsIsCodable() throws {
+        let original = DailyStats(seed: 20260125, won: true, elapsedTime: 99.0, flagCount: 3)
+        let data = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(DailyStats.self, from: data)
+        XCTAssertEqual(decoded, original)
+    }
 }

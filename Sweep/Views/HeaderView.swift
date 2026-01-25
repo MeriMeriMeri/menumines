@@ -4,6 +4,7 @@ struct HeaderView: View {
     let status: GameStatus
     let elapsedTime: TimeInterval
     let flagCount: Int
+    let canReset: Bool
     let onReset: () -> Void
 
     private var timeDisplay: String {
@@ -80,8 +81,10 @@ struct HeaderView: View {
                     .font(.system(size: 24))
             }
             .buttonStyle(.plain)
+            .disabled(!canReset)
+            .opacity(canReset ? 1.0 : 0.5)
             .accessibilityLabel(String(format: String(localized: "reset_accessibility_combined"), statusDescription))
-            .accessibilityHint(String(localized: "reset_accessibility_hint"))
+            .accessibilityHint(canReset ? String(localized: "reset_accessibility_hint") : String(localized: "reset_locked_hint"))
 
             Spacer()
 
@@ -98,21 +101,26 @@ struct HeaderView: View {
 // MARK: - Previews
 
 #Preview("Not Started") {
-    HeaderView(status: .notStarted, elapsedTime: 0, flagCount: 0, onReset: {})
+    HeaderView(status: .notStarted, elapsedTime: 0, flagCount: 0, canReset: true, onReset: {})
         .padding()
 }
 
 #Preview("Playing") {
-    HeaderView(status: .playing, elapsedTime: 125, flagCount: 3, onReset: {})
+    HeaderView(status: .playing, elapsedTime: 125, flagCount: 3, canReset: true, onReset: {})
         .padding()
 }
 
 #Preview("Won") {
-    HeaderView(status: .won, elapsedTime: 89, flagCount: 10, onReset: {})
+    HeaderView(status: .won, elapsedTime: 89, flagCount: 10, canReset: true, onReset: {})
         .padding()
 }
 
 #Preview("Lost") {
-    HeaderView(status: .lost, elapsedTime: 45, flagCount: 5, onReset: {})
+    HeaderView(status: .lost, elapsedTime: 45, flagCount: 5, canReset: true, onReset: {})
+        .padding()
+}
+
+#Preview("Reset Locked") {
+    HeaderView(status: .won, elapsedTime: 120, flagCount: 10, canReset: false, onReset: {})
         .padding()
 }

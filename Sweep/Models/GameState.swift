@@ -70,6 +70,11 @@ final class GameState {
 
     private var timer: Timer?
 
+    /// Whether reset is allowed. Reset is locked once today's puzzle is completed.
+    var canReset: Bool {
+        !isDailyPuzzleComplete()
+    }
+
     init(board: Board, dailySeed: Int64 = seedFromDate(Date())) {
         self.board = board
         self.dailySeed = dailySeed
@@ -172,14 +177,11 @@ final class GameState {
         switch result {
         case .mine:
             status = .lost
-            stopTimer()
-            recordGameResult(won: false)
+            handleGameComplete(won: false)
         case .safe:
             if checkWinCondition() {
                 status = .won
-                stopTimer()
-                markDailyPuzzleComplete()
-                recordGameResult(won: true)
+                handleGameComplete(won: true)
             }
         }
     }
@@ -202,7 +204,9 @@ final class GameState {
     }
 
     /// Resets the game to a fresh state with today's daily board.
+    /// Does nothing if reset is locked (daily puzzle already completed).
     func reset() {
+        guard canReset else { return }
         stopTimer()
         let seed = seedFromDate(Date())
         board = Board(seed: seed)
@@ -238,6 +242,11 @@ final class GameState {
 
     /// Creates a GameState by restoring from a saved snapshot if available,
     /// otherwise creates a fresh game with today's daily board.
+    ///
+    /// Error recovery behavior:
+    /// - If snapshot exists and is valid: restore full state
+    /// - If snapshot is corrupted but daily is complete: restore completed state from stats
+    /// - If snapshot is corrupted and daily is not complete: create fresh game
     static func restored() -> GameState {
         if let snapshot = GameSnapshot.load() {
             let state = GameState(board: snapshot.board, dailySeed: snapshot.dailySeed)
@@ -248,8 +257,32 @@ final class GameState {
             state.selectedCol = snapshot.selectedCol
             return state
         }
+
         let seed = seedFromDate(Date())
-        return GameState(board: Board(seed: seed), dailySeed: seed)
+        let board = Board(seed: seed)
+
+        // If snapshot is missing/corrupted, try to restore from stats
+        // Check both completion flag and stats existence for robustness
+        if let stats = getStats(for: Date()) {
+            // Defensive check: ensure stats match today's seed
+            guard stats.seed == seed else {
+                return GameState(board: board, dailySeed: seed)
+            }
+
+            let state = GameState(board: board, dailySeed: seed)
+            state.status = stats.won ? .won : .lost
+            state.elapsedTime = stats.elapsedTime
+            state.flagCount = stats.flagCount
+
+            // If stats exist but completion flag is missing, restore it
+            if !isDailyPuzzleComplete() {
+                markDailyPuzzleComplete()
+            }
+
+            return state
+        }
+
+        return GameState(board: board, dailySeed: seed)
     }
 
     /// Pauses the timer (e.g., when popover closes).
@@ -300,14 +333,11 @@ final class GameState {
         switch board.chordReveal(row: row, col: col) {
         case .mine:
             status = .lost
-            stopTimer()
-            recordGameResult(won: false)
+            handleGameComplete(won: false)
         case .safe:
             if checkWinCondition() {
                 status = .won
-                stopTimer()
-                markDailyPuzzleComplete()
-                recordGameResult(won: true)
+                handleGameComplete(won: true)
             }
         }
     }
@@ -353,5 +383,13 @@ final class GameState {
             }
         }
         return true
+    }
+
+    /// Handles game completion (win or loss).
+    /// Atomically marks daily puzzle as complete and records stats to both systems.
+    private func handleGameComplete(won: Bool) {
+        stopTimer()
+        markCompleteAndRecordStats(won: won, elapsedTime: elapsedTime, flagCount: flagCount)
+        recordGameResult(won: won)
     }
 }
