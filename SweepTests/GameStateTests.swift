@@ -133,8 +133,8 @@ struct GameStateTests {
         #expect(gameState.status == .playing)
     }
 
-    @Test("Reset creates fresh board from daily seed")
-    func testResetCreatesFreshBoardFromDailySeed() {
+    @Test("Reset restores all cells to hidden")
+    func testResetRestoresAllCellsToHidden() {
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
 
@@ -397,17 +397,20 @@ struct GameStateTests {
         let gameState = GameState(board: board)
 
         guard let safe = findSafeCell(in: gameState.board) else {
+            Issue.record("No safe cell found")
             return
         }
         gameState.reveal(row: safe.row, col: safe.col)
 
         guard let mine = findMineCell(in: gameState.board) else {
+            Issue.record("No mine found")
             return
         }
         gameState.reveal(row: mine.row, col: mine.col)
         #expect(gameState.status == .lost)
 
         guard let hidden = findHiddenCell(in: gameState) else {
+            Issue.record("No hidden cell found")
             return
         }
 
@@ -424,6 +427,7 @@ struct GameStateTests {
         #expect(gameState.status == .won)
 
         guard let mine = findMineCell(in: gameState.board) else {
+            Issue.record("No mine found")
             return
         }
 
