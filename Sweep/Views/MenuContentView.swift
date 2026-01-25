@@ -82,14 +82,17 @@ struct MenuContentView: View {
         }
         .onDisappear {
             gameState.pauseTimer()
+            gameState.save()
         }
         .onChange(of: gameState.status) { _, newStatus in
             switch newStatus {
             case .won:
                 showCelebration = true
                 announceGameResult(won: true)
+                gameState.save()
             case .lost:
                 announceGameResult(won: false)
+                gameState.save()
             default:
                 break
             }

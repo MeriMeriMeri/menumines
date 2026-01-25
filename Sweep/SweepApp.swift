@@ -42,9 +42,20 @@ struct SweepApp: App {
     init() {
         Self.startSentryIfNeeded()
 
-        let state = GameState(board: dailyBoard())
+        let state = GameState.restored()
         _gameState = State(initialValue: state)
         Self.setupKeyboardMonitor(for: state)
+        Self.setupTerminationObserver(for: state)
+    }
+
+    private static func setupTerminationObserver(for gameState: GameState) {
+        NotificationCenter.default.addObserver(
+            forName: NSApplication.willTerminateNotification,
+            object: nil,
+            queue: .main
+        ) { _ in
+            gameState.save()
+        }
     }
 
     private static func setupKeyboardMonitor(for gameState: GameState) {
