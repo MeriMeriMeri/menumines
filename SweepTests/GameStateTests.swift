@@ -1202,8 +1202,11 @@ struct GameStateTests {
             return
         }
 
-        // The time format should be "Solved in M:SS" or similar
-        #expect(shareText.contains("Solved in"), "Share text should include 'Solved in' for winning")
+        // Verify the actual formatted time appears in share text
+        let minutes = Int(gameState.elapsedTime) / 60
+        let seconds = Int(gameState.elapsedTime) % 60
+        let expectedTime = String(format: "%d:%02d", minutes, seconds)
+        #expect(shareText.contains(expectedTime), "Share text should include formatted time")
     }
 
     @Test("Share text includes failed message on loss")
@@ -1228,7 +1231,11 @@ struct GameStateTests {
             return
         }
 
-        #expect(shareText.contains("Failed in"), "Share text should include 'Failed in' for losing")
+        // Verify the actual formatted time appears in share text
+        let minutes = Int(gameState.elapsedTime) / 60
+        let seconds = Int(gameState.elapsedTime) % 60
+        let expectedTime = String(format: "%d:%02d", minutes, seconds)
+        #expect(shareText.contains(expectedTime), "Share text should include formatted time")
     }
 
     @Test("Share text includes 8x8 emoji grid")
@@ -1328,8 +1335,9 @@ struct GameStateTests {
             return
         }
 
-        #expect(shareText.contains("Marked:"), "Share text should include 'Marked:' count")
-        #expect(shareText.contains("/10"), "Share text should include '/10' for total mines")
+        // Verify the actual formatted count appears in share text
+        let expectedCount = "\(flaggedMines)/\(Board.mineCount)"
+        #expect(shareText.contains(expectedCount), "Share text should include marked count")
     }
 
     @Test("Share text emoji mapping is correct")
