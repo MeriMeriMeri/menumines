@@ -173,11 +173,13 @@ final class GameState {
         case .mine:
             status = .lost
             stopTimer()
+            recordGameResult(won: false)
         case .safe:
             if checkWinCondition() {
                 status = .won
                 stopTimer()
                 markDailyPuzzleComplete()
+                recordGameResult(won: true)
             }
         }
     }
@@ -299,11 +301,13 @@ final class GameState {
         case .mine:
             status = .lost
             stopTimer()
+            recordGameResult(won: false)
         case .safe:
             if checkWinCondition() {
                 status = .won
                 stopTimer()
                 markDailyPuzzleComplete()
+                recordGameResult(won: true)
             }
         }
     }
@@ -326,6 +330,18 @@ final class GameState {
         timer?.invalidate()
         timer = nil
         isPaused = false
+    }
+
+    /// Records the game result to the stats store.
+    private func recordGameResult(won: Bool) {
+        let result = GameResult(
+            won: won,
+            elapsedTime: elapsedTime,
+            dailySeed: dailySeed
+        )
+        Task { @MainActor in
+            StatsStore.shared.record(result)
+        }
     }
 
     private func checkWinCondition() -> Bool {

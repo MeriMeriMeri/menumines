@@ -26,3 +26,22 @@
 "share_solved" = "Solved in %@";
 "share_failed" = "Failed in %@";
 "share_marked" = "Marked: %d/%d";
+
+/* Stats feature */
+"stats_menu_item" = "Stats…";
+"stats_window_title" = "Stats";
+"stats_title" = "Stats";
+"stats_subtitle" = "Daily puzzle";
+"stats_games_played" = "Games Played";
+"stats_wins" = "Wins";
+"stats_win_rate" = "Win Rate";
+"stats_best_time" = "Best Time";
+"stats_avg_time" = "Avg Time (wins)";
+"stats_tracked_since" = "Tracked since %@";
+"stats_reset_button" = "Reset Statistics…";
+"stats_reset_confirmation_title" = "Reset Statistics?";
+"stats_reset_confirmation_message" = "This will permanently delete all your game statistics. This action cannot be undone.";
+"stats_reset_confirmation_cancel" = "Cancel";
+"stats_reset_confirmation_confirm" = "Reset";
+"stats_empty_message" = "Play a game to see your stats!";
+"stats_empty_subtitle" = "Stats are stored locally.";
