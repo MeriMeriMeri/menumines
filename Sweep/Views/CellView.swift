@@ -10,11 +10,14 @@ struct CellView: View {
     let onReveal: () -> Void
     let onFlag: () -> Void
 
+    @State private var isHovered = false
+
     private static let cellSize: CGFloat = 32
 
     var body: some View {
         ZStack {
             background
+            hoverOverlay
             content
         }
         .frame(width: Self.cellSize, height: Self.cellSize)
@@ -22,6 +25,9 @@ struct CellView: View {
         .overlay(
             ClickHandlerView(onLeftClick: onReveal, onRightClick: onFlag)
         )
+        .onHover { hovering in
+            isHovered = hovering
+        }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityHint(accessibilityHint)
@@ -91,6 +97,20 @@ struct CellView: View {
             Color(nsColor: .controlBackgroundColor)
         } else {
             RaisedCellBackground()
+        }
+    }
+
+    // MARK: - Hover
+
+    private var isRevealed: Bool {
+        if case .revealed = cell.state { return true }
+        return false
+    }
+
+    @ViewBuilder
+    private var hoverOverlay: some View {
+        if isHovered && !isRevealed && !cell.isExploded {
+            Color.white.opacity(0.15)
         }
     }
 

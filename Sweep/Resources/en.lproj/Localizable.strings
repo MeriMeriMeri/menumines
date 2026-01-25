@@ -47,3 +47,11 @@
 "stats_reset_confirmation_confirm" = "Reset";
 "stats_empty_message" = "Play a game to see your stats!";
 "stats_empty_subtitle" = "Stats are stored locally.";
+
+/* Controls popover */
+"controls_button_accessibility" = "Show keyboard controls";
+"controls_title" = "Keyboard Controls";
+"controls_move" = "Move selection";
+"controls_reveal" = "Reveal cell";
+"controls_flag" = "Toggle flag";
+"controls_reset" = "Reset game";
