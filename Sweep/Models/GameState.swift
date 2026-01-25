@@ -24,7 +24,7 @@ struct GameSnapshot: Codable {
 
     /// Executes a closure using a namespaced snapshot storage key.
     static func withStorageKey<T>(_ suffix: String, _ body: () throws -> T) rethrows -> T {
-        try $storageKeySuffix.withValue(suffix, body)
+        try $storageKeySuffix.withValue(suffix, operation: body)
     }
 
     /// Saves the snapshot to UserDefaults.
