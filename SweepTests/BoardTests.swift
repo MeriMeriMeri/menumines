@@ -528,7 +528,6 @@ final class BoardTests: XCTestCase {
 
         // Find a cell with adjacent mines > 0
         var targetRow = -1, targetCol = -1
-        var adjMines = 0
         outer: for r in 0..<8 {
             for c in 0..<8 {
                 if !board.cells[r][c].hasMine {
@@ -536,7 +535,6 @@ final class BoardTests: XCTestCase {
                     if adj > 0 {
                         targetRow = r
                         targetCol = c
-                        adjMines = adj
                         break outer
                     }
                 }

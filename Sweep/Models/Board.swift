@@ -15,6 +15,10 @@ struct Board: Equatable, Codable {
 
     private(set) var cells: [[Cell]]
 
+    private enum CodingKeys: String, CodingKey {
+        case cells
+    }
+
     /// Creates a board with pre-existing cells (used for persistence restoration).
     /// - Parameter cells: The cell grid to use.
     init(cells: [[Cell]]) {
@@ -48,6 +52,33 @@ struct Board: Equatable, Codable {
             let col = position % Board.cols
             cells[row][col] = Cell(state: .hidden, hasMine: true)
         }
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let decodedCells = try container.decode([[Cell]].self, forKey: .cells)
+
+        guard decodedCells.count == Board.rows else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .cells,
+                in: container,
+                debugDescription: "Expected \(Board.rows) rows, got \(decodedCells.count)"
+            )
+        }
+        guard decodedCells.allSatisfy({ $0.count == Board.cols }) else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .cells,
+                in: container,
+                debugDescription: "Expected \(Board.cols) columns in each row"
+            )
+        }
+
+        self.cells = decodedCells
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(cells, forKey: .cells)
     }
 
     /// Reveals the cell at the given position with flood-fill cascade for zero-adjacent cells.

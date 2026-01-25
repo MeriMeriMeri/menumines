@@ -1615,8 +1615,8 @@ struct GameStatePersistenceTests {
         #expect(loaded.selectedCol == 1)
     }
 
-    @Test("GameState save clears snapshot on win")
-    func testGameStateSaveClearsOnWin() {
+    @Test("GameState save persists won status")
+    func testGameStateSavePersistsWonStatus() {
         GameSnapshot.clear()
         defer { GameSnapshot.clear() }
 
@@ -1632,13 +1632,17 @@ struct GameStatePersistenceTests {
         winGame(gameState)
         #expect(gameState.status == .won)
 
-        // Save after win should clear snapshot
+        // Save after win should persist won status
         gameState.save()
-        #expect(GameSnapshot.load() == nil, "Snapshot should be cleared after win")
+        guard let loaded = GameSnapshot.load() else {
+            Issue.record("Snapshot should exist after win")
+            return
+        }
+        #expect(loaded.status == .won, "Snapshot should have won status")
     }
 
-    @Test("GameState save clears snapshot on loss")
-    func testGameStateSaveClearsOnLoss() {
+    @Test("GameState save persists lost status")
+    func testGameStateSavePersistsLostStatus() {
         GameSnapshot.clear()
         defer { GameSnapshot.clear() }
 
@@ -1662,9 +1666,13 @@ struct GameStatePersistenceTests {
         gameState.reveal(row: mine.row, col: mine.col)
         #expect(gameState.status == .lost)
 
-        // Save after loss should clear snapshot
+        // Save after loss should persist lost status
         gameState.save()
-        #expect(GameSnapshot.load() == nil, "Snapshot should be cleared after loss")
+        guard let loaded = GameSnapshot.load() else {
+            Issue.record("Snapshot should exist after loss")
+            return
+        }
+        #expect(loaded.status == .lost, "Snapshot should have lost status")
     }
 
     @Test("GameState save does nothing for notStarted state")
