@@ -19,22 +19,36 @@ Sweep is a menu bar Minesweeper game for macOS. It features an 8x8 board with 10
 ```
 Sweep/
 ├── SweepApp.swift              # App entry point, MenuBarExtra setup
+├── Constants.swift             # App-wide constants and UserDefaults keys
 ├── Models/
+│   ├── Board.swift             # 8x8 grid, mine placement, reveal logic
 │   ├── Cell.swift              # Cell state enum
-│   ├── Board.swift             # 8x8 grid, mine placement, reveal logic (uses GameplayKit directly)
+│   ├── DailyBoard.swift        # Date-based board generation
+│   ├── GameResult.swift        # Win/loss result with timing
 │   ├── GameState.swift         # @Observable game state
-│   └── DailyBoard.swift        # Free functions for date-based board generation
+│   ├── MenuBarIconState.swift  # Menu bar icon state machine
+│   └── StatsStore.swift        # Persistent stats storage
 ├── Views/
-│   ├── GameBoardView.swift     # 8x8 grid of cells
+│   ├── AboutWindow.swift       # About window
 │   ├── CellView.swift          # Individual cell rendering
-│   └── MenuContentView.swift   # Main popover content
+│   ├── ConfettiView.swift      # Win celebration animation
+│   ├── FooterView.swift        # Menu and quit button
+│   ├── GameBoardView.swift     # 8x8 grid of cells
+│   ├── HeaderView.swift        # Timer, flag count, reset
+│   ├── MenuContentView.swift   # Main popover content
+│   ├── SettingsView.swift      # App settings
+│   └── StatsWindow.swift       # Statistics display
 ├── Resources/
-│   └── Assets.xcassets         # App icon, cell images
-└── Tests/
-    ├── CellTests.swift
-    ├── BoardTests.swift
-    ├── GameStateTests.swift
-    └── DailyBoardTests.swift
+│   ├── Assets.xcassets         # App icon
+│   └── en.lproj/Localizable.strings
+SweepTests/
+├── BoardTests.swift
+├── DailyBoardTests.swift
+├── DailyCompletionTests.swift
+├── GameStateTests.swift
+├── MenuBarIconStateTests.swift
+├── SettingsTests.swift
+└── StatsStoreTests.swift
 ```
 
 ## Key Patterns
@@ -233,24 +247,11 @@ Text("reset_button", tableName: "Localizable")
 Button(String(localized: "quit_button")) { ... }
 ```
 
-**Current user-facing strings to localize:**
-- Button labels: "Reset", "Quit"
-- Accessibility labels: "About Sweep"
-- App name in menu bar (if displayed as text)
-
 **Emojis are locale-independent** and don't need localization: 🚩, 💣, 🙂, 😎, 😵, 🎉
 
 ### Localizable.strings
 
-The `Localizable.strings` file lives in `Sweep/Resources/en.lproj/` and contains all user-facing text:
-
-```
-// Sweep/Resources/en.lproj/Localizable.strings
-"reset_button" = "Reset";
-"quit_button" = "Quit";
-"about_help" = "About Sweep";
-"menubar_title" = "Sweep";
-```
+All user-facing text is in `Sweep/Resources/en.lproj/Localizable.strings`. This includes strings for buttons, menu items, accessibility labels, share text, and stats display.
 
 When adding new user-facing strings:
 1. Add the key-value pair to `Localizable.strings`
