@@ -3,6 +3,7 @@ import SwiftUI
 /// Window for displaying game statistics.
 struct StatsWindow: View {
     @State private var showResetConfirmation = false
+    @AppStorage(Constants.SettingsKeys.showStreaks) private var showStreaks = true
 
     private var store: StatsStore {
         StatsStore.shared
@@ -57,6 +58,9 @@ struct StatsWindow: View {
             metricRow(label: String(localized: "stats_win_rate"), value: formattedWinRate)
             metricRow(label: String(localized: "stats_best_time"), value: formattedBestTime)
             metricRow(label: String(localized: "stats_avg_time"), value: formattedAverageTime)
+            if showStreaks {
+                streaksRows
+            }
         }
         .padding()
     }
@@ -72,6 +76,13 @@ struct StatsWindow: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(label): \(value)")
+    }
+
+    private var streaksRows: some View {
+        Group {
+            metricRow(label: String(localized: "stats_current_streak"), value: "\(store.currentStreak)")
+            metricRow(label: String(localized: "stats_longest_streak"), value: "\(store.longestStreak)")
+        }
     }
 
     private var formattedWinRate: String {
@@ -99,12 +110,21 @@ struct StatsWindow: View {
     // MARK: - Empty State
 
     private var emptyStateSection: some View {
-        VStack(spacing: 8) {
-            Text(String(localized: "stats_empty_message"))
-                .font(.headline)
-            Text(String(localized: "stats_empty_subtitle"))
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+        VStack(spacing: 16) {
+            VStack(spacing: 8) {
+                Text(String(localized: "stats_empty_message"))
+                    .font(.headline)
+                Text(String(localized: "stats_empty_subtitle"))
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            if showStreaks {
+                VStack(spacing: 12) {
+                    streaksRows
+                }
+                .padding(.top, 8)
+                .padding(.horizontal)
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 40)
@@ -126,7 +146,7 @@ struct StatsWindow: View {
             .buttonStyle(.plain)
             .foregroundStyle(.red)
             .font(.caption)
-            .accessibilityHint("Permanently deletes all game statistics")
+            .accessibilityHint(String(localized: "stats_reset_accessibility_hint"))
         }
         .padding()
     }

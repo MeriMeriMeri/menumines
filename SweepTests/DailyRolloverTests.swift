@@ -51,170 +51,188 @@ struct DailyRolloverTests {
         }
     }
 
+    private func withIsolatedSnapshot<T>(_ testName: String = #function, _ body: () throws -> T) rethrows -> T {
+        try GameSnapshot.withStorageKey("DailyRolloverTests.\(testName)", body)
+    }
+
     // MARK: - GameSnapshot.loadAnyDay Tests
 
     @Test("loadAnyDay returns snapshot from any day")
     func testLoadAnyDayReturnsSnapshotFromAnyDay() {
-        clearAllUserDefaults()
-        defer { clearAllUserDefaults() }
+        withIsolatedSnapshot {
+            clearAllUserDefaults()
+            defer { clearAllUserDefaults() }
 
-        let board = Board(seed: 12345)
-        let yesterdaySeed = seedFromDate(Date()) - 1
-        let snapshot = GameSnapshot(
-            board: board,
-            status: .playing,
-            elapsedTime: 50.0,
-            flagCount: 2,
-            selectedRow: 3,
-            selectedCol: 4,
-            dailySeed: yesterdaySeed
-        )
-        snapshot.save()
+            let board = Board(seed: 12345)
+            let yesterdaySeed = seedFromDate(Date()) - 1
+            let snapshot = GameSnapshot(
+                board: board,
+                status: .playing,
+                elapsedTime: 50.0,
+                flagCount: 2,
+                selectedRow: 3,
+                selectedCol: 4,
+                dailySeed: yesterdaySeed
+            )
+            snapshot.save()
 
-        let loaded = GameSnapshot.loadAnyDay()
-        #expect(loaded != nil, "loadAnyDay should return snapshot regardless of date")
-        #expect(loaded?.dailySeed == yesterdaySeed, "Snapshot should have yesterday's seed")
-        #expect(loaded?.status == .playing, "Snapshot should preserve status")
+            let loaded = GameSnapshot.loadAnyDay()
+            #expect(loaded != nil, "loadAnyDay should return snapshot regardless of date")
+            #expect(loaded?.dailySeed == yesterdaySeed, "Snapshot should have yesterday's seed")
+            #expect(loaded?.status == .playing, "Snapshot should preserve status")
+        }
     }
 
     @Test("loadAnyDay returns nil when no snapshot exists")
     func testLoadAnyDayReturnsNilWhenNoSnapshot() {
-        clearAllUserDefaults()
-        defer { clearAllUserDefaults() }
+        withIsolatedSnapshot {
+            clearAllUserDefaults()
+            defer { clearAllUserDefaults() }
 
-        let loaded = GameSnapshot.loadAnyDay()
-        #expect(loaded == nil, "loadAnyDay should return nil when no snapshot exists")
+            let loaded = GameSnapshot.loadAnyDay()
+            #expect(loaded == nil, "loadAnyDay should return nil when no snapshot exists")
+        }
     }
 
     // MARK: - Rollover on restored() Tests
 
     @Test("restored() returns fresh game when snapshot is from previous day and game was not started")
     func testRestoredRollsOverWhenNotStarted() {
-        clearAllUserDefaults()
-        defer { clearAllUserDefaults() }
+        withIsolatedSnapshot {
+            clearAllUserDefaults()
+            defer { clearAllUserDefaults() }
 
-        let board = Board(seed: 12345)
-        let yesterdaySeed = seedFromDate(Date()) - 1
-        let snapshot = GameSnapshot(
-            board: board,
-            status: .notStarted,
-            elapsedTime: 0,
-            flagCount: 0,
-            selectedRow: 0,
-            selectedCol: 0,
-            dailySeed: yesterdaySeed
-        )
-        snapshot.save()
+            let board = Board(seed: 12345)
+            let yesterdaySeed = seedFromDate(Date()) - 1
+            let snapshot = GameSnapshot(
+                board: board,
+                status: .notStarted,
+                elapsedTime: 0,
+                flagCount: 0,
+                selectedRow: 0,
+                selectedCol: 0,
+                dailySeed: yesterdaySeed
+            )
+            snapshot.save()
 
-        let restored = GameState.restored()
+            let restored = GameState.restored()
 
-        let todaySeed = seedFromDate(Date())
-        #expect(restored.status == .notStarted, "Should be not started")
-        // Board should be today's board, not yesterday's
-        let expectedBoard = Board(seed: todaySeed)
-        #expect(restored.board == expectedBoard, "Should have today's board")
+            let todaySeed = seedFromDate(Date())
+            #expect(restored.status == .notStarted, "Should be not started")
+            // Board should be today's board, not yesterday's
+            let expectedBoard = Board(seed: todaySeed)
+            #expect(restored.board == expectedBoard, "Should have today's board")
+        }
     }
 
     @Test("restored() returns fresh game when snapshot is from previous day and game was won")
     func testRestoredRollsOverWhenWon() {
-        clearAllUserDefaults()
-        defer { clearAllUserDefaults() }
+        withIsolatedSnapshot {
+            clearAllUserDefaults()
+            defer { clearAllUserDefaults() }
 
-        let board = Board(seed: 12345)
-        let yesterdaySeed = seedFromDate(Date()) - 1
-        let snapshot = GameSnapshot(
-            board: board,
-            status: .won,
-            elapsedTime: 100.0,
-            flagCount: 5,
-            selectedRow: 4,
-            selectedCol: 4,
-            dailySeed: yesterdaySeed
-        )
-        snapshot.save()
+            let board = Board(seed: 12345)
+            let yesterdaySeed = seedFromDate(Date()) - 1
+            let snapshot = GameSnapshot(
+                board: board,
+                status: .won,
+                elapsedTime: 100.0,
+                flagCount: 5,
+                selectedRow: 4,
+                selectedCol: 4,
+                dailySeed: yesterdaySeed
+            )
+            snapshot.save()
 
-        let restored = GameState.restored()
+            let restored = GameState.restored()
 
-        #expect(restored.status == .notStarted, "Should be not started (rolled over)")
-        #expect(restored.elapsedTime == 0, "Elapsed time should be 0")
-        #expect(restored.flagCount == 0, "Flag count should be 0")
+            #expect(restored.status == .notStarted, "Should be not started (rolled over)")
+            #expect(restored.elapsedTime == 0, "Elapsed time should be 0")
+            #expect(restored.flagCount == 0, "Flag count should be 0")
+        }
     }
 
     @Test("restored() returns fresh game when snapshot is from previous day and game was lost")
     func testRestoredRollsOverWhenLost() {
-        clearAllUserDefaults()
-        defer { clearAllUserDefaults() }
+        withIsolatedSnapshot {
+            clearAllUserDefaults()
+            defer { clearAllUserDefaults() }
 
-        let board = Board(seed: 12345)
-        let yesterdaySeed = seedFromDate(Date()) - 1
-        let snapshot = GameSnapshot(
-            board: board,
-            status: .lost,
-            elapsedTime: 50.0,
-            flagCount: 3,
-            selectedRow: 2,
-            selectedCol: 2,
-            dailySeed: yesterdaySeed
-        )
-        snapshot.save()
+            let board = Board(seed: 12345)
+            let yesterdaySeed = seedFromDate(Date()) - 1
+            let snapshot = GameSnapshot(
+                board: board,
+                status: .lost,
+                elapsedTime: 50.0,
+                flagCount: 3,
+                selectedRow: 2,
+                selectedCol: 2,
+                dailySeed: yesterdaySeed
+            )
+            snapshot.save()
 
-        let restored = GameState.restored()
+            let restored = GameState.restored()
 
-        #expect(restored.status == .notStarted, "Should be not started (rolled over)")
-        #expect(restored.elapsedTime == 0, "Elapsed time should be 0")
+            #expect(restored.status == .notStarted, "Should be not started (rolled over)")
+            #expect(restored.elapsedTime == 0, "Elapsed time should be 0")
+        }
     }
 
     @Test("restored() keeps previous day's game when game was in progress")
     func testRestoredDelaysRolloverWhenInProgress() {
-        clearAllUserDefaults()
-        defer { clearAllUserDefaults() }
+        withIsolatedSnapshot {
+            clearAllUserDefaults()
+            defer { clearAllUserDefaults() }
 
-        let board = Board(seed: 12345)
-        let yesterdaySeed = seedFromDate(Date()) - 1
-        let snapshot = GameSnapshot(
-            board: board,
-            status: .playing,
-            elapsedTime: 75.0,
-            flagCount: 4,
-            selectedRow: 5,
-            selectedCol: 6,
-            dailySeed: yesterdaySeed
-        )
-        snapshot.save()
+            let board = Board(seed: 12345)
+            let yesterdaySeed = seedFromDate(Date()) - 1
+            let snapshot = GameSnapshot(
+                board: board,
+                status: .playing,
+                elapsedTime: 75.0,
+                flagCount: 4,
+                selectedRow: 5,
+                selectedCol: 6,
+                dailySeed: yesterdaySeed
+            )
+            snapshot.save()
 
-        let restored = GameState.restored()
+            let restored = GameState.restored()
 
-        #expect(restored.status == .playing, "Should still be playing (rollover delayed)")
-        #expect(restored.elapsedTime == 75.0, "Elapsed time should be preserved")
-        #expect(restored.flagCount == 4, "Flag count should be preserved")
-        #expect(restored.selectedRow == 5, "Selected row should be preserved")
-        #expect(restored.selectedCol == 6, "Selected col should be preserved")
-        #expect(restored.board == board, "Board should be preserved")
+            #expect(restored.status == .playing, "Should still be playing (rollover delayed)")
+            #expect(restored.elapsedTime == 75.0, "Elapsed time should be preserved")
+            #expect(restored.flagCount == 4, "Flag count should be preserved")
+            #expect(restored.selectedRow == 5, "Selected row should be preserved")
+            #expect(restored.selectedCol == 6, "Selected col should be preserved")
+            #expect(restored.board == board, "Board should be preserved")
+        }
     }
 
     @Test("restored() restores today's snapshot normally")
     func testRestoredRestoresTodaysSnapshot() {
-        clearAllUserDefaults()
-        defer { clearAllUserDefaults() }
+        withIsolatedSnapshot {
+            clearAllUserDefaults()
+            defer { clearAllUserDefaults() }
 
-        let board = Board(seed: 12345)
-        let todaySeed = seedFromDate(Date())
-        let snapshot = GameSnapshot(
-            board: board,
-            status: .playing,
-            elapsedTime: 42.0,
-            flagCount: 2,
-            selectedRow: 1,
-            selectedCol: 2,
-            dailySeed: todaySeed
-        )
-        snapshot.save()
+            let board = Board(seed: 12345)
+            let todaySeed = seedFromDate(Date())
+            let snapshot = GameSnapshot(
+                board: board,
+                status: .playing,
+                elapsedTime: 42.0,
+                flagCount: 2,
+                selectedRow: 1,
+                selectedCol: 2,
+                dailySeed: todaySeed
+            )
+            snapshot.save()
 
-        let restored = GameState.restored()
+            let restored = GameState.restored()
 
-        #expect(restored.status == .playing, "Should be playing")
-        #expect(restored.elapsedTime == 42.0, "Elapsed time should be preserved")
-        #expect(restored.flagCount == 2, "Flag count should be preserved")
+            #expect(restored.status == .playing, "Should be playing")
+            #expect(restored.elapsedTime == 42.0, "Elapsed time should be preserved")
+            #expect(restored.flagCount == 2, "Flag count should be preserved")
+        }
     }
 
     // MARK: - checkForDailyRollover Tests

@@ -58,6 +58,51 @@ final class StatsStore {
         !results.isEmpty
     }
 
+    /// Current consecutive-day streak based on completed daily seeds.
+    var currentStreak: Int {
+        let dates = completionDates
+        guard let latest = dates.last else { return 0 }
+
+        let calendar = Self.utcCalendar
+        var streak = 1
+        var previous = latest
+
+        for date in dates.dropLast().reversed() {
+            guard let expected = calendar.date(byAdding: .day, value: -1, to: previous),
+                  calendar.isDate(date, inSameDayAs: expected) else {
+                break
+            }
+            streak += 1
+            previous = date
+        }
+
+        return streak
+    }
+
+    /// Longest consecutive-day streak based on completed daily seeds.
+    var longestStreak: Int {
+        let dates = completionDates
+        guard !dates.isEmpty else { return 0 }
+
+        let calendar = Self.utcCalendar
+        var longest = 1
+        var current = 1
+        var previous = dates[0]
+
+        for date in dates.dropFirst() {
+            if let expected = calendar.date(byAdding: .day, value: 1, to: previous),
+               calendar.isDate(date, inSameDayAs: expected) {
+                current += 1
+            } else {
+                current = 1
+            }
+            longest = max(longest, current)
+            previous = date
+        }
+
+        return longest
+    }
+
     // MARK: - Recording
 
     /// Records a game result and persists to storage.
@@ -107,6 +152,19 @@ final class StatsStore {
                 ], key: "persistence")
             }
         }
+    }
+
+    // MARK: - Streak Helpers
+
+    private static var utcCalendar: Calendar {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = .gmt
+        return calendar
+    }
+
+    private var completionDates: [Date] {
+        let uniqueSeeds = Set(results.map(\.dailySeed))
+        return uniqueSeeds.compactMap { dateFromSeed($0) }.sorted()
     }
 
     // MARK: - Testing Support
