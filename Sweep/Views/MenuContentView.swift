@@ -4,6 +4,8 @@ import AppKit
 struct MenuContentView: View {
     var gameState: GameState
 
+    @AppStorage(Constants.SettingsKeys.confirmBeforeReset) private var confirmBeforeReset = false
+    @State private var showResetConfirmation = false
     @State private var showCelebration = false
 
     private var isGameComplete: Bool {
@@ -15,6 +17,21 @@ struct MenuContentView: View {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
+    }
+
+    private func handleResetRequest() {
+        // Prevent multiple reset requests while confirmation dialog is already showing
+        guard !showResetConfirmation else { return }
+
+        if confirmBeforeReset {
+            showResetConfirmation = true
+        } else {
+            performReset()
+        }
+    }
+
+    private func performReset() {
+        gameState.reset()
     }
 
     private func announceGameResult(won: Bool) {
@@ -40,10 +57,7 @@ struct MenuContentView: View {
                     elapsedTime: gameState.elapsedTime,
                     flagCount: gameState.flagCount,
                     canReset: gameState.canReset,
-                    onReset: {
-                        showCelebration = false
-                        gameState.reset()
-                    }
+                    onReset: handleResetRequest
                 )
 
                 GameBoardView(
@@ -62,10 +76,7 @@ struct MenuContentView: View {
                 FooterView(
                     isGameComplete: isGameComplete,
                     canReset: gameState.canReset,
-                    onReset: {
-                        showCelebration = false
-                        gameState.reset()
-                    },
+                    onReset: handleResetRequest,
                     onShare: {
                         copyShareTextToClipboard()
                     },
@@ -86,7 +97,7 @@ struct MenuContentView: View {
             gameState.pauseTimer()
             gameState.save()
         }
-        .onChange(of: gameState.status) { _, newStatus in
+        .onChange(of: gameState.status) { oldStatus, newStatus in
             switch newStatus {
             case .won:
                 showCelebration = true
@@ -95,9 +106,28 @@ struct MenuContentView: View {
             case .lost:
                 announceGameResult(won: false)
                 gameState.save()
-            default:
-                break
+            case .playing:
+                // Clear celebration when resetting from won state
+                if oldStatus == .won {
+                    showCelebration = false
+                }
+            case .notStarted:
+                // Clear celebration when resetting from won state
+                if oldStatus == .won {
+                    showCelebration = false
+                }
             }
+        }
+        .alert(
+            String(localized: "reset_confirmation_title"),
+            isPresented: $showResetConfirmation
+        ) {
+            Button(String(localized: "reset_confirmation_cancel"), role: .cancel) {}
+            Button(String(localized: "reset_confirmation_confirm"), role: .destructive) {
+                performReset()
+            }
+        } message: {
+            Text(String(localized: "reset_confirmation_message"))
         }
     }
 }
