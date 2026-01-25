@@ -114,6 +114,38 @@ struct GameStateTests {
         #expect(gameState.selectedCol == 0)
     }
 
+    @Test("Reset after winning allows playing again")
+    func testResetAfterWinningAllowsPlayingAgain() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        winGame(gameState)
+        #expect(gameState.status == .won)
+
+        gameState.reset()
+
+        #expect(gameState.status == .notStarted)
+        #expect(gameState.elapsedTime == 0)
+        #expect(gameState.flagCount == 0)
+        expectAllCellsHidden(in: gameState)
+
+        gameState.reveal(row: 0, col: 0)
+        #expect(gameState.status == .playing)
+    }
+
+    @Test("Reset restores all cells to hidden")
+    func testResetRestoresAllCellsToHidden() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        gameState.reveal(row: 0, col: 0)
+        gameState.reveal(row: 1, col: 1)
+
+        gameState.reset()
+
+        expectAllCellsHidden(in: gameState)
+    }
+
     // MARK: - Selection Movement Tests
 
     @Test("Move selection up")
@@ -266,48 +298,21 @@ struct GameStateTests {
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
 
-        // First, make a safe first click to start the game
-        // Find a non-mine cell
-        var safeRow = -1, safeCol = -1
-        outer: for r in 0..<8 {
-            for c in 0..<8 {
-                if !gameState.board.cells[r][c].hasMine {
-                    safeRow = r
-                    safeCol = c
-                    break outer
-                }
-            }
-        }
-
-        guard safeRow >= 0 else {
+        guard let safe = findSafeCell(in: gameState.board) else {
             Issue.record("No safe cell found")
             return
         }
-
-        gameState.reveal(row: safeRow, col: safeCol)
+        gameState.reveal(row: safe.row, col: safe.col)
         #expect(gameState.status == .playing)
 
-        // Now find a mine cell and click it
-        var mineRow = -1, mineCol = -1
-        outer2: for r in 0..<8 {
-            for c in 0..<8 {
-                if gameState.board.cells[r][c].hasMine {
-                    mineRow = r
-                    mineCol = c
-                    break outer2
-                }
-            }
-        }
-
-        guard mineRow >= 0 else {
+        guard let mine = findMineCell(in: gameState.board) else {
             Issue.record("No mine found")
             return
         }
-
-        gameState.reveal(row: mineRow, col: mineCol)
+        gameState.reveal(row: mine.row, col: mine.col)
 
         #expect(gameState.status == .lost)
-        #expect(gameState.board.cells[mineRow][mineCol].isExploded)
+        #expect(gameState.board.cells[mine.row][mine.col].isExploded)
     }
 
     @Test("Win when all non-mine cells are revealed")
@@ -315,14 +320,7 @@ struct GameStateTests {
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
 
-        // Reveal all non-mine cells
-        for r in 0..<8 {
-            for c in 0..<8 {
-                if !gameState.board.cells[r][c].hasMine {
-                    gameState.reveal(row: r, col: c)
-                }
-            }
-        }
+        winGame(gameState)
 
         #expect(gameState.status == .won)
     }
@@ -398,52 +396,26 @@ struct GameStateTests {
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
 
-        // Make a safe first click
-        var safeRow = -1, safeCol = -1
-        outer: for r in 0..<8 {
-            for c in 0..<8 {
-                if !gameState.board.cells[r][c].hasMine {
-                    safeRow = r
-                    safeCol = c
-                    break outer
-                }
-            }
+        guard let safe = findSafeCell(in: gameState.board) else {
+            Issue.record("No safe cell found")
+            return
         }
-        gameState.reveal(row: safeRow, col: safeCol)
+        gameState.reveal(row: safe.row, col: safe.col)
 
-        // Click a mine to lose
-        var mineRow = -1, mineCol = -1
-        outer2: for r in 0..<8 {
-            for c in 0..<8 {
-                if gameState.board.cells[r][c].hasMine {
-                    mineRow = r
-                    mineCol = c
-                    break outer2
-                }
-            }
+        guard let mine = findMineCell(in: gameState.board) else {
+            Issue.record("No mine found")
+            return
         }
-        gameState.reveal(row: mineRow, col: mineCol)
+        gameState.reveal(row: mine.row, col: mine.col)
         #expect(gameState.status == .lost)
 
-        // Find another hidden cell
-        var hiddenRow = -1, hiddenCol = -1
-        outer3: for r in 0..<8 {
-            for c in 0..<8 {
-                if case .hidden = gameState.board.cells[r][c].state {
-                    hiddenRow = r
-                    hiddenCol = c
-                    break outer3
-                }
-            }
+        guard let hidden = findHiddenCell(in: gameState) else {
+            Issue.record("No hidden cell found")
+            return
         }
 
-        guard hiddenRow >= 0 else {
-            return // No hidden cells to test
-        }
-
-        // Try to reveal - should have no effect
-        gameState.reveal(row: hiddenRow, col: hiddenCol)
-        #expect(gameState.board.cells[hiddenRow][hiddenCol].state == .hidden, "Should not be able to reveal after losing")
+        gameState.reveal(row: hidden.row, col: hidden.col)
+        #expect(gameState.board.cells[hidden.row][hidden.col].state == .hidden, "Should not be able to reveal after losing")
     }
 
     @Test("Cannot reveal after game is won")
@@ -451,34 +423,15 @@ struct GameStateTests {
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
 
-        // Win the game by revealing all non-mine cells
-        for r in 0..<8 {
-            for c in 0..<8 {
-                if !gameState.board.cells[r][c].hasMine {
-                    gameState.reveal(row: r, col: c)
-                }
-            }
-        }
+        winGame(gameState)
         #expect(gameState.status == .won)
 
-        // Find a mine cell (still hidden)
-        var mineRow = -1, mineCol = -1
-        outer: for r in 0..<8 {
-            for c in 0..<8 {
-                if gameState.board.cells[r][c].hasMine {
-                    mineRow = r
-                    mineCol = c
-                    break outer
-                }
-            }
-        }
-
-        guard mineRow >= 0 else {
+        guard let mine = findMineCell(in: gameState.board) else {
+            Issue.record("No mine found")
             return
         }
 
-        // Try to reveal - should have no effect
-        gameState.reveal(row: mineRow, col: mineCol)
+        gameState.reveal(row: mine.row, col: mine.col)
         #expect(gameState.status == .won, "Status should still be won")
     }
 
@@ -554,6 +507,38 @@ struct GameStateTests {
         return nil
     }
 
+    /// Helper to win the game by revealing all non-mine cells
+    private func winGame(_ gameState: GameState) {
+        for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                if !gameState.board.cells[r][c].hasMine {
+                    gameState.reveal(row: r, col: c)
+                }
+            }
+        }
+    }
+
+    /// Helper to verify all cells are hidden
+    private func expectAllCellsHidden(in gameState: GameState) {
+        for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                #expect(gameState.board.cells[r][c].state == .hidden)
+            }
+        }
+    }
+
+    /// Helper to find the first hidden cell in a game state
+    private func findHiddenCell(in gameState: GameState) -> (row: Int, col: Int)? {
+        for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                if case .hidden = gameState.board.cells[r][c].state {
+                    return (r, c)
+                }
+            }
+        }
+        return nil
+    }
+
     @Test("Timer starts on first reveal")
     @MainActor
     func testTimerStartsOnFirstReveal() {
@@ -595,19 +580,11 @@ struct GameStateTests {
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
 
-        // Reveal all non-mine cells to win
-        for r in 0..<8 {
-            for c in 0..<8 {
-                if !gameState.board.cells[r][c].hasMine {
-                    gameState.reveal(row: r, col: c)
-                }
-            }
-        }
+        winGame(gameState)
 
         #expect(gameState.status == .won)
         let timeAtWin = gameState.elapsedTime
 
-        // Wait and verify timer has stopped
         runLoopFor(seconds: 1.2)
 
         #expect(gameState.elapsedTime == timeAtWin, "Timer should stop after winning")
@@ -725,22 +702,13 @@ struct GameStateTests {
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
 
-        // Win the game by revealing all non-mine cells
-        for r in 0..<Board.rows {
-            for c in 0..<Board.cols {
-                if !gameState.board.cells[r][c].hasMine {
-                    gameState.reveal(row: r, col: c)
-                }
-            }
-        }
+        winGame(gameState)
 
         #expect(gameState.status == .won)
         let timeAtWin = gameState.elapsedTime
 
-        // Try to resume after winning
         gameState.resumeTimer()
 
-        // Wait and verify timer didn't restart
         runLoopFor(seconds: 1.2)
 
         #expect(gameState.elapsedTime == timeAtWin, "Resume should not restart timer after winning")
