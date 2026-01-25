@@ -18,19 +18,33 @@ struct Board: Equatable {
     /// Creates a new board with mines placed deterministically based on the seed.
     /// - Parameter seed: The seed for deterministic mine placement.
     init(seed: Int64) {
-        // Stub: Create empty board with no mines
-        // Track A (Story 3A) will implement actual mine placement
         cells = (0..<Board.rows).map { _ in
             (0..<Board.cols).map { _ in
                 Cell(state: .hidden, hasMine: false)
             }
         }
+
+        let rng = GKLinearCongruentialRandomSource(seed: UInt64(bitPattern: seed))
+
+        var minePositions = Set<Int>()
+        let totalCells = Board.rows * Board.cols
+        precondition(Board.mineCount <= totalCells, "Cannot place \(Board.mineCount) mines in \(totalCells) cells")
+
+        while minePositions.count < Board.mineCount {
+            let position = rng.nextInt(upperBound: totalCells)
+            minePositions.insert(position)
+        }
+
+        for position in minePositions {
+            let row = position / Board.cols
+            let col = position % Board.cols
+            cells[row][col] = Cell(state: .hidden, hasMine: true)
+        }
     }
 
-    /// Reveals the cell at the given position.
+    /// Reveals the cell at the given position with flood-fill cascade for zero-adjacent cells.
     /// - Returns: `.mine` if the cell contains a mine, `.safe(cellsRevealed:)` otherwise.
     mutating func reveal(row: Int, col: Int) -> RevealResult {
-        // Stub: Track A (Story 4A) will implement
         guard row >= 0, row < Board.rows, col >= 0, col < Board.cols else {
             return .safe(cellsRevealed: 0)
         }
@@ -43,14 +57,38 @@ struct Board: Equatable {
             return .mine
         }
 
-        let adjacent = adjacentMineCount(row: row, col: col)
-        cells[row][col].state = .revealed(adjacentMines: adjacent)
-        return .safe(cellsRevealed: 1)
+        // Flood-fill reveal using a stack
+        var stack = [(row, col)]
+        var cellsRevealed = 0
+
+        while let (r, c) = stack.popLast() {
+            // Skip if out of bounds
+            guard r >= 0, r < Board.rows, c >= 0, c < Board.cols else { continue }
+            // Skip if not hidden (already revealed or flagged)
+            guard case .hidden = cells[r][c].state else { continue }
+            // Skip mines
+            guard !cells[r][c].hasMine else { continue }
+
+            let adjacent = adjacentMineCount(row: r, col: c)
+            cells[r][c].state = .revealed(adjacentMines: adjacent)
+            cellsRevealed += 1
+
+            // If zero adjacent mines, add all 8 neighbors to the stack
+            if adjacent == 0 {
+                for dr in -1...1 {
+                    for dc in -1...1 {
+                        if dr == 0 && dc == 0 { continue }
+                        stack.append((r + dr, c + dc))
+                    }
+                }
+            }
+        }
+
+        return .safe(cellsRevealed: cellsRevealed)
     }
 
     /// Toggles the flag state of a hidden cell.
     mutating func toggleFlag(row: Int, col: Int) {
-        // Stub: Track A will implement
         guard row >= 0, row < Board.rows, col >= 0, col < Board.cols else { return }
 
         switch cells[row][col].state {
@@ -72,7 +110,6 @@ struct Board: Equatable {
     /// Relocates a mine from the given position to a random empty cell.
     /// Used for first-click safety.
     mutating func relocateMine(from row: Int, col: Int) {
-        // Stub: Track A (Story 5A) will implement
         guard row >= 0, row < Board.rows, col >= 0, col < Board.cols else { return }
         guard cells[row][col].hasMine else { return }
 

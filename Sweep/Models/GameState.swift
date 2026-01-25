@@ -31,7 +31,6 @@ final class GameState {
 
     /// Reveals the cell at the given position.
     func reveal(row: Int, col: Int) {
-        // Track C (Story 3C) will implement full logic
         guard status == .notStarted || status == .playing else { return }
         guard case .hidden = board.cells[row][col].state else { return }
 
