@@ -11,7 +11,7 @@ struct MenuContentView: View {
     }
 
     private func copyShareTextToClipboard() {
-        guard let text = gameState.shareText() else { return }
+        guard let text = gameState.shareText(for: Date()) else { return }
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
@@ -54,18 +54,14 @@ struct MenuContentView: View {
                     }
                 )
 
-                if isGameComplete {
-                    Button(String(localized: "share_button")) {
-                        copyShareTextToClipboard()
-                    }
-                    .buttonStyle(.bordered)
-                    .accessibilityLabel(String(localized: "share_button"))
-                }
-
                 FooterView(
+                    isGameComplete: isGameComplete,
                     onReset: {
                         showCelebration = false
                         gameState.reset()
+                    },
+                    onShare: {
+                        copyShareTextToClipboard()
                     },
                     onAbout: {
                         AboutWindow.show()

@@ -1165,17 +1165,29 @@ struct GameStateTests {
         winGame(gameState)
 
         // Use a specific date for testing
+        let timeZone = TimeZone(identifier: "UTC") ?? TimeZone(secondsFromGMT: 0) ?? .current
         var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(identifier: "UTC")!
+        calendar.timeZone = timeZone
         let components = DateComponents(year: 2026, month: 1, day: 25)
-        let testDate = calendar.date(from: components)!
+        guard let testDate = calendar.date(from: components) else {
+            Issue.record("Failed to construct test date")
+            return
+        }
 
         guard let shareText = gameState.shareText(for: testDate) else {
             Issue.record("Share text should not be nil")
             return
         }
 
-        #expect(shareText.contains("Sweep — 2026-01-25"), "Share text should include UTC date in header")
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.timeZone = timeZone
+        formatter.locale = Locale.current
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        let expectedDate = formatter.string(from: testDate)
+        let expectedHeader = String(format: String(localized: "share_header"), expectedDate)
+        #expect(shareText.contains(expectedHeader), "Share text should include UTC date in header")
     }
 
     @Test("Share text includes completion time")

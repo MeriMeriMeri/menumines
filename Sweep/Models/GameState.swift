@@ -31,7 +31,7 @@ final class GameState {
 
     /// Generates a Wordle-style share text for the completed game.
     /// The grid encodes only the revealed/marked/hidden outcome without exposing mine locations.
-    /// - Parameter date: The date to use for the header (defaults to current date in UTC).
+    /// - Parameter date: The date to use for the header (defaults to current date formatted in UTC).
     /// - Returns: The formatted share text, or nil if the game is not complete.
     func shareText(for date: Date = Date()) -> String? {
         guard status == .won || status == .lost else { return nil }
@@ -39,13 +39,15 @@ final class GameState {
         var lines: [String] = []
 
         // Header with UTC date
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(identifier: "UTC")!
-        let year = calendar.component(.year, from: date)
-        let month = calendar.component(.month, from: date)
-        let day = calendar.component(.day, from: date)
-        let dateString = String(format: "%04d-%02d-%02d", year, month, day)
-        lines.append("Sweep — \(dateString)")
+        let timeZone = TimeZone(identifier: "UTC") ?? TimeZone(secondsFromGMT: 0) ?? .current
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.timeZone = timeZone
+        formatter.locale = Locale.current
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        let dateString = formatter.string(from: date)
+        lines.append(String(format: String(localized: "share_header"), dateString))
 
         // Result line with formatted time
         let minutes = Int(elapsedTime) / 60
