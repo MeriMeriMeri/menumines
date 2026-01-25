@@ -32,6 +32,8 @@
 		A1000082229E0082 /* StatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000083229E0083 /* StatsStore.swift */; };
 		A1000084229E0084 /* StatsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000085229E0085 /* StatsWindow.swift */; };
 		A1000086229E0086 /* StatsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000087229E0087 /* StatsStoreTests.swift */; };
+		A1000088229E0088 /* SettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000089229E0089 /* SettingsTests.swift */; };
+		A100009A229E009A /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100009B229E009B /* Constants.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -71,6 +73,8 @@
 		A1000083229E0083 /* StatsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsStore.swift; sourceTree = "<group>"; };
 		A1000085229E0085 /* StatsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsWindow.swift; sourceTree = "<group>"; };
 		A1000087229E0087 /* StatsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsStoreTests.swift; sourceTree = "<group>"; };
+		A1000089229E0089 /* SettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTests.swift; sourceTree = "<group>"; };
+		A100009B229E009B /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXVariantGroup section */
@@ -125,6 +129,7 @@
 			isa = PBXGroup;
 			children = (
 				A1000002229E0002 /* SweepApp.swift */,
+				A100009B229E009B /* Constants.swift */,
 				A100000C229E000C /* Views */,
 				A100000D229E000D /* Models */,
 				A100000E229E000E /* Resources */,
@@ -179,6 +184,7 @@
 				A1000063229E0063 /* MenuBarIconStateTests.swift */,
 				A1000065229E0065 /* DailyCompletionTests.swift */,
 				A1000087229E0087 /* StatsStoreTests.swift */,
+				A1000089229E0089 /* SettingsTests.swift */,
 			);
 			path = SweepTests;
 			sourceTree = "<group>";
@@ -290,6 +296,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1000001229E0001 /* SweepApp.swift in Sources */,
+				A100009A229E009A /* Constants.swift in Sources */,
 				A1000003229E0003 /* MenuContentView.swift in Sources */,
 				A1000019229E0019 /* Cell.swift in Sources */,
 				A100001B229E001B /* Board.swift in Sources */,
@@ -318,6 +325,7 @@
 				A1000062229E0062 /* MenuBarIconStateTests.swift in Sources */,
 				A1000064229E0064 /* DailyCompletionTests.swift in Sources */,
 				A1000086229E0086 /* StatsStoreTests.swift in Sources */,
+				A1000088229E0088 /* SettingsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

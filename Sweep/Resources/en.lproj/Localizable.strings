@@ -15,10 +15,11 @@
 "status_lost" = "Game over";
 
 /* SettingsView */
-"settings_coming_soon" = "Settings coming soon...";
+"settings_show_menu_bar_indicators" = "Show menu bar status indicators";
+"settings_show_menu_bar_indicators_footer" = "When off, the menu bar icon stays constant.";
 
 /* SweepApp - MenuBarExtra title */
-"menubar_title" = "Sweep";
+"menu_bar_title" = "Sweep";
 
 /* Share feature */
 "share_button" = "Share";
