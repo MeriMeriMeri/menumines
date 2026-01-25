@@ -27,10 +27,15 @@ struct MenuContentView: View {
                     }
                 )
 
-                FooterView(onReset: {
-                    showCelebration = false
-                    gameState.reset()
-                })
+                FooterView(
+                    onReset: {
+                        showCelebration = false
+                        gameState.reset()
+                    },
+                    onAbout: {
+                        AboutWindow.show()
+                    }
+                )
             }
             .padding()
 

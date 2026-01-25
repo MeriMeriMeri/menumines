@@ -21,6 +21,7 @@
 		A1000029229E0029 /* GameStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002A229E002A /* GameStateTests.swift */; };
 		A100003D229E003D /* BoardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100003E229E003E /* BoardTests.swift */; };
 		A100003F229E003F /* ConfettiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000040229E0040 /* ConfettiView.swift */; };
+		A1000041229E0041 /* AboutWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000042229E0042 /* AboutWindow.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,6 +51,7 @@
 		A100002C229E002C /* SweepTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SweepTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A100003E229E003E /* BoardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardTests.swift; sourceTree = "<group>"; };
 		A1000040229E0040 /* ConfettiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfettiView.swift; sourceTree = "<group>"; };
+		A1000042229E0042 /* AboutWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutWindow.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -108,6 +110,7 @@
 				A1000026229E0026 /* HeaderView.swift */,
 				A1000028229E0028 /* FooterView.swift */,
 				A1000040229E0040 /* ConfettiView.swift */,
+				A1000042229E0042 /* AboutWindow.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -250,6 +253,7 @@
 				A1000025229E0025 /* HeaderView.swift in Sources */,
 				A1000027229E0027 /* FooterView.swift in Sources */,
 				A100003F229E003F /* ConfettiView.swift in Sources */,
+				A1000041229E0041 /* AboutWindow.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
