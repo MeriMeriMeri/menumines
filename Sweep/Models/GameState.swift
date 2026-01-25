@@ -1,7 +1,47 @@
 import Foundation
 
+/// Snapshot of game state for persistence.
+/// Includes all data needed to restore an in-progress game.
+struct GameSnapshot: Codable {
+    let board: Board
+    let status: GameStatus
+    let elapsedTime: TimeInterval
+    let flagCount: Int
+    let selectedRow: Int
+    let selectedCol: Int
+    let dailySeed: Int64
+
+    private static let storageKey = "gameSnapshot"
+
+    /// Saves the snapshot to UserDefaults.
+    func save() {
+        guard let data = try? JSONEncoder().encode(self) else { return }
+        UserDefaults.standard.set(data, forKey: Self.storageKey)
+    }
+
+    /// Loads a snapshot from UserDefaults if one exists and is for today's puzzle.
+    /// - Returns: The snapshot if valid for today, nil otherwise.
+    static func load() -> GameSnapshot? {
+        guard let data = UserDefaults.standard.data(forKey: storageKey) else { return nil }
+        guard let snapshot = try? JSONDecoder().decode(GameSnapshot.self, from: data) else { return nil }
+
+        let todaySeed = seedFromDate(Date())
+        guard snapshot.dailySeed == todaySeed else {
+            clear()
+            return nil
+        }
+
+        return snapshot
+    }
+
+    /// Clears any stored snapshot.
+    static func clear() {
+        UserDefaults.standard.removeObject(forKey: storageKey)
+    }
+}
+
 /// The current status of the game.
-enum GameStatus: Equatable {
+enum GameStatus: String, Equatable, Codable {
     case notStarted
     case playing
     case won
@@ -161,6 +201,46 @@ final class GameState {
         flagCount = 0
         selectedRow = 0
         selectedCol = 0
+        GameSnapshot.clear()
+    }
+
+    // MARK: - Persistence
+
+    /// Saves the current game state to persistent storage.
+    /// Only saves if the game is in progress (not completed or not started).
+    func save() {
+        guard status == .playing else {
+            if status == .won || status == .lost {
+                GameSnapshot.clear()
+            }
+            return
+        }
+
+        let snapshot = GameSnapshot(
+            board: board,
+            status: status,
+            elapsedTime: elapsedTime,
+            flagCount: flagCount,
+            selectedRow: selectedRow,
+            selectedCol: selectedCol,
+            dailySeed: seedFromDate(Date())
+        )
+        snapshot.save()
+    }
+
+    /// Creates a GameState by restoring from a saved snapshot if available,
+    /// otherwise creates a fresh game with today's daily board.
+    static func restored() -> GameState {
+        if let snapshot = GameSnapshot.load() {
+            let state = GameState(board: snapshot.board)
+            state.status = snapshot.status
+            state.elapsedTime = snapshot.elapsedTime
+            state.flagCount = snapshot.flagCount
+            state.selectedRow = snapshot.selectedRow
+            state.selectedCol = snapshot.selectedCol
+            return state
+        }
+        return GameState(board: dailyBoard())
     }
 
     /// Pauses the timer (e.g., when popover closes).

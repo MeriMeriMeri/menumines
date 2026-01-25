@@ -8,12 +8,20 @@ enum RevealResult: Equatable {
 }
 
 /// The 8x8 Minesweeper game board.
-struct Board: Equatable {
+struct Board: Equatable, Codable {
     static let rows = 8
     static let cols = 8
     static let mineCount = 10
 
     private(set) var cells: [[Cell]]
+
+    /// Creates a board with pre-existing cells (used for persistence restoration).
+    /// - Parameter cells: The cell grid to use.
+    init(cells: [[Cell]]) {
+        precondition(cells.count == Board.rows, "Board must have \(Board.rows) rows")
+        precondition(cells.allSatisfy { $0.count == Board.cols }, "Each row must have \(Board.cols) columns")
+        self.cells = cells
+    }
 
     /// Creates a new board with mines placed deterministically based on the seed.
     /// - Parameter seed: The seed for deterministic mine placement.

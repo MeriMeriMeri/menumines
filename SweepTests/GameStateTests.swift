@@ -1356,4 +1356,413 @@ struct GameStateTests {
         #expect(shareText.contains("🚩"), "Share text should contain flag for flagged cells")
         // Hidden cells (⬛️) will exist for unflagged mines after winning
     }
+
+    // MARK: - Persistence Tests (Codable - no shared state)
+
+    @Test("CellState hidden round-trips through Codable")
+    func testCellStateHiddenCodable() throws {
+        let original = CellState.hidden
+        let data = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(CellState.self, from: data)
+        #expect(decoded == original)
+    }
+
+    @Test("CellState revealed round-trips through Codable")
+    func testCellStateRevealedCodable() throws {
+        let original = CellState.revealed(adjacentMines: 3)
+        let data = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(CellState.self, from: data)
+        #expect(decoded == original)
+    }
+
+    @Test("CellState flagged round-trips through Codable")
+    func testCellStateFlaggedCodable() throws {
+        let original = CellState.flagged
+        let data = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(CellState.self, from: data)
+        #expect(decoded == original)
+    }
+
+    @Test("Cell round-trips through Codable")
+    func testCellCodable() throws {
+        let original = Cell(state: .revealed(adjacentMines: 2), hasMine: false, isExploded: false)
+        let data = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(Cell.self, from: data)
+        #expect(decoded == original)
+    }
+
+    @Test("Cell with mine round-trips through Codable")
+    func testCellWithMineCodable() throws {
+        let original = Cell(state: .hidden, hasMine: true, isExploded: false)
+        let data = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(Cell.self, from: data)
+        #expect(decoded == original)
+    }
+
+    @Test("Cell with exploded mine round-trips through Codable")
+    func testCellExplodedCodable() throws {
+        let original = Cell(state: .revealed(adjacentMines: 0), hasMine: true, isExploded: true)
+        let data = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(Cell.self, from: data)
+        #expect(decoded == original)
+    }
+
+    @Test("Board round-trips through Codable")
+    func testBoardCodable() throws {
+        let original = Board(seed: 12345)
+        let data = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(Board.self, from: data)
+        #expect(decoded == original)
+    }
+
+    @Test("Board with modified cells round-trips through Codable")
+    func testBoardModifiedCodable() throws {
+        var original = Board(seed: 12345)
+        _ = original.reveal(row: 0, col: 0)
+        original.toggleFlag(row: 1, col: 1)
+
+        let data = try JSONEncoder().encode(original)
+        let decoded = try JSONDecoder().decode(Board.self, from: data)
+        #expect(decoded == original)
+    }
+
+    @Test("GameStatus round-trips through Codable")
+    func testGameStatusCodable() throws {
+        for status in [GameStatus.notStarted, .playing, .won, .lost] {
+            let data = try JSONEncoder().encode(status)
+            let decoded = try JSONDecoder().decode(GameStatus.self, from: data)
+            #expect(decoded == status)
+        }
+    }
+
+    @Test("GameSnapshot round-trips through Codable")
+    func testGameSnapshotCodable() throws {
+        let board = Board(seed: 12345)
+        let snapshot = GameSnapshot(
+            board: board,
+            status: .playing,
+            elapsedTime: 42.0,
+            flagCount: 3,
+            selectedRow: 2,
+            selectedCol: 5,
+            dailySeed: 20260125
+        )
+
+        let data = try JSONEncoder().encode(snapshot)
+        let decoded = try JSONDecoder().decode(GameSnapshot.self, from: data)
+
+        #expect(decoded.board == snapshot.board)
+        #expect(decoded.status == snapshot.status)
+        #expect(decoded.elapsedTime == snapshot.elapsedTime)
+        #expect(decoded.flagCount == snapshot.flagCount)
+        #expect(decoded.selectedRow == snapshot.selectedRow)
+        #expect(decoded.selectedCol == snapshot.selectedCol)
+        #expect(decoded.dailySeed == snapshot.dailySeed)
+    }
+
+    @Test("Board init with cells preserves all cell states")
+    func testBoardInitWithCells() {
+        let originalBoard = Board(seed: 12345)
+        var modifiedBoard = originalBoard
+        _ = modifiedBoard.reveal(row: 0, col: 0)
+        modifiedBoard.toggleFlag(row: 1, col: 1)
+
+        let reconstructed = Board(cells: modifiedBoard.cells)
+
+        #expect(reconstructed == modifiedBoard)
+        #expect(reconstructed.cells[1][1].state == .flagged)
+    }
+}
+
+// MARK: - Persistence Tests with UserDefaults (Serialized)
+// These tests use shared UserDefaults storage and must run serially to avoid interference
+
+@Suite("GameState Persistence Tests", .serialized)
+struct GameStatePersistenceTests {
+
+    /// Helper to find the first safe (non-mine) cell in a board
+    private func findSafeCell(in board: Board) -> (row: Int, col: Int)? {
+        for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                if !board.cells[r][c].hasMine {
+                    return (r, c)
+                }
+            }
+        }
+        return nil
+    }
+
+    /// Helper to find the first mine cell in a board
+    private func findMineCell(in board: Board) -> (row: Int, col: Int)? {
+        for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                if board.cells[r][c].hasMine {
+                    return (r, c)
+                }
+            }
+        }
+        return nil
+    }
+
+    /// Helper to win the game by revealing all non-mine cells
+    private func winGame(_ gameState: GameState) {
+        for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                if !gameState.board.cells[r][c].hasMine {
+                    gameState.reveal(row: r, col: c)
+                }
+            }
+        }
+    }
+
+    @Test("GameSnapshot save and load works")
+    func testGameSnapshotSaveLoad() {
+        GameSnapshot.clear()
+        defer { GameSnapshot.clear() }
+
+        let board = Board(seed: 12345)
+        let todaySeed = seedFromDate(Date())
+        let snapshot = GameSnapshot(
+            board: board,
+            status: .playing,
+            elapsedTime: 99.0,
+            flagCount: 5,
+            selectedRow: 3,
+            selectedCol: 4,
+            dailySeed: todaySeed
+        )
+
+        snapshot.save()
+
+        guard let loaded = GameSnapshot.load() else {
+            Issue.record("Snapshot should be loadable")
+            return
+        }
+
+        #expect(loaded.board == snapshot.board)
+        #expect(loaded.status == snapshot.status)
+        #expect(loaded.elapsedTime == snapshot.elapsedTime)
+        #expect(loaded.flagCount == snapshot.flagCount)
+        #expect(loaded.selectedRow == snapshot.selectedRow)
+        #expect(loaded.selectedCol == snapshot.selectedCol)
+        #expect(loaded.dailySeed == snapshot.dailySeed)
+    }
+
+    @Test("GameSnapshot load returns nil for stale date")
+    func testGameSnapshotStaleDate() {
+        GameSnapshot.clear()
+        defer { GameSnapshot.clear() }
+
+        let board = Board(seed: 12345)
+        // Use yesterday's seed
+        let staleSeed = seedFromDate(Date()) - 1
+        let snapshot = GameSnapshot(
+            board: board,
+            status: .playing,
+            elapsedTime: 50.0,
+            flagCount: 2,
+            selectedRow: 1,
+            selectedCol: 1,
+            dailySeed: staleSeed
+        )
+
+        snapshot.save()
+
+        let loaded = GameSnapshot.load()
+        #expect(loaded == nil, "Snapshot with stale date should not load")
+
+        // Verify it was cleared
+        let loadedAgain = GameSnapshot.load()
+        #expect(loadedAgain == nil, "Stale snapshot should be cleared after load attempt")
+    }
+
+    @Test("GameSnapshot load returns nil when no snapshot exists")
+    func testGameSnapshotLoadNil() {
+        GameSnapshot.clear()
+        defer { GameSnapshot.clear() }
+
+        let loaded = GameSnapshot.load()
+        #expect(loaded == nil)
+    }
+
+    @Test("GameState save creates snapshot for playing state")
+    func testGameStateSaveCreatesSnapshot() {
+        GameSnapshot.clear()
+        defer { GameSnapshot.clear() }
+
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Start the game
+        gameState.reveal(row: 0, col: 0)
+        #expect(gameState.status == .playing)
+
+        // Flag a cell and move selection
+        gameState.toggleFlag(row: 1, col: 1)
+        gameState.moveSelection(.down)
+        gameState.moveSelection(.right)
+
+        gameState.save()
+
+        guard let loaded = GameSnapshot.load() else {
+            Issue.record("Snapshot should exist after save")
+            return
+        }
+
+        #expect(loaded.status == .playing)
+        #expect(loaded.flagCount == 1)
+        #expect(loaded.selectedRow == 1)
+        #expect(loaded.selectedCol == 1)
+    }
+
+    @Test("GameState save clears snapshot on win")
+    func testGameStateSaveClearsOnWin() {
+        GameSnapshot.clear()
+        defer { GameSnapshot.clear() }
+
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Start and save
+        gameState.reveal(row: 0, col: 0)
+        gameState.save()
+        #expect(GameSnapshot.load() != nil, "Snapshot should exist while playing")
+
+        // Win the game
+        winGame(gameState)
+        #expect(gameState.status == .won)
+
+        // Save after win should clear snapshot
+        gameState.save()
+        #expect(GameSnapshot.load() == nil, "Snapshot should be cleared after win")
+    }
+
+    @Test("GameState save clears snapshot on loss")
+    func testGameStateSaveClearsOnLoss() {
+        GameSnapshot.clear()
+        defer { GameSnapshot.clear() }
+
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Start and save
+        guard let safe = findSafeCell(in: gameState.board) else {
+            Issue.record("No safe cell found")
+            return
+        }
+        gameState.reveal(row: safe.row, col: safe.col)
+        gameState.save()
+        #expect(GameSnapshot.load() != nil, "Snapshot should exist while playing")
+
+        // Lose the game
+        guard let mine = findMineCell(in: gameState.board) else {
+            Issue.record("No mine found")
+            return
+        }
+        gameState.reveal(row: mine.row, col: mine.col)
+        #expect(gameState.status == .lost)
+
+        // Save after loss should clear snapshot
+        gameState.save()
+        #expect(GameSnapshot.load() == nil, "Snapshot should be cleared after loss")
+    }
+
+    @Test("GameState save does nothing for notStarted state")
+    func testGameStateSaveDoesNothingNotStarted() {
+        GameSnapshot.clear()
+        defer { GameSnapshot.clear() }
+
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        #expect(gameState.status == .notStarted)
+
+        gameState.save()
+        #expect(GameSnapshot.load() == nil, "Snapshot should not be created for notStarted state")
+    }
+
+    @Test("GameState reset clears snapshot")
+    func testGameStateResetClearsSnapshot() {
+        GameSnapshot.clear()
+        defer { GameSnapshot.clear() }
+
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Start and save
+        gameState.reveal(row: 0, col: 0)
+        gameState.save()
+        #expect(GameSnapshot.load() != nil, "Snapshot should exist while playing")
+
+        // Reset
+        gameState.reset()
+        #expect(GameSnapshot.load() == nil, "Snapshot should be cleared after reset")
+    }
+
+    @Test("GameState restored creates fresh game when no snapshot")
+    func testGameStateRestoredFreshGame() {
+        GameSnapshot.clear()
+        defer { GameSnapshot.clear() }
+
+        let gameState = GameState.restored()
+
+        #expect(gameState.status == .notStarted)
+        #expect(gameState.elapsedTime == 0)
+        #expect(gameState.flagCount == 0)
+        #expect(gameState.selectedRow == 0)
+        #expect(gameState.selectedCol == 0)
+    }
+
+    @Test("GameState restored restores from snapshot")
+    func testGameStateRestoredFromSnapshot() {
+        GameSnapshot.clear()
+        defer { GameSnapshot.clear() }
+
+        // Create and save a game state
+        let originalBoard = Board(seed: 12345)
+        let originalState = GameState(board: originalBoard)
+        originalState.reveal(row: 0, col: 0)
+        originalState.toggleFlag(row: 2, col: 3)
+        originalState.moveSelection(.down)
+        originalState.moveSelection(.down)
+        originalState.moveSelection(.right)
+
+        originalState.save()
+
+        // Restore
+        let restoredState = GameState.restored()
+
+        #expect(restoredState.status == .playing)
+        #expect(restoredState.flagCount == 1)
+        #expect(restoredState.selectedRow == 2)
+        #expect(restoredState.selectedCol == 1)
+        #expect(restoredState.board.cells[2][3].state == .flagged)
+    }
+
+    @Test("GameState restored does not restore stale snapshot")
+    func testGameStateRestoredIgnoresStaleSnapshot() {
+        GameSnapshot.clear()
+        defer { GameSnapshot.clear() }
+
+        // Create a snapshot with yesterday's seed
+        let board = Board(seed: 12345)
+        let staleSeed = seedFromDate(Date()) - 1
+        let staleSnapshot = GameSnapshot(
+            board: board,
+            status: .playing,
+            elapsedTime: 100.0,
+            flagCount: 5,
+            selectedRow: 4,
+            selectedCol: 4,
+            dailySeed: staleSeed
+        )
+        staleSnapshot.save()
+
+        // Restore should create fresh game
+        let restoredState = GameState.restored()
+
+        #expect(restoredState.status == .notStarted)
+        #expect(restoredState.elapsedTime == 0)
+        #expect(restoredState.flagCount == 0)
+    }
 }
