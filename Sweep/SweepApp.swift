@@ -5,7 +5,7 @@ import SwiftUI
 @main
 struct SweepApp: App {
     @State private var gameState: GameState
-    @AppStorage(showMenuBarIndicatorsKey) private var showMenuBarIndicators = true
+    @AppStorage(Constants.SettingsKeys.showMenuBarIndicators) private var showMenuBarIndicators = true
 
     private static var eventMonitor: Any?
 
@@ -130,6 +130,6 @@ struct MenuBarIconView: View {
 
     var body: some View {
         Image(systemName: iconName)
-            .accessibilityLabel(String(localized: "menubar_title"))
+            .accessibilityLabel(String(localized: "menu_bar_title"))
     }
 }
