@@ -386,10 +386,11 @@ final class GameState {
     }
 
     /// Handles game completion (win or loss).
-    /// Atomically marks daily puzzle as complete and records stats to both systems.
+    /// Atomically marks daily puzzle as complete, records stats, and saves the board state.
     private func handleGameComplete(won: Bool) {
         stopTimer()
         markCompleteAndRecordStats(won: won, elapsedTime: elapsedTime, flagCount: flagCount)
         recordGameResult(won: won)
+        save()
     }
 }
