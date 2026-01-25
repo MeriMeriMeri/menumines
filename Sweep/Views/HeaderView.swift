@@ -5,32 +5,14 @@ struct HeaderView: View {
     let elapsedTime: TimeInterval
     let flagCount: Int
 
-    var body: some View {
-        HStack {
-            flagDisplay
-            Spacer()
-            statusEmoji
-            Spacer()
-            timerDisplay
-        }
-        .font(.system(size: 16, weight: .medium, design: .monospaced))
-        .padding(.horizontal, 8)
+    private var timeDisplay: String {
+        let totalSeconds = Int(elapsedTime)
+        let minutes = totalSeconds / 60
+        let seconds = totalSeconds % 60
+        return String(format: "%02d:%02d", minutes, seconds)
     }
 
-    private var flagDisplay: some View {
-        HStack(spacing: 4) {
-            Text("🚩")
-            Text("\(flagCount)/\(Board.mineCount)")
-                .foregroundStyle(.secondary)
-        }
-    }
-
-    private var statusEmoji: some View {
-        Text(statusIcon)
-            .font(.system(size: 24))
-    }
-
-    private var statusIcon: String {
+    private var statusEmoji: String {
         switch status {
         case .notStarted, .playing:
             return "🙂"
@@ -41,17 +23,34 @@ struct HeaderView: View {
         }
     }
 
-    private var timerDisplay: some View {
-        Text(formattedTime)
-            .foregroundStyle(.secondary)
-    }
+    var body: some View {
+        HStack {
+            // Flag count
+            HStack(spacing: 4) {
+                Text("🚩")
+                Text("\(flagCount)/\(Board.mineCount)")
+                    .font(.system(size: 14, weight: .medium, design: .monospaced))
+            }
+            .frame(minWidth: 60, alignment: .leading)
 
-    private var formattedTime: String {
-        let minutes = Int(elapsedTime) / 60
-        let seconds = Int(elapsedTime) % 60
-        return String(format: "%02d:%02d", minutes, seconds)
+            Spacer()
+
+            // Status emoji
+            Text(statusEmoji)
+                .font(.system(size: 24))
+
+            Spacer()
+
+            // Timer
+            Text(timeDisplay)
+                .font(.system(size: 14, weight: .medium, design: .monospaced))
+                .frame(minWidth: 60, alignment: .trailing)
+        }
+        .padding(.horizontal, 8)
     }
 }
+
+// MARK: - Previews
 
 #Preview("Not Started") {
     HeaderView(status: .notStarted, elapsedTime: 0, flagCount: 0)
@@ -64,11 +63,11 @@ struct HeaderView: View {
 }
 
 #Preview("Won") {
-    HeaderView(status: .won, elapsedTime: 42, flagCount: 10)
+    HeaderView(status: .won, elapsedTime: 89, flagCount: 10)
         .padding()
 }
 
 #Preview("Lost") {
-    HeaderView(status: .lost, elapsedTime: 15, flagCount: 2)
+    HeaderView(status: .lost, elapsedTime: 45, flagCount: 5)
         .padding()
 }

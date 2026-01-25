@@ -22,7 +22,9 @@ struct FooterView: View {
     }
 }
 
-#Preview {
+// MARK: - Previews
+
+#Preview("Footer") {
     FooterView(onReset: {})
         .padding()
 }
