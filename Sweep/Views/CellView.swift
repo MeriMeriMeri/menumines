@@ -39,29 +39,21 @@ struct CellView: View {
 
     @ViewBuilder
     private var content: some View {
-        switch cell.state {
-        case .hidden:
-            if gameStatus == .lost && cell.hasMine {
-                mineIcon
-            } else {
+        if cell.isExploded || (gameStatus == .lost && cell.hasMine) {
+            mineIcon
+        } else {
+            switch cell.state {
+            case .hidden:
                 EmptyView()
-            }
-
-        case .revealed(let adjacentMines):
-            if cell.hasMine {
-                mineIcon
-            } else if adjacentMines > 0 {
-                Text("\(adjacentMines)")
-                    .font(.system(size: 16, weight: .bold, design: .monospaced))
-                    .foregroundStyle(color(for: adjacentMines))
-            }
-
-        case .flagged:
-            if gameStatus == .lost && cell.hasMine {
-                mineIcon
-            } else {
+            case .flagged:
                 Text("🚩")
                     .font(.system(size: 14))
+            case .revealed(let adjacentMines):
+                if adjacentMines > 0 {
+                    Text("\(adjacentMines)")
+                        .font(.system(size: 16, weight: .bold, design: .monospaced))
+                        .foregroundStyle(color(for: adjacentMines))
+                }
             }
         }
     }

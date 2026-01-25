@@ -14,7 +14,22 @@
 		A100001B229E001B /* Board.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001C229E001C /* Board.swift */; };
 		A100001D229E001D /* GameState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001E229E001E /* GameState.swift */; };
 		A100001F229E001F /* DailyBoard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000020229E0020 /* DailyBoard.swift */; };
+		A1000021229E0021 /* CellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000022229E0022 /* CellView.swift */; };
+		A1000023229E0023 /* GameBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000024229E0024 /* GameBoardView.swift */; };
+		A1000025229E0025 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000026229E0026 /* HeaderView.swift */; };
+		A1000027229E0027 /* FooterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000028229E0028 /* FooterView.swift */; };
+		A1000029229E0029 /* GameStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002A229E002A /* GameStateTests.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		A100002B229E002B /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A1000013229E0013 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = A100000F229E000F;
+			remoteInfo = Sweep;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		A1000007229E0007 /* Sweep.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Sweep.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -25,10 +40,23 @@
 		A100001C229E001C /* Board.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Board.swift; sourceTree = "<group>"; };
 		A100001E229E001E /* GameState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameState.swift; sourceTree = "<group>"; };
 		A1000020229E0020 /* DailyBoard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyBoard.swift; sourceTree = "<group>"; };
+		A1000022229E0022 /* CellView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CellView.swift; sourceTree = "<group>"; };
+		A1000024229E0024 /* GameBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameBoardView.swift; sourceTree = "<group>"; };
+		A1000026229E0026 /* HeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
+		A1000028229E0028 /* FooterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FooterView.swift; sourceTree = "<group>"; };
+		A100002A229E002A /* GameStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStateTests.swift; sourceTree = "<group>"; };
+		A100002C229E002C /* SweepTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SweepTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A1000008229E0008 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A100002D229E002D /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -42,6 +70,7 @@
 			isa = PBXGroup;
 			children = (
 				A100000A229E000A /* Sweep */,
+				A100002E229E002E /* SweepTests */,
 				A100000B229E000B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -50,6 +79,7 @@
 			isa = PBXGroup;
 			children = (
 				A1000007229E0007 /* Sweep.app */,
+				A100002C229E002C /* SweepTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -69,6 +99,10 @@
 			isa = PBXGroup;
 			children = (
 				A1000004229E0004 /* MenuContentView.swift */,
+				A1000022229E0022 /* CellView.swift */,
+				A1000024229E0024 /* GameBoardView.swift */,
+				A1000026229E0026 /* HeaderView.swift */,
+				A1000028229E0028 /* FooterView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -92,6 +126,14 @@
 			path = Resources;
 			sourceTree = "<group>";
 		};
+		A100002E229E002E /* SweepTests */ = {
+			isa = PBXGroup;
+			children = (
+				A100002A229E002A /* GameStateTests.swift */,
+			);
+			path = SweepTests;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -112,6 +154,24 @@
 			productReference = A1000007229E0007 /* Sweep.app */;
 			productType = "com.apple.product-type.application";
 		};
+		A100002F229E002F /* SweepTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1000030229E0030 /* Build configuration list for PBXNativeTarget "SweepTests" */;
+			buildPhases = (
+				A1000031229E0031 /* Sources */,
+				A100002D229E002D /* Frameworks */,
+				A1000032229E0032 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A1000033229E0033 /* PBXTargetDependency */,
+			);
+			name = SweepTests;
+			productName = SweepTests;
+			productReference = A100002C229E002C /* SweepTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -124,6 +184,10 @@
 				TargetAttributes = {
 					A100000F229E000F = {
 						CreatedOnToolsVersion = 15.0;
+					};
+					A100002F229E002F = {
+						CreatedOnToolsVersion = 15.0;
+						TestTargetID = A100000F229E000F;
 					};
 				};
 			};
@@ -141,6 +205,7 @@
 			projectRoot = "";
 			targets = (
 				A100000F229E000F /* Sweep */,
+				A100002F229E002F /* SweepTests */,
 			);
 		};
 /* End PBXProject section */
@@ -151,6 +216,13 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1000005229E0005 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1000032229E0032 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -167,10 +239,30 @@
 				A100001B229E001B /* Board.swift in Sources */,
 				A100001D229E001D /* GameState.swift in Sources */,
 				A100001F229E001F /* DailyBoard.swift in Sources */,
+				A1000021229E0021 /* CellView.swift in Sources */,
+				A1000023229E0023 /* GameBoardView.swift in Sources */,
+				A1000025229E0025 /* HeaderView.swift in Sources */,
+				A1000027229E0027 /* FooterView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1000031229E0031 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000029229E0029 /* GameStateTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		A1000033229E0033 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = A100000F229E000F /* Sweep */;
+			targetProxy = A100002B229E002B /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		A1000015229E0015 /* Debug */ = {
@@ -343,6 +435,40 @@
 			};
 			name = Release;
 		};
+		A1000034229E0034 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.merimerimeri.SweepTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Sweep.app/Contents/MacOS/Sweep";
+			};
+			name = Debug;
+		};
+		A1000035229E0035 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.merimerimeri.SweepTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Sweep.app/Contents/MacOS/Sweep";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -360,6 +486,15 @@
 			buildConfigurations = (
 				A1000017229E0017 /* Debug */,
 				A1000018229E0018 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A1000030229E0030 /* Build configuration list for PBXNativeTarget "SweepTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1000034229E0034 /* Debug */,
+				A1000035229E0035 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
