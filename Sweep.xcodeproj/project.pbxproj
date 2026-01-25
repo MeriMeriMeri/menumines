@@ -19,7 +19,16 @@
 		A1000023229E0023 /* GameBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000024229E0024 /* GameBoardView.swift */; };
 		A1000025229E0025 /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000026229E0026 /* HeaderView.swift */; };
 		A1000027229E0027 /* FooterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000028229E0028 /* FooterView.swift */; };
-		A1000029229E0029 /* GameStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002A229E002A /* GameStateTests.swift */; };
+		A10001A0229E01A0 /* GameStateTestHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001A1229E01A1 /* GameStateTestHelpers.swift */; };
+		A10001A2229E01A2 /* GameStateBasicTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001A3229E01A3 /* GameStateBasicTests.swift */; };
+		A10001A4229E01A4 /* GameStateSelectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001A5229E01A5 /* GameStateSelectionTests.swift */; };
+		A10001A6229E01A6 /* GameStateWinLoseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001A7229E01A7 /* GameStateWinLoseTests.swift */; };
+		A10001A8229E01A8 /* GameStateTimerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001A9229E01A9 /* GameStateTimerTests.swift */; };
+		A10001AA229E01AA /* GameStateChordRevealTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001AB229E01AB /* GameStateChordRevealTests.swift */; };
+		A10001AC229E01AC /* GameStateShareTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001AD229E01AD /* GameStateShareTests.swift */; };
+		A10001AE229E01AE /* GameStatePauseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001AF229E01AF /* GameStatePauseTests.swift */; };
+		A10001B0229E01B0 /* GameStateCodableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001B1229E01B1 /* GameStateCodableTests.swift */; };
+		A10001B2229E01B2 /* GameStatePersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001B3229E01B3 /* GameStatePersistenceTests.swift */; };
 		A100003D229E003D /* BoardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100003E229E003E /* BoardTests.swift */; };
 		A100003F229E003F /* ConfettiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000040229E0040 /* ConfettiView.swift */; };
 		A1000041229E0041 /* AboutWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000042229E0042 /* AboutWindow.swift */; };
@@ -59,7 +68,16 @@
 		A1000024229E0024 /* GameBoardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameBoardView.swift; sourceTree = "<group>"; };
 		A1000026229E0026 /* HeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeaderView.swift; sourceTree = "<group>"; };
 		A1000028229E0028 /* FooterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FooterView.swift; sourceTree = "<group>"; };
-		A100002A229E002A /* GameStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStateTests.swift; sourceTree = "<group>"; };
+		A10001A1229E01A1 /* GameStateTestHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStateTestHelpers.swift; sourceTree = "<group>"; };
+		A10001A3229E01A3 /* GameStateBasicTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStateBasicTests.swift; sourceTree = "<group>"; };
+		A10001A5229E01A5 /* GameStateSelectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStateSelectionTests.swift; sourceTree = "<group>"; };
+		A10001A7229E01A7 /* GameStateWinLoseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStateWinLoseTests.swift; sourceTree = "<group>"; };
+		A10001A9229E01A9 /* GameStateTimerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStateTimerTests.swift; sourceTree = "<group>"; };
+		A10001AB229E01AB /* GameStateChordRevealTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStateChordRevealTests.swift; sourceTree = "<group>"; };
+		A10001AD229E01AD /* GameStateShareTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStateShareTests.swift; sourceTree = "<group>"; };
+		A10001AF229E01AF /* GameStatePauseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStatePauseTests.swift; sourceTree = "<group>"; };
+		A10001B1229E01B1 /* GameStateCodableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStateCodableTests.swift; sourceTree = "<group>"; };
+		A10001B3229E01B3 /* GameStatePersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStatePersistenceTests.swift; sourceTree = "<group>"; };
 		A100002C229E002C /* SweepTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SweepTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A100003E229E003E /* BoardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardTests.swift; sourceTree = "<group>"; };
 		A1000040229E0040 /* ConfettiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfettiView.swift; sourceTree = "<group>"; };
@@ -179,7 +197,16 @@
 		A100002E229E002E /* SweepTests */ = {
 			isa = PBXGroup;
 			children = (
-				A100002A229E002A /* GameStateTests.swift */,
+				A10001A1229E01A1 /* GameStateTestHelpers.swift */,
+				A10001A3229E01A3 /* GameStateBasicTests.swift */,
+				A10001A5229E01A5 /* GameStateSelectionTests.swift */,
+				A10001A7229E01A7 /* GameStateWinLoseTests.swift */,
+				A10001A9229E01A9 /* GameStateTimerTests.swift */,
+				A10001AB229E01AB /* GameStateChordRevealTests.swift */,
+				A10001AD229E01AD /* GameStateShareTests.swift */,
+				A10001AF229E01AF /* GameStatePauseTests.swift */,
+				A10001B1229E01B1 /* GameStateCodableTests.swift */,
+				A10001B3229E01B3 /* GameStatePersistenceTests.swift */,
 				A100003E229E003E /* BoardTests.swift */,
 				A1000063229E0063 /* MenuBarIconStateTests.swift */,
 				A1000065229E0065 /* DailyCompletionTests.swift */,
@@ -320,7 +347,16 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1000029229E0029 /* GameStateTests.swift in Sources */,
+				A10001A0229E01A0 /* GameStateTestHelpers.swift in Sources */,
+				A10001A2229E01A2 /* GameStateBasicTests.swift in Sources */,
+				A10001A4229E01A4 /* GameStateSelectionTests.swift in Sources */,
+				A10001A6229E01A6 /* GameStateWinLoseTests.swift in Sources */,
+				A10001A8229E01A8 /* GameStateTimerTests.swift in Sources */,
+				A10001AA229E01AA /* GameStateChordRevealTests.swift in Sources */,
+				A10001AC229E01AC /* GameStateShareTests.swift in Sources */,
+				A10001AE229E01AE /* GameStatePauseTests.swift in Sources */,
+				A10001B0229E01B0 /* GameStateCodableTests.swift in Sources */,
+				A10001B2229E01B2 /* GameStatePersistenceTests.swift in Sources */,
 				A100003D229E003D /* BoardTests.swift in Sources */,
 				A1000062229E0062 /* MenuBarIconStateTests.swift in Sources */,
 				A1000064229E0064 /* DailyCompletionTests.swift in Sources */,
