@@ -10,6 +10,10 @@
 		A1000001229E0001 /* SweepApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002229E0002 /* SweepApp.swift */; };
 		A1000003229E0003 /* MenuContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004229E0004 /* MenuContentView.swift */; };
 		A1000005229E0005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000006229E0006 /* Assets.xcassets */; };
+		A1000019229E0019 /* Cell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001A229E001A /* Cell.swift */; };
+		A100001B229E001B /* Board.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001C229E001C /* Board.swift */; };
+		A100001D229E001D /* GameState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001E229E001E /* GameState.swift */; };
+		A100001F229E001F /* DailyBoard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000020229E0020 /* DailyBoard.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -17,6 +21,10 @@
 		A1000002229E0002 /* SweepApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SweepApp.swift; sourceTree = "<group>"; };
 		A1000004229E0004 /* MenuContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuContentView.swift; sourceTree = "<group>"; };
 		A1000006229E0006 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A100001A229E001A /* Cell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cell.swift; sourceTree = "<group>"; };
+		A100001C229E001C /* Board.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Board.swift; sourceTree = "<group>"; };
+		A100001E229E001E /* GameState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameState.swift; sourceTree = "<group>"; };
+		A1000020229E0020 /* DailyBoard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyBoard.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +76,10 @@
 		A100000D229E000D /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				A100001A229E001A /* Cell.swift */,
+				A100001C229E001C /* Board.swift */,
+				A100001E229E001E /* GameState.swift */,
+				A1000020229E0020 /* DailyBoard.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -151,6 +163,10 @@
 			files = (
 				A1000001229E0001 /* SweepApp.swift in Sources */,
 				A1000003229E0003 /* MenuContentView.swift in Sources */,
+				A1000019229E0019 /* Cell.swift in Sources */,
+				A100001B229E001B /* Board.swift in Sources */,
+				A100001D229E001D /* GameState.swift in Sources */,
+				A100001F229E001F /* DailyBoard.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -209,7 +225,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -265,7 +281,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;

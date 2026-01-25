@@ -8,7 +8,7 @@ Sweep is a menu bar Minesweeper game for macOS. It features an 8x8 board with 10
 
 - **Language:** Swift 5.9+
 - **UI Framework:** SwiftUI
-- **Target:** macOS 13+ (Ventura)
+- **Target:** macOS 14+ (Sonoma) - required for @Observable macro
 - **Key APIs:**
   - `MenuBarExtra` with `.window` style for rich popover UI
   - `GameplayKit` `GKLinearCongruentialRandomSource` for seeded RNG
