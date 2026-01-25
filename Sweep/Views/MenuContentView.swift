@@ -91,6 +91,7 @@ struct MenuContentView: View {
         }
         .frame(width: 300)
         .onAppear {
+            gameState.checkForDailyRollover()
             gameState.resumeTimer()
         }
         .onDisappear {
