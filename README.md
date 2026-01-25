@@ -65,6 +65,8 @@ Every day, Sweep generates a new puzzle using a deterministic seed based on the 
 - You can compare times with friends
 - Come back tomorrow for a fresh challenge
 
+Note: if the first click lands on a mine, the mine is relocated using system randomness. In that edge case, boards may diverge across players after the first click.
+
 ## Requirements
 
 - macOS 13.0 (Ventura) or later
