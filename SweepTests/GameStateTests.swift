@@ -1557,37 +1557,43 @@ struct GameStatePersistenceTests {
         }
     }
 
+    private func withIsolatedSnapshot<T>(_ testName: String = #function, _ body: () throws -> T) rethrows -> T {
+        try GameSnapshot.withStorageKey("GameStatePersistenceTests.\(testName)", body)
+    }
+
     @Test("GameSnapshot save and load works")
     func testGameSnapshotSaveLoad() {
-        GameSnapshot.clear()
-        defer { GameSnapshot.clear() }
+        withIsolatedSnapshot {
+            GameSnapshot.clear()
+            defer { GameSnapshot.clear() }
 
-        let board = Board(seed: 12345)
-        let todaySeed = seedFromDate(Date())
-        let snapshot = GameSnapshot(
-            board: board,
-            status: .playing,
-            elapsedTime: 99.0,
-            flagCount: 5,
-            selectedRow: 3,
-            selectedCol: 4,
-            dailySeed: todaySeed
-        )
+            let board = Board(seed: 12345)
+            let todaySeed = seedFromDate(Date())
+            let snapshot = GameSnapshot(
+                board: board,
+                status: .playing,
+                elapsedTime: 99.0,
+                flagCount: 5,
+                selectedRow: 3,
+                selectedCol: 4,
+                dailySeed: todaySeed
+            )
 
-        snapshot.save()
+            snapshot.save()
 
-        guard let loaded = GameSnapshot.load() else {
-            Issue.record("Snapshot should be loadable")
-            return
+            guard let loaded = GameSnapshot.load() else {
+                Issue.record("Snapshot should be loadable")
+                return
+            }
+
+            #expect(loaded.board == snapshot.board)
+            #expect(loaded.status == snapshot.status)
+            #expect(loaded.elapsedTime == snapshot.elapsedTime)
+            #expect(loaded.flagCount == snapshot.flagCount)
+            #expect(loaded.selectedRow == snapshot.selectedRow)
+            #expect(loaded.selectedCol == snapshot.selectedCol)
+            #expect(loaded.dailySeed == snapshot.dailySeed)
         }
-
-        #expect(loaded.board == snapshot.board)
-        #expect(loaded.status == snapshot.status)
-        #expect(loaded.elapsedTime == snapshot.elapsedTime)
-        #expect(loaded.flagCount == snapshot.flagCount)
-        #expect(loaded.selectedRow == snapshot.selectedRow)
-        #expect(loaded.selectedCol == snapshot.selectedCol)
-        #expect(loaded.dailySeed == snapshot.dailySeed)
     }
 
     @Test("GameSnapshot load returns nil for stale date")
