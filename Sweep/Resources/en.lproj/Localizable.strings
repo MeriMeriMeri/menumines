@@ -1,7 +1,13 @@
 /* FooterView */
 "reset_button" = "Reset";
-"quit_button" = "Quit";
-"about_help" = "About Sweep";
+"reset_accessibility_label" = "Reset game";
+"about_menu_item" = "About Sweep";
+"settings_menu_item" = "Settings...";
+"quit_menu_item" = "Quit Sweep";
+"footer_menu_accessibility_label" = "App menu";
+
+/* SettingsView */
+"settings_coming_soon" = "Settings coming soon...";
 
 /* SweepApp - MenuBarExtra title */
 "menubar_title" = "Sweep";

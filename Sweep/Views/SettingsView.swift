@@ -3,7 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     var body: some View {
         Form {
-            Text("Settings coming soon...")
+            Text(String(localized: "settings_coming_soon"))
                 .foregroundStyle(.secondary)
         }
         .formStyle(.grouped)

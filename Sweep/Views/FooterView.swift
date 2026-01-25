@@ -8,27 +8,28 @@ struct FooterView: View {
 
     var body: some View {
         HStack {
-            Button("Reset") {
+            Button(String(localized: "reset_button")) {
                 onReset()
             }
             .buttonStyle(.bordered)
             .keyboardShortcut("r", modifiers: .command)
+            .accessibilityLabel(String(localized: "reset_accessibility_label"))
 
             Spacer()
 
             Menu {
-                Button("About Sweep") {
+                Button(String(localized: "about_menu_item")) {
                     onAbout()
                 }
 
-                Button("Settings...") {
+                Button(String(localized: "settings_menu_item")) {
                     openSettings()
                 }
                 .keyboardShortcut(",", modifiers: .command)
 
                 Divider()
 
-                Button("Quit Sweep") {
+                Button(String(localized: "quit_menu_item")) {
                     NSApplication.shared.terminate(nil)
                 }
                 .keyboardShortcut("q", modifiers: .command)
@@ -37,6 +38,7 @@ struct FooterView: View {
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
+            .accessibilityLabel(String(localized: "footer_menu_accessibility_label"))
         }
         .padding(.horizontal, 8)
     }
