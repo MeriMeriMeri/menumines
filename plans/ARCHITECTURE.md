@@ -34,7 +34,7 @@ enum CellState: Equatable {
     case flagged
 }
 
-struct Cell {
+struct Cell: Equatable {
     var state: CellState
     let hasMine: Bool
     var isExploded: Bool = false  // true only for the mine the player clicked
@@ -54,6 +54,8 @@ struct Board {
     init(seed: Int64)
     mutating func reveal(row: Int, col: Int) -> RevealResult
     mutating func toggleFlag(row: Int, col: Int)
+    mutating func markExploded(row: Int, col: Int)
+    mutating func relocateMine(from row: Int, col: Int)  // for first-click safety
     func adjacentMineCount(row: Int, col: Int) -> Int
 }
 
@@ -97,8 +99,14 @@ enum Direction {
 ```swift
 func reveal(row: Int, col: Int) {
     guard status == .notStarted || status == .playing else { return }
+    guard case .hidden = board.cells[row][col].state else { return }  // already revealed/flagged
 
-    if status == .notStarted {
+    let isFirstClick = (status == .notStarted)
+    if isFirstClick {
+        // First-click safety: relocate mine if present
+        if board.cells[row][col].hasMine {
+            board.relocateMine(from: row, col: col)
+        }
         startTimer()
         status = .playing
     }
@@ -109,7 +117,7 @@ func reveal(row: Int, col: Int) {
     case .mine:
         status = .lost
         stopTimer()
-        board.cells[row][col].isExploded = true
+        board.markExploded(row: row, col: col)
     case .safe:
         if checkWinCondition() {
             status = .won
@@ -121,9 +129,9 @@ func reveal(row: Int, col: Int) {
 private func checkWinCondition() -> Bool {
     // Win when all 54 non-mine cells are revealed
     for row in board.cells {
-        for cell in row {
-            if !cell.hasMine && cell.state != .revealed {
-                return false
+        for cell in row where !cell.hasMine {
+            guard case .revealed = cell.state else {
+                return false  // found unrevealed non-mine cell
             }
         }
     }
@@ -265,8 +273,11 @@ struct SweepApp: App {
 
 #### Keyboard Event Handling
 ```swift
-// Registered in SweepApp.init(), calls methods on gameState
-NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak gameState] event in
+// Store the monitor token to allow removal if needed
+private var keyboardMonitor: Any?
+
+// In SweepApp.init()
+keyboardMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak gameState] event in
     guard let gameState else { return event }
     switch event.keyCode {
     case 123: gameState.moveSelection(.left)
@@ -275,6 +286,7 @@ NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak gameState] event in
     case 126: gameState.moveSelection(.up)
     case 49:  gameState.revealSelected()   // Space
     case 3:   gameState.toggleFlagSelected() // F key
+    default: break
     }
     return event
 }
@@ -371,14 +383,19 @@ func testSameSeedProducesSameBoard() {
 }
 
 // UTC timezone consistency
-func testSameDateProducesSameBoardRegardlessOfTimezone() {
-    let service = DailyBoardService()
+func testLateNightUTCUsesCorrectDate() {
     // 2024-03-15 23:00 UTC = 2024-03-16 01:00 in UTC+2
-    let date = Date(timeIntervalSince1970: 1710543600)
-    let board1 = service.boardForDate(date)
-    let board2 = service.boardForDate(date)
-    // Both should produce identical boards (same UTC date: March 15)
-    XCTAssertEqual(board1.cells, board2.cells)
+    // If we incorrectly used local time in UTC+2, we'd get March 16's board
+    let lateNightUTC = Date(timeIntervalSince1970: 1710543600)
+    let board = boardForDate(lateNightUTC)
+
+    // Compare against known March 15 seed (20240315)
+    let march15Board = Board(seed: 20240315)
+    XCTAssertEqual(board.cells, march15Board.cells)
+
+    // Verify it's NOT March 16's board
+    let march16Board = Board(seed: 20240316)
+    XCTAssertNotEqual(board.cells, march16Board.cells)
 }
 
 // Cascade reveal
