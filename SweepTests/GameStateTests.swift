@@ -114,6 +114,61 @@ struct GameStateTests {
         #expect(gameState.selectedCol == 0)
     }
 
+    @Test("Reset after winning allows playing again")
+    func testResetAfterWinningAllowsPlayingAgain() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Win the game by revealing all non-mine cells
+        for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                if !gameState.board.cells[r][c].hasMine {
+                    gameState.reveal(row: r, col: c)
+                }
+            }
+        }
+        #expect(gameState.status == .won)
+
+        // Reset the game
+        gameState.reset()
+
+        // Verify reset state
+        #expect(gameState.status == .notStarted)
+        #expect(gameState.elapsedTime == 0)
+        #expect(gameState.flagCount == 0)
+
+        // Verify all cells are hidden again
+        for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                #expect(gameState.board.cells[r][c].state == .hidden)
+            }
+        }
+
+        // Verify we can play again
+        gameState.reveal(row: 0, col: 0)
+        #expect(gameState.status == .playing)
+    }
+
+    @Test("Reset creates fresh board from daily seed")
+    func testResetCreatesFreshBoardFromDailySeed() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Reveal some cells
+        gameState.reveal(row: 0, col: 0)
+        gameState.reveal(row: 1, col: 1)
+
+        // Reset
+        gameState.reset()
+
+        // All cells should be hidden after reset
+        for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                #expect(gameState.board.cells[r][c].state == .hidden)
+            }
+        }
+    }
+
     // MARK: - Selection Movement Tests
 
     @Test("Move selection up")
