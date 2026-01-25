@@ -1,27 +1,38 @@
 import SwiftUI
 
 struct MenuContentView: View {
+    @Bindable var gameState: GameState
+
     var body: some View {
-        VStack(spacing: 16) {
-            Text("Sweep")
-                .font(.title2)
-                .fontWeight(.semibold)
+        VStack(spacing: 12) {
+            HeaderView(
+                status: gameState.status,
+                elapsedTime: gameState.elapsedTime,
+                flagCount: gameState.flagCount
+            )
 
-            Text("Coming soon...")
-                .foregroundStyle(.secondary)
+            GameBoardView(
+                board: gameState.board,
+                gameStatus: gameState.status,
+                selectedRow: gameState.selectedRow,
+                selectedCol: gameState.selectedCol,
+                onReveal: { row, col in
+                    gameState.reveal(row: row, col: col)
+                },
+                onFlag: { row, col in
+                    gameState.toggleFlag(row: row, col: col)
+                }
+            )
 
-            Spacer()
-
-            Button("Quit") {
-                NSApplication.shared.terminate(nil)
-            }
-            .keyboardShortcut("q", modifiers: .command)
+            FooterView(onReset: {
+                gameState.reset()
+            })
         }
         .padding()
-        .frame(width: 280, height: 320)
+        .frame(width: 300)
     }
 }
 
 #Preview {
-    MenuContentView()
+    MenuContentView(gameState: GameState(board: Board(seed: 12345)))
 }
