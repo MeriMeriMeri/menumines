@@ -4,6 +4,8 @@ import AppKit
 struct MenuContentView: View {
     var gameState: GameState
 
+    @AppStorage(Constants.SettingsKeys.confirmBeforeReset) private var confirmBeforeReset = false
+    @State private var showResetConfirmation = false
     @State private var showCelebration = false
 
     private var isGameComplete: Bool {
@@ -15,6 +17,19 @@ struct MenuContentView: View {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
         pasteboard.setString(text, forType: .string)
+    }
+
+    private func handleResetRequest() {
+        if confirmBeforeReset {
+            showResetConfirmation = true
+        } else {
+            performReset()
+        }
+    }
+
+    private func performReset() {
+        showCelebration = false
+        gameState.reset()
     }
 
     private func announceGameResult(won: Bool) {
@@ -40,10 +55,7 @@ struct MenuContentView: View {
                     elapsedTime: gameState.elapsedTime,
                     flagCount: gameState.flagCount,
                     canReset: gameState.canReset,
-                    onReset: {
-                        showCelebration = false
-                        gameState.reset()
-                    }
+                    onReset: handleResetRequest
                 )
 
                 GameBoardView(
@@ -62,10 +74,7 @@ struct MenuContentView: View {
                 FooterView(
                     isGameComplete: isGameComplete,
                     canReset: gameState.canReset,
-                    onReset: {
-                        showCelebration = false
-                        gameState.reset()
-                    },
+                    onReset: handleResetRequest,
                     onShare: {
                         copyShareTextToClipboard()
                     },
@@ -98,6 +107,17 @@ struct MenuContentView: View {
             default:
                 break
             }
+        }
+        .alert(
+            String(localized: "reset_confirmation_title"),
+            isPresented: $showResetConfirmation
+        ) {
+            Button(String(localized: "reset_confirmation_cancel"), role: .cancel) {}
+            Button(String(localized: "reset_confirmation_confirm"), role: .destructive) {
+                performReset()
+            }
+        } message: {
+            Text(String(localized: "reset_confirmation_message"))
         }
     }
 }
