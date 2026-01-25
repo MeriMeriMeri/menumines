@@ -1,3 +1,4 @@
+import AppKit
 import SwiftUI
 
 struct CellView: View {
@@ -16,10 +17,9 @@ struct CellView: View {
         }
         .frame(width: Self.cellSize, height: Self.cellSize)
         .overlay(selectionBorder)
-        .onTapGesture(perform: onReveal)
-        .contextMenu {
-            Button(cell.state == .flagged ? "Unflag" : "Flag") { onFlag() }
-        }
+        .overlay(
+            ClickHandlerView(onLeftClick: onReveal, onRightClick: onFlag)
+        )
     }
 
     // MARK: - Background
@@ -87,6 +87,38 @@ struct CellView: View {
         case 8: return .gray
         default: return .primary
         }
+    }
+}
+
+// MARK: - Click Handler
+
+private struct ClickHandlerView: NSViewRepresentable {
+    let onLeftClick: () -> Void
+    let onRightClick: () -> Void
+
+    func makeNSView(context: Context) -> ClickableNSView {
+        let view = ClickableNSView()
+        view.onLeftClick = onLeftClick
+        view.onRightClick = onRightClick
+        return view
+    }
+
+    func updateNSView(_ nsView: ClickableNSView, context: Context) {
+        nsView.onLeftClick = onLeftClick
+        nsView.onRightClick = onRightClick
+    }
+}
+
+private class ClickableNSView: NSView {
+    var onLeftClick: (() -> Void)?
+    var onRightClick: (() -> Void)?
+
+    override func mouseDown(with event: NSEvent) {
+        onLeftClick?()
+    }
+
+    override func rightMouseDown(with event: NSEvent) {
+        onRightClick?()
     }
 }
 
