@@ -1,6 +1,7 @@
-/* FooterView */
+/* FooterView and HeaderView */
 "reset_button" = "Reset";
 "reset_accessibility_label" = "Reset game";
+"reset_accessibility_hint" = "Click to reset today's puzzle";
 "about_menu_item" = "About Sweep";
 "settings_menu_item" = "Settings...";
 "quit_menu_item" = "Quit Sweep";

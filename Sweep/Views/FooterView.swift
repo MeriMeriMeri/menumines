@@ -12,16 +12,6 @@ struct FooterView: View {
 
     var body: some View {
         HStack {
-            Button(String(localized: "reset_button")) {
-                showCopiedFeedback = false
-                onReset()
-            }
-            .buttonStyle(.bordered)
-            .keyboardShortcut("r", modifiers: .command)
-            .accessibilityLabel(String(localized: "reset_accessibility_label"))
-
-            Spacer()
-
             if isGameComplete {
                 Button(showCopiedFeedback ? String(localized: "share_copied") : String(localized: "share_button")) {
                     onShare()
@@ -36,7 +26,17 @@ struct FooterView: View {
                 .accessibilityLabel(String(localized: "share_button"))
             }
 
+            Spacer()
+
             Menu {
+                Button(String(localized: "reset_button")) {
+                    showCopiedFeedback = false
+                    onReset()
+                }
+                .keyboardShortcut("r", modifiers: .command)
+
+                Divider()
+
                 Button(String(localized: "about_menu_item")) {
                     onAbout()
                 }
