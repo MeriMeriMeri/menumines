@@ -11,6 +11,7 @@ struct FooterView: View {
     let onAbout: () -> Void
 
     @State private var showCopiedFeedback = false
+    @State private var showControls = false
 
     var body: some View {
         HStack {
@@ -29,6 +30,17 @@ struct FooterView: View {
             }
 
             Spacer()
+
+            Button {
+                showControls.toggle()
+            } label: {
+                Image(systemName: "questionmark.circle")
+            }
+            .buttonStyle(.borderless)
+            .popover(isPresented: $showControls) {
+                ControlsPopoverView()
+            }
+            .accessibilityLabel(String(localized: "controls_button_accessibility"))
 
             Menu {
                 Button(String(localized: "reset_button")) {
@@ -68,6 +80,42 @@ struct FooterView: View {
             .accessibilityLabel(String(localized: "footer_menu_accessibility_label"))
         }
         .padding(.horizontal, 8)
+    }
+}
+
+// MARK: - Controls Popover
+
+private struct ControlsPopoverView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text(String(localized: "controls_title"))
+                .font(.headline)
+
+            Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 6) {
+                GridRow {
+                    Text("↑ ↓ ← →")
+                        .frame(width: 70, alignment: .leading)
+                    Text(String(localized: "controls_move"))
+                }
+                GridRow {
+                    Text("Space")
+                        .frame(width: 70, alignment: .leading)
+                    Text(String(localized: "controls_reveal"))
+                }
+                GridRow {
+                    Text("F")
+                        .frame(width: 70, alignment: .leading)
+                    Text(String(localized: "controls_flag"))
+                }
+                GridRow {
+                    Text("⌘R")
+                        .frame(width: 70, alignment: .leading)
+                    Text(String(localized: "controls_reset"))
+                }
+            }
+            .font(.system(.body, design: .monospaced))
+        }
+        .padding()
     }
 }
 
