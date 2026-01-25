@@ -86,13 +86,13 @@ xcodebuild clean -scheme Sweep
 
 ## Workflow
 
-### Fizzy Board
-User stories are tracked on the Sweep Fizzy board: https://app.fizzy.do/6145991/boards/03fgsne3i8553pc9z1b7w2y3u
+### Linear
+User stories are tracked in Linear under the Sweep project.
 
 **Before starting work:**
-1. Move the card for the story to the "In-progress" column
-2. Read the full card description to understand acceptance criteria
-3. Check dependencies are complete
+1. Move the issue to "In Progress" status
+2. Read the full issue description to understand acceptance criteria
+3. Check blocking issues are resolved
 
 **While working:**
 - Commit incrementally as you complete parts of the story
@@ -100,12 +100,13 @@ User stories are tracked on the Sweep Fizzy board: https://app.fizzy.do/6145991/
 
 **When done:**
 - Ensure all acceptance criteria are met
-- Close the card (mark as done)
+- Move the issue to "Done" status
 
-### Account Details
-- Account slug: `/6145991`
-- Board ID: `03fgsne3i8553pc9z1b7w2y3u`
-- In-progress column ID: `03fgstkhdcurmwz1hsg3oxup6`
+### Linear Details
+- Organization: `merimerimeri`
+- Project: Sweep (`sweep-f5976e94df09`)
+- Issue prefix: `MER` (e.g., `MER-23`)
+- Workflow: Todo → In Progress → Done
 
 ## Testing Strategy
 
