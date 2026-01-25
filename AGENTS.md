@@ -152,13 +152,14 @@ Button(String(localized: "quit_button")) { ... }
 
 ### Localizable.strings
 
-The `Localizable.strings` file lives in `Sweep/Resources/` and contains all user-facing text:
+The `Localizable.strings` file lives in `Sweep/Resources/en.lproj/` and contains all user-facing text:
 
 ```
-// Sweep/Resources/Localizable.strings
+// Sweep/Resources/en.lproj/Localizable.strings
 "reset_button" = "Reset";
 "quit_button" = "Quit";
 "about_help" = "About Sweep";
+"menubar_title" = "Sweep";
 ```
 
 When adding new user-facing strings:

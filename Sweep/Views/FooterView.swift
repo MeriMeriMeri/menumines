@@ -6,7 +6,7 @@ struct FooterView: View {
 
     var body: some View {
         HStack {
-            Button("Reset") {
+            Button(String(localized: "reset_button")) {
                 onReset()
             }
             .buttonStyle(.bordered)
@@ -20,9 +20,9 @@ struct FooterView: View {
                 Image(systemName: "info.circle")
             }
             .buttonStyle(.borderless)
-            .help("About Sweep")
+            .help(String(localized: "about_help"))
 
-            Button("Quit") {
+            Button(String(localized: "quit_button")) {
                 NSApplication.shared.terminate(nil)
             }
             .buttonStyle(.bordered)

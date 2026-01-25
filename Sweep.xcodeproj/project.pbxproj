@@ -10,6 +10,7 @@
 		A1000001229E0001 /* SweepApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002229E0002 /* SweepApp.swift */; };
 		A1000003229E0003 /* MenuContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004229E0004 /* MenuContentView.swift */; };
 		A1000005229E0005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000006229E0006 /* Assets.xcassets */; };
+		A1000045229E0045 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A1000043229E0043 /* Localizable.strings */; };
 		A1000019229E0019 /* Cell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001A229E001A /* Cell.swift */; };
 		A100001B229E001B /* Board.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001C229E001C /* Board.swift */; };
 		A100001D229E001D /* GameState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001E229E001E /* GameState.swift */; };
@@ -52,7 +53,19 @@
 		A100003E229E003E /* BoardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardTests.swift; sourceTree = "<group>"; };
 		A1000040229E0040 /* ConfettiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfettiView.swift; sourceTree = "<group>"; };
 		A1000042229E0042 /* AboutWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutWindow.swift; sourceTree = "<group>"; };
+		A1000044229E0044 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXVariantGroup section */
+		A1000043229E0043 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A1000044229E0044 /* en */,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		A1000008229E0008 /* Frameworks */ = {
@@ -130,6 +143,7 @@
 			isa = PBXGroup;
 			children = (
 				A1000006229E0006 /* Assets.xcassets */,
+				A1000043229E0043 /* Localizable.strings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -225,6 +239,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A1000005229E0005 /* Assets.xcassets in Resources */,
+				A1000045229E0045 /* Localizable.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
