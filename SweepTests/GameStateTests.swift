@@ -236,4 +236,227 @@ struct GameStateTests {
         #expect(gameState.board.cells[1][1].state == .flagged)
         #expect(gameState.flagCount == 1)
     }
+
+    // MARK: - Story 5A: Win/Lose Detection and First-Click Safety
+
+    @Test("Lose when clicking a mine")
+    func testLoseWhenClickingMine() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // First, make a safe first click to start the game
+        // Find a non-mine cell
+        var safeRow = -1, safeCol = -1
+        outer: for r in 0..<8 {
+            for c in 0..<8 {
+                if !gameState.board.cells[r][c].hasMine {
+                    safeRow = r
+                    safeCol = c
+                    break outer
+                }
+            }
+        }
+
+        guard safeRow >= 0 else {
+            Issue.record("No safe cell found")
+            return
+        }
+
+        gameState.reveal(row: safeRow, col: safeCol)
+        #expect(gameState.status == .playing)
+
+        // Now find a mine cell and click it
+        var mineRow = -1, mineCol = -1
+        outer2: for r in 0..<8 {
+            for c in 0..<8 {
+                if gameState.board.cells[r][c].hasMine {
+                    mineRow = r
+                    mineCol = c
+                    break outer2
+                }
+            }
+        }
+
+        guard mineRow >= 0 else {
+            Issue.record("No mine found")
+            return
+        }
+
+        gameState.reveal(row: mineRow, col: mineCol)
+
+        #expect(gameState.status == .lost)
+        #expect(gameState.board.cells[mineRow][mineCol].isExploded)
+    }
+
+    @Test("Win when all non-mine cells are revealed")
+    func testWinWhenAllNonMinesRevealed() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Reveal all non-mine cells
+        for r in 0..<8 {
+            for c in 0..<8 {
+                if !gameState.board.cells[r][c].hasMine {
+                    gameState.reveal(row: r, col: c)
+                }
+            }
+        }
+
+        #expect(gameState.status == .won)
+    }
+
+    @Test("First click never hits a mine")
+    func testFirstClickNeverHitsMine() {
+        // Use a seed where we know position (0,0) has a mine
+        // Try multiple seeds to find one where (0,0) has a mine
+        var testSeed: Int64 = 1
+        var foundSeed = false
+
+        for seed in 1...1000 {
+            let testBoard = Board(seed: Int64(seed))
+            if testBoard.cells[0][0].hasMine {
+                testSeed = Int64(seed)
+                foundSeed = true
+                break
+            }
+        }
+
+        guard foundSeed else {
+            Issue.record("Could not find a seed where (0,0) has a mine")
+            return
+        }
+
+        // Now test that first click on (0,0) doesn't lose
+        let board = Board(seed: testSeed)
+        let gameState = GameState(board: board)
+
+        // Verify the board originally has a mine at (0,0)
+        #expect(board.cells[0][0].hasMine)
+
+        // First click should not result in loss
+        gameState.reveal(row: 0, col: 0)
+
+        #expect(gameState.status == .playing, "First click should never lose, mine should be relocated")
+        #expect(!gameState.board.cells[0][0].hasMine, "Mine should have been relocated from first click position")
+    }
+
+    @Test("First click relocates mine and preserves mine count")
+    func testFirstClickRelocatesMinePreservesMineCount() {
+        // Find a seed where (0,0) has a mine
+        var testSeed: Int64 = 1
+        for seed in 1...1000 {
+            let testBoard = Board(seed: Int64(seed))
+            if testBoard.cells[0][0].hasMine {
+                testSeed = Int64(seed)
+                break
+            }
+        }
+
+        let board = Board(seed: testSeed)
+        let gameState = GameState(board: board)
+
+        // First click on (0,0) which has a mine
+        gameState.reveal(row: 0, col: 0)
+
+        // Count mines after first click
+        var mineCount = 0
+        for r in 0..<8 {
+            for c in 0..<8 {
+                if gameState.board.cells[r][c].hasMine {
+                    mineCount += 1
+                }
+            }
+        }
+
+        #expect(mineCount == 10, "Mine count should remain 10 after first-click relocation")
+    }
+
+    @Test("Cannot reveal after game is lost")
+    func testCannotRevealAfterGameLost() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Make a safe first click
+        var safeRow = -1, safeCol = -1
+        outer: for r in 0..<8 {
+            for c in 0..<8 {
+                if !gameState.board.cells[r][c].hasMine {
+                    safeRow = r
+                    safeCol = c
+                    break outer
+                }
+            }
+        }
+        gameState.reveal(row: safeRow, col: safeCol)
+
+        // Click a mine to lose
+        var mineRow = -1, mineCol = -1
+        outer2: for r in 0..<8 {
+            for c in 0..<8 {
+                if gameState.board.cells[r][c].hasMine {
+                    mineRow = r
+                    mineCol = c
+                    break outer2
+                }
+            }
+        }
+        gameState.reveal(row: mineRow, col: mineCol)
+        #expect(gameState.status == .lost)
+
+        // Find another hidden cell
+        var hiddenRow = -1, hiddenCol = -1
+        outer3: for r in 0..<8 {
+            for c in 0..<8 {
+                if case .hidden = gameState.board.cells[r][c].state {
+                    hiddenRow = r
+                    hiddenCol = c
+                    break outer3
+                }
+            }
+        }
+
+        guard hiddenRow >= 0 else {
+            return // No hidden cells to test
+        }
+
+        // Try to reveal - should have no effect
+        gameState.reveal(row: hiddenRow, col: hiddenCol)
+        #expect(gameState.board.cells[hiddenRow][hiddenCol].state == .hidden, "Should not be able to reveal after losing")
+    }
+
+    @Test("Cannot reveal after game is won")
+    func testCannotRevealAfterGameWon() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Win the game by revealing all non-mine cells
+        for r in 0..<8 {
+            for c in 0..<8 {
+                if !gameState.board.cells[r][c].hasMine {
+                    gameState.reveal(row: r, col: c)
+                }
+            }
+        }
+        #expect(gameState.status == .won)
+
+        // Find a mine cell (still hidden)
+        var mineRow = -1, mineCol = -1
+        outer: for r in 0..<8 {
+            for c in 0..<8 {
+                if gameState.board.cells[r][c].hasMine {
+                    mineRow = r
+                    mineCol = c
+                    break outer
+                }
+            }
+        }
+
+        guard mineRow >= 0 else {
+            return
+        }
+
+        // Try to reveal - should have no effect
+        gameState.reveal(row: mineRow, col: mineCol)
+        #expect(gameState.status == .won, "Status should still be won")
+    }
 }
