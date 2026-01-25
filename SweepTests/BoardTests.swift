@@ -439,4 +439,293 @@ final class BoardTests: XCTestCase {
             }
         }
     }
+
+    // MARK: - Story 27: Chord Reveal
+
+    func testAdjacentFlagCountWithNoFlags() {
+        let board = Board(seed: 12345)
+
+        // No flags placed, count should be 0
+        let count = board.adjacentFlagCount(row: 4, col: 4)
+        XCTAssertEqual(count, 0)
+    }
+
+    func testAdjacentFlagCountWithOneFlag() {
+        var board = Board(seed: 12345)
+
+        board.toggleFlag(row: 3, col: 3)
+        let count = board.adjacentFlagCount(row: 4, col: 4)
+
+        XCTAssertEqual(count, 1)
+    }
+
+    func testAdjacentFlagCountWithMultipleFlags() {
+        var board = Board(seed: 12345)
+
+        board.toggleFlag(row: 3, col: 3)
+        board.toggleFlag(row: 3, col: 4)
+        board.toggleFlag(row: 4, col: 3)
+        let count = board.adjacentFlagCount(row: 4, col: 4)
+
+        XCTAssertEqual(count, 3)
+    }
+
+    func testAdjacentFlagCountIgnoresNonAdjacentFlags() {
+        var board = Board(seed: 12345)
+
+        board.toggleFlag(row: 0, col: 0)
+        let count = board.adjacentFlagCount(row: 4, col: 4)
+
+        XCTAssertEqual(count, 0)
+    }
+
+    func testAdjacentFlagCountAtCorner() {
+        var board = Board(seed: 12345)
+
+        board.toggleFlag(row: 0, col: 1)
+        board.toggleFlag(row: 1, col: 0)
+        board.toggleFlag(row: 1, col: 1)
+        let count = board.adjacentFlagCount(row: 0, col: 0)
+
+        XCTAssertEqual(count, 3)
+    }
+
+    func testChordRevealOnHiddenCellReturnsZero() {
+        var board = Board(seed: 12345)
+
+        let result = board.chordReveal(row: 0, col: 0)
+        XCTAssertEqual(result, .safe(cellsRevealed: 0))
+    }
+
+    func testChordRevealOnRevealedZeroCellReturnsZero() {
+        var board = Board(seed: 12345)
+
+        // Find a cell with 0 adjacent mines and reveal it
+        var targetRow = -1, targetCol = -1
+        outer: for r in 0..<8 {
+            for c in 0..<8 {
+                if !board.cells[r][c].hasMine && board.adjacentMineCount(row: r, col: c) == 0 {
+                    targetRow = r
+                    targetCol = c
+                    break outer
+                }
+            }
+        }
+
+        guard targetRow >= 0 else {
+            XCTFail("No zero-adjacent cell found")
+            return
+        }
+
+        _ = board.reveal(row: targetRow, col: targetCol)
+
+        let result = board.chordReveal(row: targetRow, col: targetCol)
+        XCTAssertEqual(result, .safe(cellsRevealed: 0))
+    }
+
+    func testChordRevealWhenFlagsDoNotMatchReturnsZero() {
+        var board = Board(seed: 12345)
+
+        // Find a cell with adjacent mines > 0
+        var targetRow = -1, targetCol = -1
+        var adjMines = 0
+        outer: for r in 0..<8 {
+            for c in 0..<8 {
+                if !board.cells[r][c].hasMine {
+                    let adj = board.adjacentMineCount(row: r, col: c)
+                    if adj > 0 {
+                        targetRow = r
+                        targetCol = c
+                        adjMines = adj
+                        break outer
+                    }
+                }
+            }
+        }
+
+        guard targetRow >= 0 else {
+            XCTFail("No cell with adjacent mines found")
+            return
+        }
+
+        _ = board.reveal(row: targetRow, col: targetCol)
+        // Don't place any flags - flags (0) won't match adjMines (>0)
+
+        let result = board.chordReveal(row: targetRow, col: targetCol)
+        XCTAssertEqual(result, .safe(cellsRevealed: 0), "Chord reveal should do nothing when flag count doesn't match")
+    }
+
+    func testChordRevealRevealsUnflaggedAdjacentCells() {
+        var board = Board(seed: 12345)
+
+        // Find a revealed cell with exactly 1 adjacent mine
+        var targetRow = -1, targetCol = -1
+        var mineRow = -1, mineCol = -1
+        outer: for r in 0..<8 {
+            for c in 0..<8 {
+                if !board.cells[r][c].hasMine {
+                    let adj = board.adjacentMineCount(row: r, col: c)
+                    if adj == 1 {
+                        // Find the adjacent mine
+                        for dr in -1...1 {
+                            for dc in -1...1 {
+                                if dr == 0 && dc == 0 { continue }
+                                let mr = r + dr
+                                let mc = c + dc
+                                if mr >= 0, mr < 8, mc >= 0, mc < 8 {
+                                    if board.cells[mr][mc].hasMine {
+                                        targetRow = r
+                                        targetCol = c
+                                        mineRow = mr
+                                        mineCol = mc
+                                        break outer
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        guard targetRow >= 0 else {
+            XCTFail("No suitable cell found")
+            return
+        }
+
+        _ = board.reveal(row: targetRow, col: targetCol)
+        board.toggleFlag(row: mineRow, col: mineCol)
+
+        let result = board.chordReveal(row: targetRow, col: targetCol)
+
+        if case .safe(let count) = result {
+            XCTAssertGreaterThan(count, 0, "Chord reveal should reveal at least one cell")
+        } else {
+            XCTFail("Expected safe result")
+        }
+    }
+
+    func testChordRevealReturnsMineIfIncorrectFlag() {
+        var board = Board(seed: 12345)
+
+        // Find a revealed cell with exactly 1 adjacent mine
+        var targetRow = -1, targetCol = -1
+        var wrongFlagRow = -1, wrongFlagCol = -1
+        outer: for r in 0..<8 {
+            for c in 0..<8 {
+                if !board.cells[r][c].hasMine {
+                    let adj = board.adjacentMineCount(row: r, col: c)
+                    if adj == 1 {
+                        // Find a non-mine adjacent cell to place wrong flag
+                        for dr in -1...1 {
+                            for dc in -1...1 {
+                                if dr == 0 && dc == 0 { continue }
+                                let nr = r + dr
+                                let nc = c + dc
+                                if nr >= 0, nr < 8, nc >= 0, nc < 8 {
+                                    if !board.cells[nr][nc].hasMine {
+                                        targetRow = r
+                                        targetCol = c
+                                        wrongFlagRow = nr
+                                        wrongFlagCol = nc
+                                        break outer
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        guard targetRow >= 0, wrongFlagRow >= 0 else {
+            XCTFail("No suitable cell found")
+            return
+        }
+
+        _ = board.reveal(row: targetRow, col: targetCol)
+        board.toggleFlag(row: wrongFlagRow, col: wrongFlagCol)
+
+        let result = board.chordReveal(row: targetRow, col: targetCol)
+
+        XCTAssertEqual(result, .mine, "Chord reveal should return .mine when flag is incorrectly placed")
+    }
+
+    func testChordRevealOutOfBoundsReturnsZero() {
+        var board = Board(seed: 12345)
+
+        XCTAssertEqual(board.chordReveal(row: -1, col: 0), .safe(cellsRevealed: 0))
+        XCTAssertEqual(board.chordReveal(row: 0, col: -1), .safe(cellsRevealed: 0))
+        XCTAssertEqual(board.chordReveal(row: 8, col: 0), .safe(cellsRevealed: 0))
+        XCTAssertEqual(board.chordReveal(row: 0, col: 8), .safe(cellsRevealed: 0))
+    }
+
+    func testChordRevealCanTriggerCascade() {
+        var board = Board(seed: 12345)
+
+        // Find a revealed cell with 1 adjacent mine where an adjacent cell has 0 mines
+        var targetRow = -1, targetCol = -1
+        var mineRow = -1, mineCol = -1
+        var hasZeroNeighbor = false
+
+        outer: for r in 0..<8 {
+            for c in 0..<8 {
+                if !board.cells[r][c].hasMine {
+                    let adj = board.adjacentMineCount(row: r, col: c)
+                    if adj == 1 {
+                        // Find the mine
+                        for dr in -1...1 {
+                            for dc in -1...1 {
+                                if dr == 0 && dc == 0 { continue }
+                                let mr = r + dr
+                                let mc = c + dc
+                                if mr >= 0, mr < 8, mc >= 0, mc < 8 {
+                                    if board.cells[mr][mc].hasMine {
+                                        mineRow = mr
+                                        mineCol = mc
+                                    }
+                                }
+                            }
+                        }
+
+                        // Check if any non-mine neighbor has 0 adjacent mines
+                        for dr in -1...1 {
+                            for dc in -1...1 {
+                                if dr == 0 && dc == 0 { continue }
+                                let nr = r + dr
+                                let nc = c + dc
+                                if nr >= 0, nr < 8, nc >= 0, nc < 8 {
+                                    if !board.cells[nr][nc].hasMine {
+                                        if board.adjacentMineCount(row: nr, col: nc) == 0 {
+                                            hasZeroNeighbor = true
+                                            targetRow = r
+                                            targetCol = c
+                                            break outer
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        guard targetRow >= 0, mineRow >= 0, hasZeroNeighbor else {
+            // This test depends on board layout - skip if no suitable configuration
+            return
+        }
+
+        _ = board.reveal(row: targetRow, col: targetCol)
+        board.toggleFlag(row: mineRow, col: mineCol)
+
+        let result = board.chordReveal(row: targetRow, col: targetCol)
+
+        if case .safe(let count) = result {
+            // If we have a zero-neighbor, cascade should reveal more than just immediate neighbors
+            XCTAssertGreaterThan(count, 1, "Chord reveal with zero-adjacent neighbor should cascade")
+        } else {
+            XCTFail("Expected safe result")
+        }
+    }
 }

@@ -147,4 +147,61 @@ struct Board: Equatable {
         }
         return count
     }
+
+    /// Returns the count of flagged cells adjacent to the given position.
+    func adjacentFlagCount(row: Int, col: Int) -> Int {
+        var count = 0
+        for dr in -1...1 {
+            for dc in -1...1 {
+                if dr == 0 && dc == 0 { continue }
+                let r = row + dr
+                let c = col + dc
+                if r >= 0, r < Board.rows, c >= 0, c < Board.cols {
+                    if case .flagged = cells[r][c].state {
+                        count += 1
+                    }
+                }
+            }
+        }
+        return count
+    }
+
+    /// Performs a chord reveal on a revealed number cell.
+    /// If the adjacent flag count matches the cell's number, reveals all unflagged adjacent cells.
+    /// - Returns: `.mine` if any revealed cell contains a mine, `.safe(cellsRevealed:)` otherwise.
+    mutating func chordReveal(row: Int, col: Int) -> RevealResult {
+        guard row >= 0, row < Board.rows, col >= 0, col < Board.cols else {
+            return .safe(cellsRevealed: 0)
+        }
+
+        guard case .revealed(let adjacentMines) = cells[row][col].state, adjacentMines > 0 else {
+            return .safe(cellsRevealed: 0)
+        }
+
+        let flagCount = adjacentFlagCount(row: row, col: col)
+        guard flagCount == adjacentMines else {
+            return .safe(cellsRevealed: 0)
+        }
+
+        var totalRevealed = 0
+        for dr in -1...1 {
+            for dc in -1...1 {
+                if dr == 0 && dc == 0 { continue }
+                let r = row + dr
+                let c = col + dc
+                guard r >= 0, r < Board.rows, c >= 0, c < Board.cols else { continue }
+                guard case .hidden = cells[r][c].state else { continue }
+
+                let result = reveal(row: r, col: c)
+                switch result {
+                case .mine:
+                    return .mine
+                case .safe(let count):
+                    totalRevealed += count
+                }
+            }
+        }
+
+        return .safe(cellsRevealed: totalRevealed)
+    }
 }

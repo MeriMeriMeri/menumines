@@ -30,9 +30,16 @@ final class GameState {
     }
 
     /// Reveals the cell at the given position.
+    /// If the cell is already revealed with a number, performs a chord reveal instead.
     func reveal(row: Int, col: Int) {
         guard status == .notStarted || status == .playing else { return }
         guard row >= 0, row < Board.rows, col >= 0, col < Board.cols else { return }
+
+        if case .revealed(let adjacentMines) = board.cells[row][col].state, adjacentMines > 0 {
+            chordReveal(row: row, col: col)
+            return
+        }
+
         guard case .hidden = board.cells[row][col].state else { return }
 
         let isFirstClick = (status == .notStarted)
@@ -121,6 +128,38 @@ final class GameState {
     /// Toggles the flag on the currently selected cell.
     func toggleFlagSelected() {
         toggleFlag(row: selectedRow, col: selectedCol)
+    }
+
+    /// Performs a chord reveal on the cell at the given position.
+    func chordReveal(row: Int, col: Int) {
+        guard status == .playing else { return }
+        guard row >= 0, row < Board.rows, col >= 0, col < Board.cols else { return }
+
+        let result = board.chordReveal(row: row, col: col)
+
+        switch result {
+        case .mine:
+            status = .lost
+            stopTimer()
+            for r in 0..<Board.rows {
+                for c in 0..<Board.cols {
+                    if board.cells[r][c].hasMine, case .hidden = board.cells[r][c].state {
+                        board.markExploded(row: r, col: c)
+                        return
+                    }
+                }
+            }
+        case .safe:
+            if checkWinCondition() {
+                status = .won
+                stopTimer()
+            }
+        }
+    }
+
+    /// Performs a chord reveal on the currently selected cell.
+    func chordRevealSelected() {
+        chordReveal(row: selectedRow, col: selectedCol)
     }
 
     // MARK: - Private
