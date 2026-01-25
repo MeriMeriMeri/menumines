@@ -4,8 +4,9 @@ struct ConfettiView: View {
     let isActive: Bool
 
     @State private var particles: [ConfettiParticle] = []
-    @State private var animationPhase: CGFloat = 0
+    @State private var animationStartTime: Date?
 
+    private let animationDuration: TimeInterval = 2.0
     private let particleCount = 50
     private let colors: [Color] = [.yellow, .orange, .red, .pink, .purple, .blue, .green]
 
@@ -18,14 +19,19 @@ struct ConfettiView: View {
             ZStack {
                 if reduceMotionEnabled {
                     reducedMotionCelebration
-                } else {
-                    ForEach(particles) { particle in
-                        ConfettiParticleView(particle: particle, phase: animationPhase)
+                } else if animationStartTime != nil {
+                    TimelineView(.animation) { timeline in
+                        let phase = calculatePhase(at: timeline.date)
+                        ForEach(particles) { particle in
+                            ConfettiParticleView(particle: particle, phase: phase)
+                        }
+                    }
+                    .task(id: animationStartTime) {
+                        guard animationStartTime != nil else { return }
+                        try? await Task.sleep(for: .seconds(animationDuration))
+                        animationStartTime = nil
                     }
                 }
-            }
-            .onAppear {
-                initializeParticles(in: geometry.size)
             }
             .onChange(of: isActive) { _, newValue in
                 if newValue {
@@ -42,6 +48,12 @@ struct ConfettiView: View {
             .opacity(isActive ? 1 : 0)
             .scaleEffect(isActive ? 1 : 0.5)
             .animation(.easeOut(duration: 0.3), value: isActive)
+    }
+
+    private func calculatePhase(at date: Date) -> CGFloat {
+        guard let startTime = animationStartTime else { return 0 }
+        let elapsed = date.timeIntervalSince(startTime)
+        return min(1, max(0, CGFloat(elapsed / animationDuration)))
     }
 
     private func initializeParticles(in size: CGSize) {
@@ -62,11 +74,7 @@ struct ConfettiView: View {
 
     private func startCelebration(in size: CGSize) {
         initializeParticles(in: size)
-        animationPhase = 0
-
-        withAnimation(.linear(duration: 1.5)) {
-            animationPhase = 1
-        }
+        animationStartTime = Date()
     }
 }
 
@@ -121,18 +129,28 @@ private struct ConfettiParticleView: View {
     }
 }
 
-#Preview("Confetti Active") {
-    ZStack {
-        Color.gray.opacity(0.3)
-        ConfettiView(isActive: true)
-    }
-    .frame(width: 300, height: 400)
+#Preview("Confetti") {
+    ConfettiPreviewContainer()
 }
 
-#Preview("Confetti Inactive") {
-    ZStack {
-        Color.gray.opacity(0.3)
-        ConfettiView(isActive: false)
+private struct ConfettiPreviewContainer: View {
+    @State private var isActive = false
+
+    var body: some View {
+        ZStack {
+            Color.gray.opacity(0.3)
+            ConfettiView(isActive: isActive)
+            VStack {
+                Spacer()
+                Button("Trigger Confetti") {
+                    isActive = false
+                    DispatchQueue.main.async {
+                        isActive = true
+                    }
+                }
+                .padding()
+            }
+        }
+        .frame(width: 300, height: 400)
     }
-    .frame(width: 300, height: 400)
 }
