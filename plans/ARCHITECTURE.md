@@ -11,10 +11,10 @@
 │   (GameBoardView, CellView, MenuContentView)        │
 ├─────────────────────────────────────────────────────┤
 │                 Game Logic Layer                     │
-│        (Board, Cell, GameState, Timer)              │
+│   (Board, Cell, GameState, SeededGenerator)         │
 ├─────────────────────────────────────────────────────┤
 │               Daily Board Service                    │
-│      (SeededGenerator, DailyBoardService)           │
+│             (DailyBoardService)                      │
 └─────────────────────────────────────────────────────┘
 ```
 
@@ -22,9 +22,9 @@
 
 ## Module Definitions
 
-### Module A: Game Logic (No Dependencies)
+### Module A: Game Logic (No UI Dependencies)
 
-Pure Swift types with no UI framework imports.
+Pure Swift types with no UI framework imports. Uses GameplayKit for deterministic RNG.
 
 #### Cell.swift
 ```swift
@@ -32,15 +32,16 @@ enum CellState: Equatable {
     case hidden
     case revealed(adjacentMines: Int)
     case flagged
-    case mine
-    case exploded
 }
 
 struct Cell {
     var state: CellState
-    var hasMine: Bool
+    let hasMine: Bool
+    var isExploded: Bool = false  // true only for the mine the player clicked
 }
 ```
+
+Note: Mine visibility is computed at render time based on game status and `hasMine`, not stored in `CellState`. This prevents state duplication between `hasMine` and cell state.
 
 #### Board.swift
 ```swift
@@ -71,26 +72,79 @@ final class GameState {
     private(set) var status: GameStatus
     private(set) var elapsedTime: TimeInterval
     private(set) var flagCount: Int
+    private(set) var selectedRow: Int = 0
+    private(set) var selectedCol: Int = 0
+    private var timer: Timer?
 
     func reveal(row: Int, col: Int)
     func toggleFlag(row: Int, col: Int)
     func reset()
+    func pauseTimer()
+    func resumeTimer()
+
+    // Keyboard navigation
+    func moveSelection(_ direction: Direction)
+    func revealSelected()
+    func toggleFlagSelected()
+}
+
+enum Direction {
+    case up, down, left, right
+}
+```
+
+**Win/Lose Detection Flow:**
+```swift
+func reveal(row: Int, col: Int) {
+    guard status == .notStarted || status == .playing else { return }
+
+    if status == .notStarted {
+        startTimer()
+        status = .playing
+    }
+
+    let result = board.reveal(row: row, col: col)
+
+    switch result {
+    case .mine:
+        status = .lost
+        stopTimer()
+        board.cells[row][col].isExploded = true
+    case .safe, .alreadyRevealed:
+        if checkWinCondition() {
+            status = .won
+            stopTimer()
+        }
+    }
+}
+
+private func checkWinCondition() -> Bool {
+    // Win when all 54 non-mine cells are revealed
+    for row in board.cells {
+        for cell in row {
+            if !cell.hasMine && cell.state != .revealed {
+                return false
+            }
+        }
+    }
+    return true
 }
 
 enum GameStatus {
+    case notStarted  // before first click
     case playing
     case won
     case lost
 }
 ```
 
-**Win Condition:** All cells where `hasMine == false` are in `revealed` state.
+**Timer Behavior:**
+- Starts on first click (first `reveal()` call), not on app launch
+- Pauses when popover closes (`pauseTimer()`), resumes when reopened (`resumeTimer()`)
+- Stops permanently on win/lose
+- Implementation: `Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true)`
 
-**Reveal Cascading:** When revealing a cell with 0 adjacent mines, automatically reveal all adjacent cells (recursive flood fill).
-
----
-
-### Module B: Daily Board Service (No Dependencies)
+**Reveal Cascading:** When revealing a cell with 0 adjacent mines, automatically reveal all adjacent cells (recursive flood fill). Board only handles mechanics—it doesn't check win/lose.
 
 #### SeededGenerator.swift
 ```swift
@@ -109,14 +163,13 @@ final class SeededGenerator {
 }
 ```
 
+---
+
+### Module B: Daily Board Service (Depends on A)
+
 #### DailyBoardService.swift
 ```swift
-protocol DailyBoardServiceProtocol {
-    func boardForToday() -> Board
-    func boardForDate(_ date: Date) -> Board
-}
-
-final class DailyBoardService: DailyBoardServiceProtocol {
+final class DailyBoardService {
     func boardForToday() -> Board {
         return boardForDate(Date())
     }
@@ -127,7 +180,8 @@ final class DailyBoardService: DailyBoardServiceProtocol {
     }
 
     private func seedFromDate(_ date: Date) -> Int64 {
-        let calendar = Calendar.current
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(identifier: "UTC")!
         let year = calendar.component(.year, from: date)
         let month = calendar.component(.month, from: date)
         let day = calendar.component(.day, from: date)
@@ -138,12 +192,13 @@ final class DailyBoardService: DailyBoardServiceProtocol {
 
 ---
 
-### Module C: UI Components (Depends on A's Interfaces)
+### Module C: UI Components (Depends on A)
 
 #### CellView.swift
 ```swift
 struct CellView: View {
     let cell: Cell
+    let gameStatus: GameStatus  // needed to show mines on game over
     let isSelected: Bool
     let onReveal: () -> Void
     let onFlag: () -> Void
@@ -153,19 +208,16 @@ struct CellView: View {
 ```
 
 Rendering rules:
-- `hidden` → gray square
+- `hidden` → gray square (or mine icon if game lost and `hasMine`)
 - `revealed(0)` → empty square
 - `revealed(n)` → number with color (1=blue, 2=green, 3=red, etc.)
-- `flagged` → flag icon
-- `mine` → mine icon (shown on game over)
-- `exploded` → red background with mine
+- `flagged` → flag icon (or mine icon if game lost and `hasMine`)
+- `isExploded` → red background with mine (the clicked mine)
 
 #### GameBoardView.swift
 ```swift
 struct GameBoardView: View {
     @Bindable var gameState: GameState
-    @State private var selectedRow: Int = 0
-    @State private var selectedCol: Int = 0
 
     var body: some View { ... }
 }
@@ -173,8 +225,8 @@ struct GameBoardView: View {
 
 Responsibilities:
 - Render 8x8 grid of CellViews
-- Track keyboard selection
-- Forward reveal/flag actions to GameState
+- Highlight cell at `gameState.selectedRow/Col`
+- Forward mouse clicks to GameState
 
 #### MenuContentView.swift
 ```swift
@@ -223,14 +275,16 @@ struct SweepApp: App {
 
 #### Keyboard Event Handling
 ```swift
-NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+// Registered in SweepApp.init(), calls methods on gameState
+NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak gameState] event in
+    guard let gameState else { return event }
     switch event.keyCode {
-    case 123: // Left arrow
-    case 124: // Right arrow
-    case 125: // Down arrow
-    case 126: // Up arrow
-    case 49:  // Space
-    case 3:   // F key
+    case 123: gameState.moveSelection(.left)
+    case 124: gameState.moveSelection(.right)
+    case 125: gameState.moveSelection(.down)
+    case 126: gameState.moveSelection(.up)
+    case 49:  gameState.revealSelected()   // Space
+    case 3:   gameState.toggleFlagSelected() // F key
     }
     return event
 }
@@ -242,68 +296,46 @@ NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
 
 | Stream | Module | Dependencies | Can Start |
 |--------|--------|--------------|-----------|
-| 1 | Game Logic (Cell, Board, GameState) | None | Immediately |
-| 2 | Daily Board Service | None | Immediately |
-| 3 | UI Components | Game Logic interfaces | After interfaces defined |
+| 1 | Game Logic (Cell, Board, GameState, SeededGenerator) | None (GameplayKit only) | Immediately |
+| 2 | Daily Board Service | Game Logic | After SeededGenerator defined |
+| 3 | UI Components | Game Logic | After GameState defined |
 | 4 | App Shell | All modules | After modules stubbed |
-
-### Interface Contracts
-
-Streams 1 and 2 define these protocols that Stream 3 codes against:
-
-```swift
-// From Game Logic
-protocol GameStateProtocol {
-    var board: Board { get }
-    var status: GameStatus { get }
-    var elapsedTime: TimeInterval { get }
-    var flagCount: Int { get }
-    func reveal(row: Int, col: Int)
-    func toggleFlag(row: Int, col: Int)
-    func reset()
-}
-
-// From Daily Board Service
-protocol DailyBoardServiceProtocol {
-    func boardForToday() -> Board
-    func boardForDate(_ date: Date) -> Board
-}
-```
 
 ---
 
 ## Implementation Phases
 
-### Phase 1: Foundation (Parallel)
+### Phase 1: Foundation
 
-**Stream 1 - Game Logic:**
+**Game Logic:**
 - [ ] `Cell` struct and `CellState` enum
+- [ ] `SeededGenerator` wrapping GameplayKit
 - [ ] `Board` struct with initializer (no mines yet)
 - [ ] `GameState` class with `@Observable`
 - [ ] Unit tests for basic types
 
-**Stream 2 - Daily Service:**
-- [ ] `SeededGenerator` wrapping GameplayKit
+**Daily Service:**
 - [ ] `DailyBoardService` with seed calculation
 - [ ] Unit tests verifying deterministic output
 
 **Verification:**
-- Both streams have passing unit tests
+- All unit tests passing
 - Same seed produces identical boards
 
-### Phase 2: Core Features (Parallel)
+### Phase 2: Core Features
 
-**Stream 1 - Game Logic:**
+**Game Logic:**
 - [ ] Mine placement using SeededGenerator
 - [ ] `reveal()` with cascade for zero-adjacent cells
 - [ ] Win/lose detection
-- [ ] First-click safety (relocate mine)
-- [ ] Timer integration
+- [ ] First-click safety (relocate mine to random empty cell)
+- [ ] Timer integration (start/pause/resume/stop)
+- [ ] Selection movement with bounds checking
 
-**Stream 2 - Daily Service:**
+**Daily Service:**
 - [ ] Board caching (optional optimization)
 
-**Stream 3 - UI Components:**
+**UI Components:**
 - [ ] `CellView` with all state renderings
 - [ ] `GameBoardView` grid layout
 - [ ] `MenuContentView` with header/footer
@@ -343,15 +375,17 @@ protocol DailyBoardServiceProtocol {
 
 ## Testing Strategy
 
+Since we use concrete types without protocols, thorough unit testing of core game logic is essential. Test the actual classes directly—no mocks needed.
+
 ### Unit Tests (Required)
 
 | Test File | Coverage |
 |-----------|----------|
 | `CellTests.swift` | State transitions |
-| `BoardTests.swift` | Mine placement, reveal logic, cascade |
-| `GameStateTests.swift` | Win/lose, timer, flag counting |
+| `BoardTests.swift` | Mine placement, reveal logic, cascade, first-click safety |
+| `GameStateTests.swift` | Win/lose detection after cascade, timer start/pause/resume, flag counting, selection movement |
 | `SeededGeneratorTests.swift` | Deterministic output |
-| `DailyBoardServiceTests.swift` | Seed calculation, date handling |
+| `DailyBoardServiceTests.swift` | Seed calculation, UTC date handling |
 
 ### Key Test Cases
 
@@ -360,6 +394,17 @@ protocol DailyBoardServiceProtocol {
 func testSameSeedProducesSameBoard() {
     let board1 = Board(seed: 20240315)
     let board2 = Board(seed: 20240315)
+    XCTAssertEqual(board1.cells, board2.cells)
+}
+
+// UTC timezone consistency
+func testSameDateProducesSameBoardRegardlessOfTimezone() {
+    let service = DailyBoardService()
+    // 2024-03-15 23:00 UTC = 2024-03-16 01:00 in UTC+2
+    let date = Date(timeIntervalSince1970: 1710543600)
+    let board1 = service.boardForDate(date)
+    let board2 = service.boardForDate(date)
+    // Both should produce identical boards (same UTC date: March 15)
     XCTAssertEqual(board1.cells, board2.cells)
 }
 
@@ -375,6 +420,33 @@ func testWinWhenAllNonMinesRevealed() {
     // Reveal all 54 non-mine cells
     XCTAssertEqual(gameState.status, .won)
 }
+
+// Selection bounds
+func testSelectionStaysWithinBoardBounds() {
+    let gameState = GameState(board: Board(seed: 12345))
+    gameState.moveSelection(.up) // Already at row 0
+    XCTAssertEqual(gameState.selectedRow, 0) // Should not go negative
+
+    for _ in 0..<10 { gameState.moveSelection(.down) }
+    XCTAssertEqual(gameState.selectedRow, 7) // Should not exceed 7
+}
+
+// Timer behavior
+func testTimerStartsOnFirstReveal() {
+    let gameState = GameState(board: Board(seed: 12345))
+    XCTAssertEqual(gameState.status, .notStarted)
+    XCTAssertEqual(gameState.elapsedTime, 0)
+
+    gameState.reveal(row: 0, col: 0)
+    XCTAssertEqual(gameState.status, .playing)
+    // Timer now running
+}
+
+// Win detection after cascade
+func testWinDetectedAfterCascadeRevealsLastCells() {
+    // Set up board where one reveal cascades to win
+    // Verify status becomes .won after cascade completes
+}
 ```
 
 ---
@@ -389,3 +461,11 @@ func testWinWhenAllNonMinesRevealed() {
 | State management | @Observable | Modern Swift, simpler than Combine |
 | RNG | GKLinearCongruentialRandomSource | Built-in, seedable, deterministic |
 | Window style | .window (not .menu) | Allows rich custom UI |
+| Daily seed timezone | UTC | Same puzzle globally at same moment |
+| Daily board identity | Pre-click (initial mine layout) | First-click safety may relocate a mine, so post-click boards can vary by starting cell. Standard Minesweeper behavior. |
+| Mine state | Computed at render, not stored | `hasMine` is source of truth; no `.mine`/`.exploded` in CellState to prevent sync bugs |
+| Timer start | On first click | Standard Minesweeper; no penalty for reading the board |
+| Timer on popover close | Pause | Casual-friendly; no penalty for distractions |
+| Timer implementation | `Timer.scheduledTimer` | Simple, beginner-friendly, no Combine needed |
+| Selection state | In GameState, not View | Allows App-level keyboard monitor to access it |
+| Protocols | None (concrete types) | Simpler for small project; test GameState directly |

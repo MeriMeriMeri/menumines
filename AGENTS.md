@@ -22,10 +22,10 @@ Sweep/
 ├── Models/
 │   ├── Cell.swift              # Cell state enum
 │   ├── Board.swift             # 8x8 grid, mine placement, reveal logic
-│   └── GameState.swift         # @Observable game state
-├── Services/
-│   ├── DailyBoardService.swift # Date-based board generation
+│   ├── GameState.swift         # @Observable game state
 │   └── SeededGenerator.swift   # Wraps GKLinearCongruentialRandomSource
+├── Services/
+│   └── DailyBoardService.swift # Date-based board generation
 ├── Views/
 │   ├── GameBoardView.swift     # 8x8 grid of cells
 │   ├── CellView.swift          # Individual cell rendering
@@ -33,8 +33,10 @@ Sweep/
 ├── Resources/
 │   └── Assets.xcassets         # App icon, cell images
 └── Tests/
+    ├── CellTests.swift
     ├── BoardTests.swift
     ├── GameStateTests.swift
+    ├── SeededGeneratorTests.swift
     └── DailyBoardServiceTests.swift
 ```
 
@@ -48,6 +50,9 @@ Views read from `@Observable GameState` and call methods on it. No view-local ga
 
 ### Daily Seed Formula
 ```swift
+// IMPORTANT: Use UTC timezone so all players get same puzzle globally
+var calendar = Calendar(identifier: .gregorian)
+calendar.timeZone = TimeZone(identifier: "UTC")!
 let seed = Int64(year * 10000 + month * 100 + day)
 // Example: 2024-03-15 → 20240315
 ```
@@ -83,8 +88,17 @@ xcodebuild clean -scheme Sweep
 
 ## Testing Strategy
 
-- Unit test all game logic (Board, GameState, DailyBoardService)
+Core game logic must be thoroughly tested since we use concrete types without protocols. Test the actual classes directly—no mocks needed.
+
+**Required coverage:**
+- Unit test all game logic (Board, GameState, DailyBoardService, SeededGenerator)
 - Test win/lose conditions
 - Test reveal cascading behavior
+- Test first-click safety (mine relocation)
+- Test timer start/pause/resume behavior
 - Test deterministic seeding produces identical boards
-- UI testing optional, focus on logic correctness
+- Test UTC timezone consistency (same Date produces same seed regardless of local timezone)
+- Test keyboard selection movement and bounds
+
+**Optional:**
+- UI testing (focus on logic correctness first)
