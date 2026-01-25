@@ -11,5 +11,10 @@ enum Constants {
         /// Controls whether a confirmation dialog appears before resetting the game.
         /// When false (default), reset happens immediately.
         static let confirmBeforeReset = "com.sweep.confirmBeforeReset"
+
+        /// Controls whether the game can be refreshed after completing the daily puzzle.
+        /// When true, users can reset and replay even after winning or losing.
+        /// Stats are only recorded for the first completion regardless of this setting.
+        static let allowRefreshAfterCompletion = "com.sweep.allowRefreshAfterCompletion"
     }
 }

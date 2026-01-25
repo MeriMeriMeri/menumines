@@ -38,7 +38,7 @@ struct FooterView: View {
             }
             .buttonStyle(.borderless)
             .popover(isPresented: $showControls) {
-                ControlsPopoverView()
+                ControlsPopoverView(canReset: canReset)
             }
             .accessibilityLabel(String(localized: "controls_button_accessibility"))
 
@@ -86,6 +86,8 @@ struct FooterView: View {
 // MARK: - Controls Popover
 
 private struct ControlsPopoverView: View {
+    let canReset: Bool
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(String(localized: "controls_title"))
@@ -107,10 +109,12 @@ private struct ControlsPopoverView: View {
                         .frame(width: 70, alignment: .leading)
                     Text(String(localized: "controls_flag"))
                 }
-                GridRow {
-                    Text("⌘R")
-                        .frame(width: 70, alignment: .leading)
-                    Text(String(localized: "controls_reset"))
+                if canReset {
+                    GridRow {
+                        Text("⌘R")
+                            .frame(width: 70, alignment: .leading)
+                        Text(String(localized: "controls_reset"))
+                    }
                 }
             }
             .font(.system(.body, design: .monospaced))

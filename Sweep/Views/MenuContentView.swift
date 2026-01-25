@@ -88,6 +88,19 @@ struct MenuContentView: View {
             .padding()
 
             ConfettiView(isActive: showCelebration)
+
+            // Inline reset confirmation overlay
+            if showResetConfirmation {
+                ResetConfirmationOverlay(
+                    onCancel: {
+                        showResetConfirmation = false
+                    },
+                    onConfirm: {
+                        showResetConfirmation = false
+                        performReset()
+                    }
+                )
+            }
         }
         .frame(width: 300)
         .onAppear {
@@ -119,16 +132,49 @@ struct MenuContentView: View {
                 }
             }
         }
-        .alert(
-            String(localized: "reset_confirmation_title"),
-            isPresented: $showResetConfirmation
-        ) {
-            Button(String(localized: "reset_confirmation_cancel"), role: .cancel) {}
-            Button(String(localized: "reset_confirmation_confirm"), role: .destructive) {
-                performReset()
+    }
+}
+
+/// Inline confirmation overlay for reset action.
+/// Uses an overlay instead of system alert to avoid MenuBarExtra dismissal issues.
+private struct ResetConfirmationOverlay: View {
+    let onCancel: () -> Void
+    let onConfirm: () -> Void
+
+    var body: some View {
+        ZStack {
+            // Semi-transparent background
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
+
+            // Confirmation card
+            VStack(spacing: 16) {
+                VStack(spacing: 8) {
+                    Text(String(localized: "reset_confirmation_title"))
+                        .font(.headline)
+                    Text(String(localized: "reset_confirmation_message"))
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                }
+
+                HStack(spacing: 12) {
+                    Button(String(localized: "reset_confirmation_cancel")) {
+                        onCancel()
+                    }
+                    .keyboardShortcut(.cancelAction)
+
+                    Button(String(localized: "reset_confirmation_confirm")) {
+                        onConfirm()
+                    }
+                    .keyboardShortcut(.defaultAction)
+                    .buttonStyle(.borderedProminent)
+                    .tint(.red)
+                }
             }
-        } message: {
-            Text(String(localized: "reset_confirmation_message"))
+            .padding(20)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+            .shadow(radius: 10)
         }
     }
 }
