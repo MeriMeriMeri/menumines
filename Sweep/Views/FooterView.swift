@@ -16,15 +16,11 @@ struct FooterView: View {
 
             Spacer()
 
-            Button {
-                onAbout()
-            } label: {
-                Image(systemName: "info.circle")
-            }
-            .buttonStyle(.borderless)
-            .help("About Sweep")
-
             Menu {
+                Button("About Sweep") {
+                    onAbout()
+                }
+
                 Button("Settings...") {
                     openSettings()
                 }
@@ -41,7 +37,6 @@ struct FooterView: View {
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
-            .help("Settings")
         }
         .padding(.horizontal, 8)
     }
