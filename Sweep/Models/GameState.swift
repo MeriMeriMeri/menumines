@@ -1,4 +1,5 @@
 import Foundation
+import Sentry
 
 /// Snapshot of game state for persistence.
 /// Includes all data needed to restore an in-progress game.
@@ -15,15 +16,38 @@ struct GameSnapshot: Codable {
 
     /// Saves the snapshot to UserDefaults.
     func save() {
-        guard let data = try? JSONEncoder().encode(self) else { return }
-        UserDefaults.standard.set(data, forKey: Self.storageKey)
+        do {
+            let data = try JSONEncoder().encode(self)
+            UserDefaults.standard.set(data, forKey: Self.storageKey)
+        } catch {
+            SentrySDK.capture(error: error) { scope in
+                scope.setTag(value: "snapshot_save", key: "operation")
+                scope.setContext(value: [
+                    "daily_seed": dailySeed,
+                    "status": status.rawValue,
+                    "elapsed_time": elapsedTime,
+                    "flag_count": flagCount
+                ], key: "game_state")
+            }
+        }
     }
 
     /// Loads a snapshot from UserDefaults if one exists and is for today's puzzle.
     /// - Returns: The snapshot if valid for today, nil otherwise.
     static func load() -> GameSnapshot? {
         guard let data = UserDefaults.standard.data(forKey: storageKey) else { return nil }
-        guard let snapshot = try? JSONDecoder().decode(GameSnapshot.self, from: data) else {
+
+        let snapshot: GameSnapshot
+        do {
+            snapshot = try JSONDecoder().decode(GameSnapshot.self, from: data)
+        } catch {
+            SentrySDK.capture(error: error) { scope in
+                scope.setTag(value: "snapshot_load", key: "operation")
+                scope.setContext(value: [
+                    "data_size_bytes": data.count,
+                    "today_seed": seedFromDate(Date())
+                ], key: "persistence")
+            }
             clear()
             return nil
         }

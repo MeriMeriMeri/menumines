@@ -1,4 +1,5 @@
 import Foundation
+import Sentry
 
 /// Manages persistence and retrieval of game statistics.
 /// Stores raw game results and computes derived metrics at runtime.
@@ -77,13 +78,30 @@ final class StatsStore {
 
     private func loadResults() {
         guard let data = UserDefaults.standard.data(forKey: Self.resultsKey) else { return }
-        guard let decoded = try? JSONDecoder().decode([GameResult].self, from: data) else { return }
-        results = decoded
+        do {
+            results = try JSONDecoder().decode([GameResult].self, from: data)
+        } catch {
+            SentrySDK.capture(error: error) { scope in
+                scope.setTag(value: "stats_load", key: "operation")
+                scope.setContext(value: [
+                    "data_size_bytes": data.count
+                ], key: "persistence")
+            }
+        }
     }
 
     private func saveResults() {
-        guard let data = try? JSONEncoder().encode(results) else { return }
-        UserDefaults.standard.set(data, forKey: Self.resultsKey)
+        do {
+            let data = try JSONEncoder().encode(results)
+            UserDefaults.standard.set(data, forKey: Self.resultsKey)
+        } catch {
+            SentrySDK.capture(error: error) { scope in
+                scope.setTag(value: "stats_save", key: "operation")
+                scope.setContext(value: [
+                    "results_count": self.results.count
+                ], key: "persistence")
+            }
+        }
     }
 
     // MARK: - Testing Support
