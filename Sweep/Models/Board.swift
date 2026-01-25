@@ -18,26 +18,23 @@ struct Board: Equatable {
     /// Creates a new board with mines placed deterministically based on the seed.
     /// - Parameter seed: The seed for deterministic mine placement.
     init(seed: Int64) {
-        // Initialize 8x8 grid with all cells hidden and no mines
         cells = (0..<Board.rows).map { _ in
             (0..<Board.cols).map { _ in
                 Cell(state: .hidden, hasMine: false)
             }
         }
 
-        // Use seeded RNG for deterministic mine placement
         let rng = GKLinearCongruentialRandomSource(seed: UInt64(bitPattern: seed))
 
-        // Pick 10 unique random positions for mines
         var minePositions = Set<Int>()
         let totalCells = Board.rows * Board.cols
+        precondition(Board.mineCount <= totalCells, "Cannot place \(Board.mineCount) mines in \(totalCells) cells")
 
         while minePositions.count < Board.mineCount {
             let position = rng.nextInt(upperBound: totalCells)
             minePositions.insert(position)
         }
 
-        // Place mines at the selected positions
         for position in minePositions {
             let row = position / Board.cols
             let col = position % Board.cols
