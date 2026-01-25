@@ -20,6 +20,7 @@ struct FooterView: View {
                 Image(systemName: "info.circle")
             }
             .buttonStyle(.borderless)
+            .accessibilityLabel("About Sweep")
             .help("About Sweep")
 
             Button("Quit") {

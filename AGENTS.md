@@ -70,6 +70,47 @@ xcodebuild test -scheme Sweep
 xcodebuild clean -scheme Sweep
 ```
 
+## Accessibility
+
+Sweep must be fully playable with VoiceOver. Accessibility is a core requirement, not an afterthought.
+
+### Required Accessibility Features
+
+1. **Cell Labels** - Every cell needs a descriptive accessibility label:
+   - Hidden cells: "Row X, Column Y, covered" or "Row X, Column Y, flagged"
+   - Revealed cells: "Row X, Column Y, [number] adjacent mines" or "Row X, Column Y, empty"
+   - Mines: "Row X, Column Y, mine"
+
+2. **State Announcements** - Use `AccessibilityNotification.Announcement` to announce:
+   - Game win: "Congratulations! You won in X seconds"
+   - Game loss: "Game over. You hit a mine"
+   - Timer updates (on demand, not continuously)
+
+3. **Keyboard Navigation** - Already implemented via arrow keys + Space/F (see Controls)
+
+4. **Control Labels** - All buttons need accessibility labels:
+   - Reset button: "Reset game"
+   - Timer display: "Elapsed time: X seconds"
+   - Mine counter: "X mines remaining"
+
+### Implementation Notes
+
+```swift
+// Cell accessibility label example
+.accessibilityLabel(cellAccessibilityLabel(row: row, col: col, cell: cell))
+.accessibilityHint("Double-tap to reveal, or use F to flag")
+
+// State announcement example
+AccessibilityNotification.Announcement("Game over").post()
+```
+
+### Testing Accessibility
+
+Use these tools to verify accessibility:
+- **Accessibility Inspector** (Xcode → Open Developer Tool): Check labels and traits
+- **VoiceOver** (Cmd+F5): Play through the entire game with VoiceOver enabled
+- Test all game states: initial, in-progress, won, lost
+
 ## Code Style
 
 - SwiftLint with default rules
@@ -121,6 +162,12 @@ Core game logic must be thoroughly tested since we use concrete types without pr
 - Test deterministic seeding produces identical boards
 - Test UTC timezone consistency (same Date produces same seed regardless of local timezone)
 - Test keyboard selection movement and bounds
+
+**Accessibility testing (required before release):**
+- Verify all cells have correct accessibility labels
+- Test full game flow with VoiceOver enabled (Cmd+F5)
+- Confirm win/loss announcements are spoken
+- Verify keyboard navigation works with VoiceOver focus
 
 **Optional:**
 - UI testing (focus on logic correctness first)
