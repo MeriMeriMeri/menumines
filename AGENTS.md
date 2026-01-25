@@ -124,3 +124,69 @@ Core game logic must be thoroughly tested since we use concrete types without pr
 
 **Optional:**
 - UI testing (focus on logic correctness first)
+
+## Localization
+
+The app is structured to support future localization. Follow these guidelines to keep it localization-ready.
+
+### String Handling
+
+**Never hard-code user-facing strings.** All text shown to users must go through the localization system:
+
+```swift
+// ❌ Bad - hard-coded string
+Text("Reset")
+Button("Quit") { ... }
+
+// ✅ Good - uses String Catalog / Localizable.strings
+Text("reset_button", tableName: "Localizable")
+Button(String(localized: "quit_button")) { ... }
+```
+
+**Current user-facing strings to localize:**
+- Button labels: "Reset", "Quit"
+- Accessibility labels: "About Sweep"
+- App name in menu bar (if displayed as text)
+
+**Emojis are locale-independent** and don't need localization: 🚩, 💣, 🙂, 😎, 😵, 🎉
+
+### Localizable.strings
+
+The `Localizable.strings` file lives in `Sweep/Resources/` and contains all user-facing text:
+
+```
+// Sweep/Resources/Localizable.strings
+"reset_button" = "Reset";
+"quit_button" = "Quit";
+"about_help" = "About Sweep";
+```
+
+When adding new user-facing strings:
+1. Add the key-value pair to `Localizable.strings`
+2. Use `String(localized:)` or `Text(_:tableName:)` in code
+3. Use descriptive keys that indicate purpose, not content
+
+### Date and Number Formatting
+
+**Use locale-aware formatters** for user-facing dates and numbers:
+
+```swift
+// ❌ Bad - assumes specific locale format
+let dateString = "\(month)/\(day)/\(year)"
+let priceString = "$\(amount)"
+
+// ✅ Good - respects user's locale
+let dateString = date.formatted(date: .abbreviated, time: .omitted)
+let priceString = amount.formatted(.currency(code: "USD"))
+```
+
+**Exception:** The game timer (`%02d:%02d`) is intentionally locale-independent since `MM:SS` is a universal stopwatch format, not a localized time display.
+
+**Exception:** The daily seed calculation must always use UTC timezone to ensure all players worldwide get the same puzzle - this is not a localization concern but a game design requirement.
+
+### Testing Localization
+
+When adding localized strings:
+- Test with different system languages to catch layout issues
+- Verify strings don't get truncated in UI
+- Check that emojis render correctly across locales
