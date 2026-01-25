@@ -13,6 +13,55 @@ struct SettingsTests {
         #expect(Constants.SettingsKeys.showMenuBarIndicators == "com.sweep.showMenuBarIndicators")
     }
 
+    // MARK: - Confirm Before Reset Setting
+
+    @Test("Confirm before reset key is properly namespaced")
+    func testConfirmBeforeResetKeyIsNamespaced() {
+        #expect(Constants.SettingsKeys.confirmBeforeReset == "com.sweep.confirmBeforeReset")
+    }
+
+    @Test("Confirm before reset can be toggled via UserDefaults")
+    func testConfirmBeforeResetCanBeToggled() {
+        let key = Constants.SettingsKeys.confirmBeforeReset
+
+        // Save initial state to restore after test
+        let initialValue = UserDefaults.standard.object(forKey: key)
+
+        // Test setting to true
+        UserDefaults.standard.set(true, forKey: key)
+        #expect(UserDefaults.standard.bool(forKey: key) == true)
+
+        // Test setting to false
+        UserDefaults.standard.set(false, forKey: key)
+        #expect(UserDefaults.standard.bool(forKey: key) == false)
+
+        // Restore initial state
+        if let initial = initialValue {
+            UserDefaults.standard.set(initial, forKey: key)
+        } else {
+            UserDefaults.standard.removeObject(forKey: key)
+        }
+    }
+
+    @Test("Confirm before reset defaults to false when not set")
+    func testConfirmBeforeResetDefaultsToFalse() {
+        let key = Constants.SettingsKeys.confirmBeforeReset
+
+        // Save initial state
+        let initialValue = UserDefaults.standard.object(forKey: key)
+
+        // Remove value to test default behavior
+        UserDefaults.standard.removeObject(forKey: key)
+
+        // bool(forKey:) returns false when key is not set
+        #expect(UserDefaults.standard.bool(forKey: key) == false)
+
+        // Restore initial state
+        if let initial = initialValue {
+            UserDefaults.standard.set(initial, forKey: key)
+        }
+    }
+
     @Test("Menu bar indicators can be toggled via UserDefaults")
     func testMenuBarIndicatorsCanBeToggled() {
         let key = Constants.SettingsKeys.showMenuBarIndicators

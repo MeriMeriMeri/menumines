@@ -16,8 +16,20 @@ struct GameSnapshot: Codable {
 
     /// Saves the snapshot to UserDefaults.
     func save() {
-        guard let data = try? JSONEncoder().encode(self) else { return }
-        UserDefaults.standard.set(data, forKey: Self.storageKey)
+        do {
+            let data = try JSONEncoder().encode(self)
+            UserDefaults.standard.set(data, forKey: Self.storageKey)
+        } catch {
+            SentrySDK.capture(error: error) { scope in
+                scope.setTag(value: "snapshot_save", key: "operation")
+                scope.setContext(value: [
+                    "daily_seed": dailySeed,
+                    "status": status.rawValue,
+                    "elapsed_time": elapsedTime,
+                    "flag_count": flagCount
+                ], key: "game_state")
+            }
+        }
     }
 
     /// Loads a snapshot from UserDefaults if one exists and is for today's puzzle.
@@ -46,8 +58,11 @@ struct GameSnapshot: Codable {
         } catch {
             // Snapshot corruption detected - log to Sentry and clear
             SentrySDK.capture(error: error) { scope in
-                scope.setLevel(.warning)
-                scope.setContext(value: ["dataSize": data.count], key: "snapshotCorruption")
+                scope.setTag(value: "snapshot_load", key: "operation")
+                scope.setContext(value: [
+                    "data_size_bytes": data.count,
+                    "today_seed": seedFromDate(Date())
+                ], key: "persistence")
             }
             clear()
             return nil
@@ -489,10 +504,11 @@ final class GameState {
     }
 
     /// Handles game completion (win or loss).
-    /// Atomically marks daily puzzle as complete and records stats to both systems.
+    /// Atomically marks daily puzzle as complete, records stats, and saves the board state.
     private func handleGameComplete(won: Bool) {
         stopTimer()
         markCompleteAndRecordStats(won: won, elapsedTime: elapsedTime, flagCount: flagCount)
         recordGameResult(won: won)
+        save()
     }
 }

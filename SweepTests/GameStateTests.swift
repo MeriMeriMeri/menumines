@@ -2209,4 +2209,223 @@ struct GameStatePersistenceTests {
 
         #expect(gameState.isPaused == false)
     }
+
+    // MARK: - Board State Persistence Tests
+
+    @Test("Winning a game saves board state with revealed cells")
+    func testWinSavesBoardStateWithRevealedCells() {
+        GameSnapshot.clear()
+        UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+        let todaySeed = seedFromDate(Date())
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        defer {
+            GameSnapshot.clear()
+            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        }
+
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Win the game
+        winGame(gameState)
+        #expect(gameState.status == .won)
+
+        // Verify snapshot was saved
+        guard let snapshot = GameSnapshot.load() else {
+            Issue.record("Snapshot should exist after winning")
+            return
+        }
+
+        // Verify the board in snapshot has revealed cells (not all hidden)
+        var revealedCount = 0
+        for row in snapshot.board.cells {
+            for cell in row {
+                if case .revealed = cell.state {
+                    revealedCount += 1
+                }
+            }
+        }
+
+        #expect(revealedCount > 0, "Snapshot should contain revealed cells")
+        #expect(snapshot.status == .won, "Snapshot should have won status")
+    }
+
+    @Test("Losing a game saves board state with exploded mine")
+    func testLoseSavesBoardStateWithExplodedMine() {
+        GameSnapshot.clear()
+        UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+        let todaySeed = seedFromDate(Date())
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        defer {
+            GameSnapshot.clear()
+            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        }
+
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Start game with a safe cell
+        guard let safe = findSafeCell(in: gameState.board) else {
+            Issue.record("No safe cell found")
+            return
+        }
+        gameState.reveal(row: safe.row, col: safe.col)
+
+        // Lose by clicking a mine
+        guard let mine = findMineCell(in: gameState.board) else {
+            Issue.record("No mine found")
+            return
+        }
+        gameState.reveal(row: mine.row, col: mine.col)
+        #expect(gameState.status == .lost)
+
+        // Verify snapshot was saved
+        guard let snapshot = GameSnapshot.load() else {
+            Issue.record("Snapshot should exist after losing")
+            return
+        }
+
+        // Verify the board in snapshot has the exploded mine
+        #expect(snapshot.board.cells[mine.row][mine.col].isExploded, "Exploded mine should be saved")
+        #expect(snapshot.status == .lost, "Snapshot should have lost status")
+    }
+
+    @Test("Restored game after win preserves board state with revealed cells")
+    func testRestoredAfterWinPreservesBoardState() {
+        GameSnapshot.clear()
+        UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+        let todaySeed = seedFromDate(Date())
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        defer {
+            GameSnapshot.clear()
+            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        }
+
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Win the game
+        winGame(gameState)
+        #expect(gameState.status == .won)
+
+        // Count revealed cells in original game
+        var originalRevealedCount = 0
+        for row in gameState.board.cells {
+            for cell in row {
+                if case .revealed = cell.state {
+                    originalRevealedCount += 1
+                }
+            }
+        }
+
+        // Restore from snapshot
+        let restoredState = GameState.restored()
+
+        // Count revealed cells in restored game
+        var restoredRevealedCount = 0
+        for row in restoredState.board.cells {
+            for cell in row {
+                if case .revealed = cell.state {
+                    restoredRevealedCount += 1
+                }
+            }
+        }
+
+        #expect(restoredState.status == .won, "Restored state should be won")
+        #expect(restoredRevealedCount == originalRevealedCount, "Restored board should have same revealed cells")
+        #expect(restoredState.board == gameState.board, "Restored board should match original")
+    }
+
+    @Test("Restored game after loss preserves board state with exploded mine")
+    func testRestoredAfterLossPreservesBoardState() {
+        GameSnapshot.clear()
+        UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+        let todaySeed = seedFromDate(Date())
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        defer {
+            GameSnapshot.clear()
+            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        }
+
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Start game
+        guard let safe = findSafeCell(in: gameState.board) else {
+            Issue.record("No safe cell found")
+            return
+        }
+        gameState.reveal(row: safe.row, col: safe.col)
+
+        // Lose the game
+        guard let mine = findMineCell(in: gameState.board) else {
+            Issue.record("No mine found")
+            return
+        }
+        gameState.reveal(row: mine.row, col: mine.col)
+        #expect(gameState.status == .lost)
+
+        // Restore from snapshot
+        let restoredState = GameState.restored()
+
+        #expect(restoredState.status == .lost, "Restored state should be lost")
+        #expect(restoredState.board.cells[mine.row][mine.col].isExploded, "Restored board should have exploded mine")
+        #expect(restoredState.board == gameState.board, "Restored board should match original")
+    }
+
+    @Test("Completed game with flags preserves flag positions after restore")
+    func testRestoredPreservesFlagPositions() {
+        GameSnapshot.clear()
+        UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+        let todaySeed = seedFromDate(Date())
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        defer {
+            GameSnapshot.clear()
+            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        }
+
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Find and flag some mines
+        var flaggedPositions: [(row: Int, col: Int)] = []
+        for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                if gameState.board.cells[r][c].hasMine && flaggedPositions.count < 3 {
+                    gameState.toggleFlag(row: r, col: c)
+                    flaggedPositions.append((r, c))
+                }
+            }
+        }
+
+        // Win the game
+        winGame(gameState)
+        #expect(gameState.status == .won)
+        #expect(gameState.flagCount == flaggedPositions.count)
+
+        // Restore from snapshot
+        let restoredState = GameState.restored()
+
+        // Verify flag positions are preserved
+        for pos in flaggedPositions {
+            #expect(restoredState.board.cells[pos.row][pos.col].state == .flagged,
+                   "Flag at (\(pos.row), \(pos.col)) should be preserved")
+        }
+        #expect(restoredState.flagCount == flaggedPositions.count, "Flag count should be preserved")
+    }
 }
