@@ -3,38 +3,50 @@ import SwiftUI
 struct MenuContentView: View {
     var gameState: GameState
 
+    @State private var showCelebration = false
+
     var body: some View {
-        VStack(spacing: 12) {
-            HeaderView(
-                status: gameState.status,
-                elapsedTime: gameState.elapsedTime,
-                flagCount: gameState.flagCount
-            )
+        ZStack {
+            VStack(spacing: 12) {
+                HeaderView(
+                    status: gameState.status,
+                    elapsedTime: gameState.elapsedTime,
+                    flagCount: gameState.flagCount
+                )
 
-            GameBoardView(
-                board: gameState.board,
-                gameStatus: gameState.status,
-                selectedRow: gameState.selectedRow,
-                selectedCol: gameState.selectedCol,
-                onReveal: { row, col in
-                    gameState.reveal(row: row, col: col)
-                },
-                onFlag: { row, col in
-                    gameState.toggleFlag(row: row, col: col)
-                }
-            )
+                GameBoardView(
+                    board: gameState.board,
+                    gameStatus: gameState.status,
+                    selectedRow: gameState.selectedRow,
+                    selectedCol: gameState.selectedCol,
+                    onReveal: { row, col in
+                        gameState.reveal(row: row, col: col)
+                    },
+                    onFlag: { row, col in
+                        gameState.toggleFlag(row: row, col: col)
+                    }
+                )
 
-            FooterView(onReset: {
-                gameState.reset()
-            })
+                FooterView(onReset: {
+                    showCelebration = false
+                    gameState.reset()
+                })
+            }
+            .padding()
+
+            ConfettiView(isActive: showCelebration)
         }
-        .padding()
         .frame(width: 300)
         .onAppear {
             gameState.resumeTimer()
         }
         .onDisappear {
             gameState.pauseTimer()
+        }
+        .onChange(of: gameState.status) { _, newStatus in
+            if newStatus == .won {
+                showCelebration = true
+            }
         }
     }
 }
