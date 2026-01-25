@@ -1,9 +1,21 @@
 import SwiftUI
+import AppKit
 
 struct MenuContentView: View {
     var gameState: GameState
 
     @State private var showCelebration = false
+
+    private var isGameComplete: Bool {
+        gameState.status == .won || gameState.status == .lost
+    }
+
+    private func copyShareTextToClipboard() {
+        guard let text = gameState.shareText() else { return }
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        pasteboard.setString(text, forType: .string)
+    }
 
     private func announceGameResult(won: Bool) {
         let message: String
@@ -41,6 +53,14 @@ struct MenuContentView: View {
                         gameState.toggleFlag(row: row, col: col)
                     }
                 )
+
+                if isGameComplete {
+                    Button(String(localized: "share_button")) {
+                        copyShareTextToClipboard()
+                    }
+                    .buttonStyle(.bordered)
+                    .accessibilityLabel(String(localized: "share_button"))
+                }
 
                 FooterView(
                     onReset: {
