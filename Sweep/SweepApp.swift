@@ -5,6 +5,7 @@ import SwiftUI
 @main
 struct SweepApp: App {
     @State private var gameState: GameState
+    @AppStorage(showMenuBarIndicatorsKey) private var showMenuBarIndicators = true
 
     private static var eventMonitor: Any?
 
@@ -80,7 +81,10 @@ struct SweepApp: App {
     }
 
     private var currentIconState: MenuBarIconState {
-        menuBarIconState(
+        guard showMenuBarIndicators else {
+            return .normal
+        }
+        return menuBarIconState(
             gameStatus: gameState.status,
             isPaused: gameState.isPaused,
             isDailyComplete: isDailyPuzzleComplete()
