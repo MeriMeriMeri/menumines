@@ -22,3 +22,30 @@ func seedFromDate(_ date: Date) -> Int64 {
     let day = calendar.component(.day, from: date)
     return Int64(year * 10000 + month * 100 + day)
 }
+
+// MARK: - Daily Completion Tracking
+
+private let dailyCompletionKey = "dailyCompletionSeed"
+
+/// Returns whether today's daily puzzle has been completed.
+func isDailyPuzzleComplete() -> Bool {
+    return isDailyPuzzleComplete(for: Date())
+}
+
+/// Returns whether the daily puzzle for a specific date has been completed.
+func isDailyPuzzleComplete(for date: Date) -> Bool {
+    let todaySeed = seedFromDate(date)
+    let completedSeed = UserDefaults.standard.integer(forKey: dailyCompletionKey)
+    return Int64(completedSeed) == todaySeed
+}
+
+/// Marks today's daily puzzle as complete.
+func markDailyPuzzleComplete() {
+    markDailyPuzzleComplete(for: Date())
+}
+
+/// Marks the daily puzzle for a specific date as complete.
+func markDailyPuzzleComplete(for date: Date) {
+    let seed = seedFromDate(date)
+    UserDefaults.standard.set(Int(seed), forKey: dailyCompletionKey)
+}

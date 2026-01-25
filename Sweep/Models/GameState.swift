@@ -22,6 +22,7 @@ final class GameState {
     private(set) var flagCount: Int = 0
     private(set) var selectedRow: Int = 0
     private(set) var selectedCol: Int = 0
+    private(set) var isPaused: Bool = false
 
     private var timer: Timer?
 
@@ -131,6 +132,7 @@ final class GameState {
             if checkWinCondition() {
                 status = .won
                 stopTimer()
+                markDailyPuzzleComplete()
             }
         }
     }
@@ -161,17 +163,22 @@ final class GameState {
         flagCount = 0
         selectedRow = 0
         selectedCol = 0
+        isPaused = false
     }
 
     /// Pauses the timer (e.g., when popover closes).
     func pauseTimer() {
         timer?.invalidate()
         timer = nil
+        if status == .playing {
+            isPaused = true
+        }
     }
 
     /// Resumes the timer (e.g., when popover reopens).
     func resumeTimer() {
         guard status == .playing else { return }
+        isPaused = false
         startTimer()
     }
 
@@ -212,6 +219,7 @@ final class GameState {
             if checkWinCondition() {
                 status = .won
                 stopTimer()
+                markDailyPuzzleComplete()
             }
         }
     }
@@ -233,6 +241,7 @@ final class GameState {
     private func stopTimer() {
         timer?.invalidate()
         timer = nil
+        isPaused = false
     }
 
     private func checkWinCondition() -> Bool {

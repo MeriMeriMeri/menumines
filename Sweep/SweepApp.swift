@@ -68,14 +68,47 @@ struct SweepApp: App {
         }
     }
 
+    private var currentIconState: MenuBarIconState {
+        menuBarIconState(
+            gameStatus: gameState.status,
+            isPaused: gameState.isPaused,
+            isDailyComplete: isDailyPuzzleComplete()
+        )
+    }
+
     var body: some Scene {
-        MenuBarExtra(String(localized: "menubar_title"), systemImage: "circle.grid.3x3.fill") {
+        MenuBarExtra {
             MenuContentView(gameState: gameState)
+        } label: {
+            MenuBarIconView(state: currentIconState)
         }
         .menuBarExtraStyle(.window)
 
         Settings {
             SettingsView()
         }
+    }
+}
+
+/// Menu bar icon view with base grid icon and state-specific variant.
+struct MenuBarIconView: View {
+    let state: MenuBarIconState
+
+    private var iconName: String {
+        switch state {
+        case .normal:
+            return "circle.grid.3x3.fill"
+        case .incomplete:
+            return "circle.grid.3x3.fill"
+        case .paused:
+            return "pause.circle.fill"
+        case .lost:
+            return "xmark.circle.fill"
+        }
+    }
+
+    var body: some View {
+        Image(systemName: iconName)
+            .accessibilityLabel(String(localized: "menubar_title"))
     }
 }
