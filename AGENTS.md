@@ -83,6 +83,29 @@ xcodebuild clean -scheme Sweep
 - Mine count: 10
 - First click is always safe (relocate mine if needed)
 
+## Workflow
+
+### Fizzy Board
+User stories are tracked on the Sweep Fizzy board: https://app.fizzy.do/6145991/boards/03fgsne3i8553pc9z1b7w2y3u
+
+**Before starting work:**
+1. Move the card for the story to the "In-progress" column
+2. Read the full card description to understand acceptance criteria
+3. Check dependencies are complete
+
+**While working:**
+- Commit incrementally as you complete parts of the story
+- Update AGENTS.md with new learnings or instructions
+
+**When done:**
+- Ensure all acceptance criteria are met
+- Close the card (mark as done)
+
+### Account Details
+- Account slug: `/6145991`
+- Board ID: `03fgsne3i8553pc9z1b7w2y3u`
+- In-progress column ID: `03fgstkhdcurmwz1hsg3oxup6`
+
 ## Testing Strategy
 
 Core game logic must be thoroughly tested since we use concrete types without protocols. Test the actual classes directly—no mocks needed.
