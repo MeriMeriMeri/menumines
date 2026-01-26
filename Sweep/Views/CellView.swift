@@ -70,9 +70,9 @@ struct CellView: View {
 
         switch cell.state {
         case .hidden:
-            return "Double-tap to reveal, or press F to flag"
+            return String(localized: "cell_hint_reveal_or_flag")
         case .flagged:
-            return "Press F to remove flag"
+            return String(localized: "cell_hint_remove_flag")
         case .revealed:
             return ""
         }
@@ -153,17 +153,20 @@ struct CellView: View {
     }
 
     // MARK: - Number Colors
+    // Classic Minesweeper palette with distinct luminance values for improved
+    // contrast and readability. High contrast between colors helps users with
+    // various forms of color vision deficiency distinguish adjacent mine counts.
 
     private func color(for adjacentMines: Int) -> Color {
         switch adjacentMines {
-        case 1: return .blue
-        case 2: return .green
-        case 3: return .red
-        case 4: return Color(nsColor: NSColor(red: 0.0, green: 0.0, blue: 0.55, alpha: 1.0))
-        case 5: return .brown
-        case 6: return .cyan
-        case 7: return .black
-        case 8: return .gray
+        case 1: return Color(nsColor: NSColor(red: 0.0, green: 0.0, blue: 1.0, alpha: 1.0))       // Blue
+        case 2: return Color(nsColor: NSColor(red: 0.0, green: 0.5, blue: 0.0, alpha: 1.0))       // Dark green
+        case 3: return Color(nsColor: NSColor(red: 0.8, green: 0.0, blue: 0.0, alpha: 1.0))       // Red
+        case 4: return Color(nsColor: NSColor(red: 0.0, green: 0.0, blue: 0.55, alpha: 1.0))      // Navy
+        case 5: return Color(nsColor: NSColor(red: 0.55, green: 0.27, blue: 0.07, alpha: 1.0))    // Brown
+        case 6: return Color(nsColor: NSColor(red: 0.0, green: 0.55, blue: 0.55, alpha: 1.0))     // Teal
+        case 7: return Color(nsColor: NSColor(red: 0.2, green: 0.2, blue: 0.2, alpha: 1.0))       // Dark gray
+        case 8: return Color(nsColor: NSColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 1.0))       // Gray
         default: return .primary
         }
     }

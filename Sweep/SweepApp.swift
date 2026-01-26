@@ -63,15 +63,23 @@ struct SweepApp: App {
         guard eventMonitor == nil else { return }
 
         eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            // Arrow keys for navigation
             switch event.keyCode {
             case 123: gameState.moveSelection(.left)
             case 124: gameState.moveSelection(.right)
             case 125: gameState.moveSelection(.down)
             case 126: gameState.moveSelection(.up)
-            case 49:  gameState.revealSelected()
             default:
-                if event.charactersIgnoringModifiers?.lowercased() == "f" {
-                    gameState.toggleFlagSelected()
+                // Character-based keys
+                if let chars = event.charactersIgnoringModifiers?.lowercased() {
+                    switch chars {
+                    case " ":
+                        gameState.revealSelected()
+                    case "f":
+                        gameState.toggleFlagSelected()
+                    default:
+                        return event
+                    }
                 } else {
                     return event
                 }

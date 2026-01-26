@@ -70,3 +70,29 @@
 "controls_reveal" = "Reveal cell";
 "controls_flag" = "Toggle flag";
 "controls_reset" = "Reset game";
+
+/* Accessibility announcements */
+"announcement_win" = "Congratulations! You won in %d seconds";
+"announcement_win_one_second" = "Congratulations! You won in 1 second";
+"announcement_lose" = "Game over. You hit a mine";
+"announcement_selection_changed" = "Row %d, Column %d, %@";
+
+/* Cell accessibility hints */
+"cell_hint_reveal_or_flag" = "Double-tap to reveal, or press F to flag";
+"cell_hint_remove_flag" = "Press F to remove flag";
+
+/* Cell state descriptions for accessibility */
+"cell_state_covered" = "covered";
+"cell_state_flagged" = "flagged";
+"cell_state_empty" = "empty";
+"cell_state_one_mine" = "1 adjacent mine";
+"cell_state_mines" = "%d adjacent mines";
+
+/* Stats display */
+"stats_no_data" = "—";
+
+/* About window */
+"about_title" = "Sweep";
+"about_version" = "Version %@";
+"about_description" = "A daily Minesweeper puzzle";
+"about_copyright" = "© 2024-2025";

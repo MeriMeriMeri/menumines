@@ -39,12 +39,12 @@ struct MenuContentView: View {
         if won {
             let seconds = Int(gameState.elapsedTime)
             if seconds == 1 {
-                message = "Congratulations! You won in 1 second"
+                message = String(localized: "announcement_win_one_second")
             } else {
-                message = "Congratulations! You won in \(seconds) seconds"
+                message = String(format: String(localized: "announcement_win"), seconds)
             }
         } else {
-            message = "Game over. You hit a mine"
+            message = String(localized: "announcement_lose")
         }
         AccessibilityNotification.Announcement(message).post()
     }
@@ -146,6 +146,7 @@ private struct ResetConfirmationOverlay: View {
             // Semi-transparent background
             Color.black.opacity(0.4)
                 .ignoresSafeArea()
+                .accessibilityHidden(true)
 
             // Confirmation card
             VStack(spacing: 16) {
@@ -157,6 +158,7 @@ private struct ResetConfirmationOverlay: View {
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                 }
+                .accessibilityElement(children: .combine)
 
                 HStack(spacing: 12) {
                     Button(String(localized: "reset_confirmation_cancel")) {
@@ -175,6 +177,7 @@ private struct ResetConfirmationOverlay: View {
             .padding(20)
             .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
             .shadow(radius: 10)
+            .accessibilityAddTraits(.isModal)
         }
     }
 }

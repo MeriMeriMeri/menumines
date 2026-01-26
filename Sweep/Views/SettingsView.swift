@@ -10,11 +10,6 @@ struct SettingsView: View {
     @AppStorage(Constants.SettingsKeys.confirmBeforeReset) private var confirmBeforeReset = false
     @AppStorage(Constants.SettingsKeys.allowRefreshAfterCompletion) private var allowRefreshAfterCompletion = false
     @AppStorage(Constants.SettingsKeys.showStreaks) private var showStreaks = true
-    private let usesFixedFrame: Bool
-
-    init(usesFixedFrame: Bool = true) {
-        self.usesFixedFrame = usesFixedFrame
-    }
 
     var body: some View {
         Form {
@@ -59,8 +54,7 @@ struct SettingsView: View {
             }
         }
         .formStyle(.grouped)
-        // Fixed frame for initial release. Adjust when adding more settings (currently 4 settings).
-        .frame(width: Layout.width, height: usesFixedFrame ? Layout.height : nil)
+        .frame(width: Layout.width, height: Layout.height)
     }
 }
 
