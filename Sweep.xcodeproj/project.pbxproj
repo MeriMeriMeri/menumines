@@ -43,6 +43,7 @@
 		A1000086229E0086 /* StatsStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000087229E0087 /* StatsStoreTests.swift */; };
 		A1000088229E0088 /* SettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000089229E0089 /* SettingsTests.swift */; };
 		A100009A229E009A /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100009B229E009B /* Constants.swift */; };
+		A10001C0229E01C0 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A10001C1229E01C1 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -93,6 +94,7 @@
 		A1000087229E0087 /* StatsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsStoreTests.swift; sourceTree = "<group>"; };
 		A1000089229E0089 /* SettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTests.swift; sourceTree = "<group>"; };
 		A100009B229E009B /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		A10001C1229E01C1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXVariantGroup section */
@@ -148,6 +150,7 @@
 			children = (
 				A1000002229E0002 /* SweepApp.swift */,
 				A100009B229E009B /* Constants.swift */,
+				A10001C1229E01C1 /* PrivacyInfo.xcprivacy */,
 				A100000C229E000C /* Views */,
 				A100000D229E000D /* Models */,
 				A100000E229E000E /* Resources */,
@@ -305,6 +308,7 @@
 			files = (
 				A1000005229E0005 /* Assets.xcassets in Resources */,
 				A1000045229E0045 /* Localizable.strings in Resources */,
+				A10001C0229E01C0 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -502,6 +506,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Sweep/Info.plist;
@@ -530,6 +535,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
+				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Sweep/Info.plist;
