@@ -1,3 +1,4 @@
+import AppKit
 import Foundation
 import Sentry
 
@@ -116,6 +117,8 @@ final class GameState {
     private var timer: Timer?
     /// Cache the last date we checked for rollover to avoid redundant calculations
     private var lastRolloverCheckDate: Date?
+    /// Task for debouncing selection change announcements to prevent overlapping VoiceOver messages.
+    private var announcementTask: Task<Void, Never>?
 
     /// Whether reset is allowed.
     /// Reset is locked once today's puzzle is completed, unless the user has enabled
@@ -249,7 +252,20 @@ final class GameState {
         if case .flagged = newState {
             flagCount += 1
         } else if case .flagged = previousState {
-            flagCount -= 1
+            if flagCount > 0 {
+                flagCount -= 1
+            } else {
+                // This should never happen in normal operation - log for debugging
+                SentrySDK.capture(message: "Attempted to decrement flagCount below zero") { [self] scope in
+                    scope.setLevel(.warning)
+                    scope.setContext(value: [
+                        "row": row,
+                        "col": col,
+                        "flag_count": flagCount,
+                        "daily_seed": dailySeed
+                    ], key: "flag_underflow")
+                }
+            }
         }
     }
 
@@ -354,6 +370,7 @@ final class GameState {
         let state = GameState(board: board, dailySeed: seed)
         state.status = stats.won ? .won : .lost
         state.elapsedTime = stats.elapsedTime
+        // Stats restoration uses a fresh board without flags, so trust the stored count
         state.flagCount = stats.flagCount
 
         if !isDailyPuzzleComplete() {
@@ -368,7 +385,25 @@ final class GameState {
         let state = GameState(board: snapshot.board, dailySeed: snapshot.dailySeed)
         state.status = snapshot.status
         state.elapsedTime = snapshot.elapsedTime
-        state.flagCount = snapshot.flagCount
+
+        // Validate flagCount matches actual flags on board
+        let actualFlagCount = snapshot.board.cells.flatMap { $0 }.filter {
+            if case .flagged = $0.state { return true }
+            return false
+        }.count
+
+        if snapshot.flagCount != actualFlagCount {
+            SentrySDK.capture(message: "Flag count mismatch in snapshot") { scope in
+                scope.setLevel(.warning)
+                scope.setContext(value: [
+                    "stored_count": snapshot.flagCount,
+                    "actual_count": actualFlagCount,
+                    "daily_seed": snapshot.dailySeed
+                ], key: "flag_mismatch")
+            }
+        }
+        state.flagCount = actualFlagCount
+
         state.selectedRow = snapshot.selectedRow
         state.selectedCol = snapshot.selectedCol
         return state
@@ -437,6 +472,9 @@ final class GameState {
 
     /// Moves the keyboard selection in the given direction.
     func moveSelection(_ direction: Direction) {
+        let oldRow = selectedRow
+        let oldCol = selectedCol
+
         switch direction {
         case .up:
             selectedRow = max(0, selectedRow - 1)
@@ -446,6 +484,55 @@ final class GameState {
             selectedCol = max(0, selectedCol - 1)
         case .right:
             selectedCol = min(Board.cols - 1, selectedCol + 1)
+        }
+
+        if selectedRow != oldRow || selectedCol != oldCol {
+            announceSelectedCell()
+        }
+    }
+
+    /// Announces the currently selected cell for VoiceOver users.
+    /// Debounced to prevent overlapping announcements during rapid navigation.
+    private func announceSelectedCell() {
+        // Cancel any pending announcement
+        announcementTask?.cancel()
+
+        // Capture values for announcement
+        let row = selectedRow
+        let col = selectedCol
+        let cell = board.cells[row][col]
+
+        // Schedule new announcement after brief delay
+        announcementTask = Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(150))
+            guard !Task.isCancelled else { return }
+
+            let stateDescription = cellStateDescription(cell)
+            let message = String(
+                format: String(localized: "announcement_selection_changed"),
+                row + 1,
+                col + 1,
+                stateDescription
+            )
+            AccessibilityNotification.Announcement(message).post()
+        }
+    }
+
+    /// Returns a description of the cell state for accessibility announcements.
+    private func cellStateDescription(_ cell: Cell) -> String {
+        switch cell.state {
+        case .hidden:
+            return String(localized: "cell_state_covered")
+        case .flagged:
+            return String(localized: "cell_state_flagged")
+        case .revealed(let adjacentMines):
+            if adjacentMines == 0 {
+                return String(localized: "cell_state_empty")
+            } else if adjacentMines == 1 {
+                return String(localized: "cell_state_one_mine")
+            } else {
+                return String(format: String(localized: "cell_state_mines"), adjacentMines)
+            }
         }
     }
 

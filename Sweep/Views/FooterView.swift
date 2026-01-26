@@ -93,33 +93,27 @@ private struct ControlsPopoverView: View {
             Text(String(localized: "controls_title"))
                 .font(.headline)
 
-            Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 6) {
-                GridRow {
-                    Text("↑ ↓ ← →")
-                        .frame(width: 70, alignment: .leading)
-                    Text(String(localized: "controls_move"))
-                }
-                GridRow {
-                    Text("Space")
-                        .frame(width: 70, alignment: .leading)
-                    Text(String(localized: "controls_reveal"))
-                }
-                GridRow {
-                    Text("F")
-                        .frame(width: 70, alignment: .leading)
-                    Text(String(localized: "controls_flag"))
-                }
+            VStack(alignment: .leading, spacing: 6) {
+                controlRow(key: "↑ ↓ ← →", action: String(localized: "controls_move"))
+                controlRow(key: "Space", action: String(localized: "controls_reveal"))
+                controlRow(key: "F", action: String(localized: "controls_flag"))
                 if canReset {
-                    GridRow {
-                        Text("⌘R")
-                            .frame(width: 70, alignment: .leading)
-                        Text(String(localized: "controls_reset"))
-                    }
+                    controlRow(key: "⌘R", action: String(localized: "controls_reset"))
                 }
             }
             .font(.system(.body, design: .monospaced))
         }
         .padding()
+    }
+
+    private func controlRow(key: String, action: String) -> some View {
+        HStack(spacing: 16) {
+            Text(key)
+                .frame(width: 70, alignment: .leading)
+            Text(action)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(key): \(action)")
     }
 }
 

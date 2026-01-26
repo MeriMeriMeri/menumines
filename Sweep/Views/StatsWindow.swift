@@ -86,17 +86,17 @@ struct StatsWindow: View {
     }
 
     private var formattedWinRate: String {
-        guard let rate = store.winRate else { return "—" }
+        guard let rate = store.winRate else { return String(localized: "stats_no_data") }
         return "\(rate)%"
     }
 
     private var formattedBestTime: String {
-        guard let time = store.bestTime else { return "—" }
+        guard let time = store.bestTime else { return String(localized: "stats_no_data") }
         return formatTime(time)
     }
 
     private var formattedAverageTime: String {
-        guard let time = store.averageTime else { return "—" }
+        guard let time = store.averageTime else { return String(localized: "stats_no_data") }
         return formatTime(time)
     }
 
