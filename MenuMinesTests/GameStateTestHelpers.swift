@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Sweep
+@testable import MenuMines
 
 // MARK: - Shared Test Helpers
 

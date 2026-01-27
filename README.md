@@ -1,10 +1,10 @@
-# Sweep
+# MenuMines
 
 A minimalist Minesweeper for your menu bar.
 
-## What is Sweep?
+## What is MenuMines?
 
-Sweep is a menu bar Minesweeper game for macOS that brings the classic puzzle to your fingertips:
+MenuMines is a menu bar Minesweeper game for macOS that brings the classic puzzle to your fingertips:
 
 - **Always accessible** - Lives in your menu bar, one click away
 - **Daily puzzle** - Same board for everyone, every day
@@ -17,9 +17,9 @@ Sweep is a menu bar Minesweeper game for macOS that brings the classic puzzle to
 
 Download the latest release from the Releases page.
 
-1. Download `Sweep.dmg`
-2. Open the DMG and drag Sweep to Applications
-3. Launch Sweep from Applications
+1. Download `MenuMines.dmg`
+2. Open the DMG and drag MenuMines to Applications
+3. Launch MenuMines from Applications
 4. Click the mine icon in your menu bar to play
 
 ### Build from Source
@@ -28,11 +28,11 @@ Requires Xcode 15+ and macOS 14+ (Sonoma).
 
 ```bash
 git clone <repository-url>
-cd sweep
-xcodebuild -scheme Sweep -configuration Release
+cd menumines
+xcodebuild -scheme MenuMines -configuration Release
 ```
 
-The built app will be in `build/Release/Sweep.app`.
+The built app will be in `build/Release/MenuMines.app`.
 
 ## How to Play
 
@@ -63,7 +63,7 @@ Clear the 8x8 board without hitting any of the 10 hidden mines.
 
 ## Daily Board
 
-Every day, Sweep generates a new puzzle using a deterministic seed based on the date. This means:
+Every day, MenuMines generates a new puzzle using a deterministic seed based on the date. This means:
 
 - Everyone gets the same board on the same day
 - You can compare times with friends
@@ -73,7 +73,7 @@ Note: if the first click lands on a mine, the mine is relocated using system ran
 
 ## Accessibility
 
-Sweep is designed to be fully playable with VoiceOver:
+MenuMines is designed to be fully playable with VoiceOver:
 
 - **Screen reader support** - All cells and controls have descriptive labels
 - **Keyboard navigation** - Full game control via arrow keys, Space, and F

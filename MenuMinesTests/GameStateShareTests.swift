@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Sweep
+@testable import MenuMines
 
 @Suite("GameState Share Tests")
 struct GameStateShareTests {

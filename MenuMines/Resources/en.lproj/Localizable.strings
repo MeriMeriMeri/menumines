@@ -3,9 +3,9 @@
 "reset_accessibility_combined" = "Reset game. Status: %@";
 "reset_accessibility_hint" = "Click to reset today's puzzle";
 "reset_locked_hint" = "Reset is locked after completing today's puzzle";
-"about_menu_item" = "About Sweep";
+"about_menu_item" = "About MenuMines";
 "settings_menu_item" = "Settings...";
-"quit_menu_item" = "Quit Sweep";
+"quit_menu_item" = "Quit MenuMines";
 "footer_menu_accessibility_label" = "App menu";
 
 /* Game status */
@@ -30,13 +30,13 @@
 "reset_confirmation_cancel" = "Cancel";
 "reset_confirmation_confirm" = "Reset";
 
-/* SweepApp - MenuBarExtra title */
-"menu_bar_title" = "Sweep";
+/* MenuMinesApp - MenuBarExtra title */
+"menu_bar_title" = "MenuMines";
 
 /* Share feature */
 "share_button" = "Share";
 "share_copied" = "Copied!";
-"share_header" = "Sweep - %@";
+"share_header" = "MenuMines - %@";
 "share_solved" = "Solved in %@";
 "share_failed" = "Failed in %@";
 "share_marked" = "Marked: %d/%d";
@@ -92,7 +92,7 @@
 "stats_no_data" = "—";
 
 /* About window */
-"about_title" = "Sweep";
+"about_title" = "MenuMines";
 "about_version" = "Version %@";
 "about_description" = "A daily Minesweeper puzzle";
 "about_copyright" = "© 2024-2025";

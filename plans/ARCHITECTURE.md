@@ -1,11 +1,11 @@
-# Sweep Architecture
+# MenuMines Architecture
 
 ## High-Level Architecture
 
 ```
 ┌─────────────────────────────────────────────────────┐
 │                    App Shell                         │
-│    (SweepApp, MenuBarExtra, Info.plist config)      │
+│    (MenuMinesApp, MenuBarExtra, Info.plist config)      │
 ├─────────────────────────────────────────────────────┤
 │                    UI Layer                          │
 │   (GameBoardView, CellView, MenuContentView)        │
@@ -246,10 +246,10 @@ struct MenuContentView: View {
 
 ### Module D: App Shell (Depends on All)
 
-#### SweepApp.swift
+#### MenuMinesApp.swift
 ```swift
 @main
-struct SweepApp: App {
+struct MenuMinesApp: App {
     @State private var gameState: GameState
 
     init() {
@@ -257,7 +257,7 @@ struct SweepApp: App {
     }
 
     var body: some Scene {
-        MenuBarExtra("Sweep", systemImage: "circle.grid.3x3.fill") {
+        MenuBarExtra("MenuMines", systemImage: "circle.grid.3x3.fill") {
             MenuContentView(gameState: gameState)
         }
         .menuBarExtraStyle(.window)
@@ -276,7 +276,7 @@ struct SweepApp: App {
 // Store the monitor token to allow removal if needed
 private var keyboardMonitor: Any?
 
-// In SweepApp.init()
+// In MenuMinesApp.init()
 keyboardMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak gameState] event in
     guard let gameState else { return event }
     switch event.keyCode {
@@ -331,7 +331,7 @@ keyboardMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak g
 
 ### Phase 3: Integration
 
-- [ ] `SweepApp` with MenuBarExtra
+- [ ] `MenuMinesApp` with MenuBarExtra
 - [ ] Connect all modules
 - [ ] Keyboard event monitor
 - [ ] LSUIElement configuration

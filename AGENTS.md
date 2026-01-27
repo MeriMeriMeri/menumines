@@ -1,8 +1,8 @@
-# Sweep - Development Guide
+# MenuMines - Development Guide
 
 ## Project Overview
 
-Sweep is a menu bar Minesweeper game for macOS. It features an 8x8 board with 10 mines, generating the same daily puzzle for all players using deterministic seeding.
+MenuMines is a menu bar Minesweeper game for macOS. It features an 8x8 board with 10 mines, generating the same daily puzzle for all players using deterministic seeding.
 
 ## Technology Stack
 
@@ -17,8 +17,8 @@ Sweep is a menu bar Minesweeper game for macOS. It features an 8x8 board with 10
 ## Directory Structure
 
 ```
-Sweep/
-├── SweepApp.swift              # App entry point, MenuBarExtra setup
+MenuMines/
+├── MenuMinesApp.swift              # App entry point, MenuBarExtra setup
 ├── Constants.swift             # App-wide constants and UserDefaults keys
 ├── Models/
 │   ├── Board.swift             # 8x8 grid, mine placement, reveal logic
@@ -41,7 +41,7 @@ Sweep/
 ├── Resources/
 │   ├── Assets.xcassets         # App icon
 │   └── en.lproj/Localizable.strings
-SweepTests/
+MenuMinesTests/
 ├── BoardTests.swift
 ├── DailyBoardTests.swift
 ├── DailyCompletionTests.swift
@@ -75,18 +75,18 @@ Set `LSUIElement = YES` in Info.plist to hide from Dock. The UI must provide a Q
 
 ```bash
 # Build release
-xcodebuild -scheme Sweep -configuration Release
+xcodebuild -scheme MenuMines -configuration Release
 
 # Run tests
-xcodebuild test -scheme Sweep
+xcodebuild test -scheme MenuMines
 
 # Clean build
-xcodebuild clean -scheme Sweep
+xcodebuild clean -scheme MenuMines
 ```
 
 ## Accessibility
 
-Sweep must be fully playable with VoiceOver. Accessibility is a core requirement, not an afterthought.
+MenuMines must be fully playable with VoiceOver. Accessibility is a core requirement, not an afterthought.
 
 ### Required Accessibility Features
 
@@ -142,7 +142,7 @@ Use these tools to verify accessibility:
 ## Workflow
 
 ### Linear
-User stories are tracked in Linear under the Sweep project.
+User stories are tracked in Linear under the MenuMines project.
 
 **Before starting work:**
 1. Move the issue to "In Progress" status
@@ -159,7 +159,7 @@ User stories are tracked in Linear under the Sweep project.
 
 ### Linear Details
 - Organization: `merimerimeri`
-- Project: Sweep (`sweep-f5976e94df09`)
+- Project: MenuMines (`sweep-f5976e94df09`)
 - Issue prefix: `MER` (e.g., `MER-23`)
 - Workflow: Todo → In Progress → Done
 
@@ -251,7 +251,7 @@ Button(String(localized: "quit_button")) { ... }
 
 ### Localizable.strings
 
-All user-facing text is in `Sweep/Resources/en.lproj/Localizable.strings`. This includes strings for buttons, menu items, accessibility labels, share text, and stats display.
+All user-facing text is in `MenuMines/Resources/en.lproj/Localizable.strings`. This includes strings for buttons, menu items, accessibility labels, share text, and stats display.
 
 When adding new user-facing strings:
 1. Add the key-value pair to `Localizable.strings`

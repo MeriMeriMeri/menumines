@@ -1,5 +1,5 @@
 import XCTest
-@testable import Sweep
+@testable import MenuMines
 
 final class BoardTests: XCTestCase {
 
