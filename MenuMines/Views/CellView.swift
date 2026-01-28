@@ -11,6 +11,7 @@ struct CellView: View {
     let onFlag: () -> Void
 
     @State private var isHovered = false
+    @Environment(\.colorScheme) private var colorScheme
 
     private static let cellSize: CGFloat = 32
 
@@ -96,7 +97,7 @@ struct CellView: View {
         } else if case .revealed = cell.state {
             Color(nsColor: .controlBackgroundColor)
         } else {
-            RaisedCellBackground()
+            RaisedCellBackground(colorScheme: colorScheme)
         }
     }
 
@@ -110,7 +111,11 @@ struct CellView: View {
     @ViewBuilder
     private var hoverOverlay: some View {
         if isHovered && !isRevealed && !cell.isExploded {
-            Color.white.opacity(0.15)
+            if colorScheme == .dark {
+                Color.white.opacity(0.15)
+            } else {
+                Color.black.opacity(0.1)
+            }
         }
     }
 
@@ -153,21 +158,47 @@ struct CellView: View {
     }
 
     // MARK: - Number Colors
-    // Classic Minesweeper palette with distinct luminance values for improved
-    // contrast and readability. High contrast between colors helps users with
-    // various forms of color vision deficiency distinguish adjacent mine counts.
+    // Classic Minesweeper palette with adaptive colors for light/dark mode.
+    // Dark mode uses brighter variants for readability on dark backgrounds.
 
     private func color(for adjacentMines: Int) -> Color {
+        let isDark = colorScheme == .dark
+
         switch adjacentMines {
-        case 1: return Color(nsColor: NSColor(red: 0.0, green: 0.0, blue: 1.0, alpha: 1.0))       // Blue
-        case 2: return Color(nsColor: NSColor(red: 0.0, green: 0.5, blue: 0.0, alpha: 1.0))       // Dark green
-        case 3: return Color(nsColor: NSColor(red: 0.8, green: 0.0, blue: 0.0, alpha: 1.0))       // Red
-        case 4: return Color(nsColor: NSColor(red: 0.0, green: 0.0, blue: 0.55, alpha: 1.0))      // Navy
-        case 5: return Color(nsColor: NSColor(red: 0.55, green: 0.27, blue: 0.07, alpha: 1.0))    // Brown
-        case 6: return Color(nsColor: NSColor(red: 0.0, green: 0.55, blue: 0.55, alpha: 1.0))     // Teal
-        case 7: return Color(nsColor: NSColor(red: 0.2, green: 0.2, blue: 0.2, alpha: 1.0))       // Dark gray
-        case 8: return Color(nsColor: NSColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 1.0))       // Gray
-        default: return .primary
+        case 1: // Blue
+            return isDark
+                ? Color(red: 0.4, green: 0.6, blue: 1.0)
+                : Color(red: 0.0, green: 0.0, blue: 1.0)
+        case 2: // Green
+            return isDark
+                ? Color(red: 0.4, green: 0.85, blue: 0.4)
+                : Color(red: 0.0, green: 0.5, blue: 0.0)
+        case 3: // Red
+            return isDark
+                ? Color(red: 1.0, green: 0.4, blue: 0.4)
+                : Color(red: 0.8, green: 0.0, blue: 0.0)
+        case 4: // Navy
+            return isDark
+                ? Color(red: 0.5, green: 0.5, blue: 1.0)
+                : Color(red: 0.0, green: 0.0, blue: 0.55)
+        case 5: // Brown
+            return isDark
+                ? Color(red: 0.9, green: 0.6, blue: 0.3)
+                : Color(red: 0.55, green: 0.27, blue: 0.07)
+        case 6: // Teal
+            return isDark
+                ? Color(red: 0.4, green: 0.9, blue: 0.9)
+                : Color(red: 0.0, green: 0.55, blue: 0.55)
+        case 7: // Gray (dark in light mode, light in dark mode)
+            return isDark
+                ? Color(red: 0.75, green: 0.75, blue: 0.75)
+                : Color(red: 0.2, green: 0.2, blue: 0.2)
+        case 8: // Gray (medium in light mode, lighter in dark mode)
+            return isDark
+                ? Color(red: 0.85, green: 0.85, blue: 0.85)
+                : Color(red: 0.5, green: 0.5, blue: 0.5)
+        default:
+            return .primary
         }
     }
 }
@@ -212,12 +243,15 @@ private class ClickableNSView: NSView {
 // MARK: - Raised Cell Background
 
 private struct RaisedCellBackground: View {
+    let colorScheme: ColorScheme
     private let bevelWidth: CGFloat = 3
 
     var body: some View {
         GeometryReader { geometry in
             let size = geometry.size.width
             let inset = bevelWidth
+            let highlightOpacity: Double = colorScheme == .dark ? 0.3 : 0.5
+            let shadowOpacity: Double = colorScheme == .dark ? 0.5 : 0.3
 
             ZStack {
                 Color(nsColor: .controlColor)
@@ -232,7 +266,7 @@ private struct RaisedCellBackground: View {
                     path.addLine(to: CGPoint(x: inset, y: size - inset))
                     path.closeSubpath()
                 }
-                .fill(Color.white.opacity(0.5))
+                .fill(Color.white.opacity(highlightOpacity))
 
                 // Bottom and right shadow
                 Path { path in
@@ -244,7 +278,7 @@ private struct RaisedCellBackground: View {
                     path.addLine(to: CGPoint(x: size - inset, y: inset))
                     path.closeSubpath()
                 }
-                .fill(Color.black.opacity(0.3))
+                .fill(Color.black.opacity(shadowOpacity))
             }
         }
     }
@@ -345,4 +379,38 @@ private struct RaisedCellBackground: View {
         onFlag: {}
     )
     .padding()
+}
+
+// MARK: - Dark Mode Previews
+
+#Preview("Hidden Cell (Dark)") {
+    CellView(
+        cell: Cell(state: .hidden, hasMine: false),
+        row: 0,
+        col: 0,
+        gameStatus: .playing,
+        isSelected: false,
+        onReveal: {},
+        onFlag: {}
+    )
+    .padding()
+    .preferredColorScheme(.dark)
+}
+
+#Preview("Revealed - Numbers (Dark)") {
+    HStack(spacing: 2) {
+        ForEach(1...8, id: \.self) { count in
+            CellView(
+                cell: Cell(state: .revealed(adjacentMines: count), hasMine: false),
+                row: 0,
+                col: count - 1,
+                gameStatus: .playing,
+                isSelected: false,
+                onReveal: {},
+                onFlag: {}
+            )
+        }
+    }
+    .padding()
+    .preferredColorScheme(.dark)
 }
