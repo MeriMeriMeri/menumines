@@ -3,7 +3,7 @@ import Sentry
 import SwiftUI
 
 @main
-struct SweepApp: App {
+struct MenuMinesApp: App {
     @State private var gameState: GameState
     @AppStorage(Constants.SettingsKeys.showMenuBarIndicators) private var showMenuBarIndicators = true
 

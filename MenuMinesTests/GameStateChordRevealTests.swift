@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Sweep
+@testable import MenuMines
 
 @Suite("GameState Chord Reveal Tests")
 struct GameStateChordRevealTests {

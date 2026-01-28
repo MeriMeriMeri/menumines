@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Sweep
+@testable import MenuMines
 
 // .serialized required since tests manipulate shared UserDefaults state
 @Suite("Settings Tests", .serialized)
@@ -10,14 +10,14 @@ struct SettingsTests {
 
     @Test("Menu bar indicators key is properly namespaced")
     func testMenuBarIndicatorsKeyIsNamespaced() {
-        #expect(Constants.SettingsKeys.showMenuBarIndicators == "com.sweep.showMenuBarIndicators")
+        #expect(Constants.SettingsKeys.showMenuBarIndicators == "com.menumines.showMenuBarIndicators")
     }
 
     // MARK: - Confirm Before Reset Setting
 
     @Test("Confirm before reset key is properly namespaced")
     func testConfirmBeforeResetKeyIsNamespaced() {
-        #expect(Constants.SettingsKeys.confirmBeforeReset == "com.sweep.confirmBeforeReset")
+        #expect(Constants.SettingsKeys.confirmBeforeReset == "com.menumines.confirmBeforeReset")
     }
 
     @Test("Confirm before reset can be toggled via UserDefaults")
@@ -66,7 +66,7 @@ struct SettingsTests {
 
     @Test("Show streaks key is properly namespaced")
     func testShowStreaksKeyIsNamespaced() {
-        #expect(Constants.SettingsKeys.showStreaks == "com.sweep.showStreaks")
+        #expect(Constants.SettingsKeys.showStreaks == "com.menumines.showStreaks")
     }
 
     @Test("Show streaks can be toggled via UserDefaults")
@@ -95,7 +95,7 @@ struct SettingsTests {
 
     @Test("Allow refresh after completion key is properly namespaced")
     func testAllowRefreshAfterCompletionKeyIsNamespaced() {
-        #expect(Constants.SettingsKeys.allowRefreshAfterCompletion == "com.sweep.allowRefreshAfterCompletion")
+        #expect(Constants.SettingsKeys.allowRefreshAfterCompletion == "com.menumines.allowRefreshAfterCompletion")
     }
 
     @Test("Allow refresh after completion can be toggled via UserDefaults")
@@ -242,7 +242,7 @@ struct SettingsTests {
         UserDefaults.standard.set(false, forKey: key)
         let showIndicators = UserDefaults.standard.bool(forKey: key)
 
-        // Simulate the currentIconState logic from SweepApp
+        // Simulate the currentIconState logic from MenuMinesApp
         let iconStateWhenLost: MenuBarIconState
         if showIndicators {
             iconStateWhenLost = menuBarIconState(gameStatus: .lost, isPaused: false, isDailyComplete: false)

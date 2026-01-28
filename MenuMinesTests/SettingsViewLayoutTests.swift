@@ -1,7 +1,7 @@
 import AppKit
 import SwiftUI
 import Testing
-@testable import Sweep
+@testable import MenuMines
 
 @Suite("Settings View Layout Tests")
 struct SettingsViewLayoutTests {

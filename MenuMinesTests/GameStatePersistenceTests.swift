@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Sweep
+@testable import MenuMines
 
 // MARK: - Persistence Tests with UserDefaults (Serialized)
 // These tests use shared UserDefaults storage and must run serially to avoid interference

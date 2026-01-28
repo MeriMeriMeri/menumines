@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import Sweep
+@testable import MenuMines
 
 @Suite("Daily Rollover Tests", .serialized)
 struct DailyRolloverTests {

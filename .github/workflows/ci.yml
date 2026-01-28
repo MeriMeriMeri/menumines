@@ -38,7 +38,7 @@ jobs:
       - name: Build
         run: |
           xcodebuild build \
-            -scheme Sweep \
+            -scheme MenuMines \
             -destination 'platform=macOS' \
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO
@@ -46,7 +46,7 @@ jobs:
       - name: Test
         run: |
           xcodebuild test \
-            -scheme Sweep \
+            -scheme MenuMines \
             -destination 'platform=macOS' \
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO \
