@@ -73,6 +73,15 @@ struct FooterView: View {
                     }
                 }
 
+                #if SPARKLE_ENABLED
+                Divider()
+
+                Button(String(localized: "check_for_updates_menu_item")) {
+                    UpdateManager.checkForUpdates()
+                }
+                .disabled(!UpdateManager.canCheckForUpdates)
+                #endif
+
                 Divider()
 
                 Button(String(localized: "quit_menu_item")) {

@@ -8,6 +8,8 @@ DerivedData/
 !*.xcodeproj/project.pbxproj
 *.xcodeproj/*
 !*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcodeproj/xcshareddata/**
 *.pbxuser
 *.mode1v3
 *.mode2v3
