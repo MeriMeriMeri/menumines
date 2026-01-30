@@ -296,99 +296,115 @@ struct GameStatePersistenceTests {
         #expect(restoredState.flagCount == 0)
     }
 
-    // MARK: - Completion Lock Tests
+    // MARK: - Continuous Play Tests
 
-    @Test("canReset is true before completion")
-    func testCanResetTrueBeforeCompletion() {
-        UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
-        defer { UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed") }
-
-        let board = Board(seed: 12345)
-        let gameState = GameState(board: board)
-
-        #expect(gameState.canReset == true)
-    }
-
-    @Test("canReset is false after daily completion")
-    func testCanResetFalseAfterCompletion() {
+    @Test("Reset after daily completion with continuous play enabled starts random puzzle")
+    func testResetAfterDailyStartsRandomWithContinuousPlay() {
+        let settingKey = Constants.SettingsKeys.continuousPlay
+        let initialSettingValue = UserDefaults.standard.object(forKey: settingKey)
         UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
         UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
         let todaySeed = seedFromDate(Date())
         UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
         defer {
+            if let initial = initialSettingValue {
+                UserDefaults.standard.set(initial, forKey: settingKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: settingKey)
+            }
             UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
             UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
             UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
         }
 
+        // Enable continuous play
+        UserDefaults.standard.set(true, forKey: settingKey)
+
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
 
-        // Complete the game
+        // Complete the daily puzzle
         winGame(gameState)
         #expect(gameState.status == .won)
+        #expect(gameState.puzzleType == .daily)
 
-        #expect(gameState.canReset == false, "canReset should be false after winning")
+        // Reset should start a random puzzle
+        gameState.reset()
+
+        #expect(gameState.status == .notStarted)
+        #expect(gameState.puzzleType == .random, "Reset after daily completion should start random puzzle")
     }
 
-    @Test("canReset is false after losing")
-    func testCanResetFalseAfterLoss() {
+    @Test("Reset is blocked after daily completion when continuous play disabled")
+    func testResetBlockedAfterDailyWhenContinuousPlayDisabled() {
+        let settingKey = Constants.SettingsKeys.continuousPlay
+        let initialSettingValue = UserDefaults.standard.object(forKey: settingKey)
         UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
         UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
         let todaySeed = seedFromDate(Date())
         UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
         defer {
+            if let initial = initialSettingValue {
+                UserDefaults.standard.set(initial, forKey: settingKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: settingKey)
+            }
             UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
             UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
             UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
         }
 
+        // Disable continuous play
+        UserDefaults.standard.set(false, forKey: settingKey)
+
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
 
-        // Start game
+        winGame(gameState)
+        #expect(gameState.status == .won)
+        #expect(gameState.canReset == false)
+        let elapsedAfterWin = gameState.elapsedTime
+
+        // Reset should be blocked
+        gameState.reset()
+
+        #expect(gameState.status == .won)
+        #expect(gameState.elapsedTime == elapsedAfterWin)
+    }
+
+    @Test("Reset before daily completion starts daily puzzle")
+    func testResetBeforeDailyStartsDaily() {
+        let settingKey = Constants.SettingsKeys.continuousPlay
+        let initialSettingValue = UserDefaults.standard.object(forKey: settingKey)
+        UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+        defer {
+            if let initial = initialSettingValue {
+                UserDefaults.standard.set(initial, forKey: settingKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: settingKey)
+            }
+            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+        }
+
+        // Enable continuous play
+        UserDefaults.standard.set(true, forKey: settingKey)
+
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Start but don't complete
         guard let safe = findSafeCell(in: gameState.board) else {
             Issue.record("No safe cell found")
             return
         }
         gameState.reveal(row: safe.row, col: safe.col)
+        #expect(gameState.status == .playing)
 
-        // Lose the game
-        guard let mine = findMineCell(in: gameState.board) else {
-            Issue.record("No mine found")
-            return
-        }
-        gameState.reveal(row: mine.row, col: mine.col)
-        #expect(gameState.status == .lost)
-
-        #expect(gameState.canReset == false, "canReset should be false after losing")
-    }
-
-    @Test("reset does nothing when daily is complete")
-    func testResetBlockedWhenComplete() {
-        UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
-        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
-        let todaySeed = seedFromDate(Date())
-        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
-        defer {
-            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
-            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
-            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
-        }
-
-        let board = Board(seed: 12345)
-        let gameState = GameState(board: board)
-
-        winGame(gameState)
-        #expect(gameState.status == .won)
-        let elapsedAfterWin = gameState.elapsedTime
-
-        // Try to reset
+        // Reset should give a fresh daily puzzle
         gameState.reset()
 
-        // State should be unchanged
-        #expect(gameState.status == .won, "Status should remain won after blocked reset")
-        #expect(gameState.elapsedTime == elapsedAfterWin, "Elapsed time should be unchanged")
+        #expect(gameState.status == .notStarted)
+        #expect(gameState.puzzleType == .daily, "Reset before completion should give daily puzzle")
     }
 
     // MARK: - Stats Recording Tests
@@ -602,31 +618,6 @@ struct GameStatePersistenceTests {
         #expect(gameState.flagCount == 0)
         #expect(gameState.selectedRow == 0)
         #expect(gameState.selectedCol == 0)
-    }
-
-    @Test("Reset is blocked after winning (completion lock)")
-    func testResetBlockedAfterWinning() {
-        UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
-        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
-        let todaySeed = seedFromDate(Date())
-        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
-        defer {
-            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
-            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
-            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
-        }
-
-        let board = Board(seed: 12345)
-        let gameState = GameState(board: board)
-
-        winGame(gameState)
-        #expect(gameState.status == .won)
-
-        // Try to reset - should be blocked
-        gameState.reset()
-
-        // State should be unchanged (reset was blocked)
-        #expect(gameState.status == .won, "Reset should be blocked after winning")
     }
 
     @Test("Reset restores all cells to hidden")

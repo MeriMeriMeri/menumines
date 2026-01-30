@@ -58,6 +58,31 @@ final class StatsStore {
         !results.isEmpty
     }
 
+    // MARK: - Daily Puzzle Metrics
+
+    /// All recorded daily puzzle results (excludes random/continuous play).
+    var dailyResults: [GameResult] {
+        results.filter { $0.puzzleType == .daily }
+    }
+
+    /// Total number of daily puzzles played.
+    var dailyGamesPlayed: Int {
+        dailyResults.count
+    }
+
+    /// Number of daily puzzles won.
+    var dailyWins: Int {
+        dailyResults.filter(\.won).count
+    }
+
+    /// Daily puzzle win rate as a percentage (0-100), or nil if no daily games played.
+    var dailyWinRate: Int? {
+        guard dailyGamesPlayed > 0 else { return nil }
+        return Int(round(Double(dailyWins) / Double(dailyGamesPlayed) * 100))
+    }
+
+    // MARK: - Streaks
+
     /// Current consecutive-day streak based on completed daily seeds.
     var currentStreak: Int {
         let dates = completionDates
@@ -106,12 +131,15 @@ final class StatsStore {
     // MARK: - Recording
 
     /// Records a game result and persists to storage.
-    /// Deduplicates by dailySeed - only one result per day is stored.
+    /// Daily puzzles are deduplicated by seed (only one result per day).
+    /// Random puzzles are always recorded (no deduplication).
     @MainActor
     func record(_ result: GameResult) {
-        // Check if we already have a result for this daily seed
-        if results.contains(where: { $0.dailySeed == result.dailySeed }) {
-            return
+        // Only deduplicate daily puzzles - random puzzles are always recorded
+        if result.puzzleType == .daily {
+            if results.contains(where: { $0.puzzleType == .daily && $0.dailySeed == result.dailySeed }) {
+                return
+            }
         }
         results.insert(result, at: 0)
         saveResults()
@@ -163,8 +191,9 @@ final class StatsStore {
     }
 
     private var completionDates: [Date] {
-        let uniqueSeeds = Set(results.map(\.dailySeed))
-        return uniqueSeeds.compactMap { dateFromSeed($0) }.sorted()
+        // Only count daily puzzles for streak calculations
+        let dailySeeds = Set(dailyResults.map(\.dailySeed))
+        return dailySeeds.compactMap { dateFromSeed($0) }.sorted()
     }
 
     // MARK: - Testing Support

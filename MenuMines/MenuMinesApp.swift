@@ -40,8 +40,15 @@ struct MenuMinesApp: App {
         }
     }
 
+    private static func registerDefaults() {
+        UserDefaults.standard.register(defaults: [
+            Constants.SettingsKeys.continuousPlay: true
+        ])
+    }
+
     init() {
         Self.startSentryIfNeeded()
+        Self.registerDefaults()
 
         let state = GameState.restored()
         _gameState = State(initialValue: state)
