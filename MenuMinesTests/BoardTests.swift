@@ -32,13 +32,13 @@ final class BoardTests: XCTestCase {
     func testBoardHasCorrectDimensions() {
         let board = Board(seed: 12345)
 
-        XCTAssertEqual(board.cells.count, 8)
+        XCTAssertEqual(board.cells.count, 9)
         for row in board.cells {
-            XCTAssertEqual(row.count, 8)
+            XCTAssertEqual(row.count, 9)
         }
     }
 
-    func testMultipleSeedsAllHaveTenMines() {
+    func testMultipleSeedsAllHaveFifteenMines() {
         let seeds: [Int64] = [1, 100, 20240101, 20241231, 99999999]
 
         for seed in seeds {
@@ -49,7 +49,7 @@ final class BoardTests: XCTestCase {
                     mineCount += 1
                 }
             }
-            XCTAssertEqual(mineCount, 10, "Board with seed \(seed) should have exactly 10 mines")
+            XCTAssertEqual(mineCount, 15, "Board with seed \(seed) should have exactly 15 mines")
         }
     }
 
@@ -69,7 +69,7 @@ final class BoardTests: XCTestCase {
         for seed in extremeSeeds {
             let board = Board(seed: seed)
             let mineCount = board.cells.flatMap { $0 }.filter(\.hasMine).count
-            XCTAssertEqual(mineCount, 10, "Seed \(seed) should produce exactly 10 mines")
+            XCTAssertEqual(mineCount, 15, "Seed \(seed) should produce exactly 15 mines")
         }
     }
 
@@ -80,8 +80,8 @@ final class BoardTests: XCTestCase {
 
         // Find a cell with a mine
         var mineRow = 0, mineCol = 0
-        outer: for r in 0..<8 {
-            for c in 0..<8 {
+        outer: for r in 0..<9 {
+            for c in 0..<9 {
                 if board.cells[r][c].hasMine {
                     mineRow = r
                     mineCol = c
@@ -99,8 +99,8 @@ final class BoardTests: XCTestCase {
 
         // Find a cell next to a mine (has adjacent mines > 0) but isn't a mine
         var targetRow = -1, targetCol = -1
-        outer: for r in 0..<8 {
-            for c in 0..<8 {
+        outer: for r in 0..<9 {
+            for c in 0..<9 {
                 if !board.cells[r][c].hasMine {
                     let adjacent = board.adjacentMineCount(row: r, col: c)
                     if adjacent > 0 {
@@ -137,8 +137,8 @@ final class BoardTests: XCTestCase {
 
         // Find a cell with 0 adjacent mines
         var targetRow = -1, targetCol = -1
-        outer: for r in 0..<8 {
-            for c in 0..<8 {
+        outer: for r in 0..<9 {
+            for c in 0..<9 {
                 if !board.cells[r][c].hasMine {
                     let adjacent = board.adjacentMineCount(row: r, col: c)
                     if adjacent == 0 {
@@ -169,8 +169,8 @@ final class BoardTests: XCTestCase {
 
         // Find a non-mine cell
         var targetRow = 0, targetCol = 0
-        outer: for r in 0..<8 {
-            for c in 0..<8 {
+        outer: for r in 0..<9 {
+            for c in 0..<9 {
                 if !board.cells[r][c].hasMine {
                     targetRow = r
                     targetCol = c
@@ -190,8 +190,8 @@ final class BoardTests: XCTestCase {
 
         // Find a non-mine cell
         var targetRow = 0, targetCol = 0
-        outer: for r in 0..<8 {
-            for c in 0..<8 {
+        outer: for r in 0..<9 {
+            for c in 0..<9 {
                 if !board.cells[r][c].hasMine {
                     targetRow = r
                     targetCol = c
@@ -211,8 +211,8 @@ final class BoardTests: XCTestCase {
 
         XCTAssertEqual(board.reveal(row: -1, col: 0), .safe(cellsRevealed: 0))
         XCTAssertEqual(board.reveal(row: 0, col: -1), .safe(cellsRevealed: 0))
-        XCTAssertEqual(board.reveal(row: 8, col: 0), .safe(cellsRevealed: 0))
-        XCTAssertEqual(board.reveal(row: 0, col: 8), .safe(cellsRevealed: 0))
+        XCTAssertEqual(board.reveal(row: 9, col: 0), .safe(cellsRevealed: 0))
+        XCTAssertEqual(board.reveal(row: 0, col: 9), .safe(cellsRevealed: 0))
     }
 
     func testAdjacentMineCountAtCorner() {
@@ -243,8 +243,8 @@ final class BoardTests: XCTestCase {
         var board = Board(seed: 12345)
 
         // Reveal all non-mine cells with cascade
-        for r in 0..<8 {
-            for c in 0..<8 {
+        for r in 0..<9 {
+            for c in 0..<9 {
                 if !board.cells[r][c].hasMine {
                     _ = board.reveal(row: r, col: c)
                 }
@@ -252,8 +252,8 @@ final class BoardTests: XCTestCase {
         }
 
         // Verify no mine cells were revealed by cascade
-        for r in 0..<8 {
-            for c in 0..<8 {
+        for r in 0..<9 {
+            for c in 0..<9 {
                 if board.cells[r][c].hasMine {
                     XCTAssertEqual(board.cells[r][c].state, .hidden, "Mine at (\(r),\(c)) should remain hidden")
                 }
@@ -268,8 +268,8 @@ final class BoardTests: XCTestCase {
 
         // Find a cell with a mine
         var mineRow = -1, mineCol = -1
-        outer: for r in 0..<8 {
-            for c in 0..<8 {
+        outer: for r in 0..<9 {
+            for c in 0..<9 {
                 if board.cells[r][c].hasMine {
                     mineRow = r
                     mineCol = c
@@ -295,8 +295,8 @@ final class BoardTests: XCTestCase {
 
         // Find a cell with a mine
         var mineRow = -1, mineCol = -1
-        outer: for r in 0..<8 {
-            for c in 0..<8 {
+        outer: for r in 0..<9 {
+            for c in 0..<9 {
                 if board.cells[r][c].hasMine {
                     mineRow = r
                     mineCol = c
@@ -311,12 +311,12 @@ final class BoardTests: XCTestCase {
         }
 
         let mineCountBefore = board.cells.flatMap { $0 }.filter(\.hasMine).count
-        XCTAssertEqual(mineCountBefore, 10)
+        XCTAssertEqual(mineCountBefore, 15)
 
         board.relocateMine(from: mineRow, col: mineCol)
 
         let mineCountAfter = board.cells.flatMap { $0 }.filter(\.hasMine).count
-        XCTAssertEqual(mineCountAfter, 10, "Mine count should stay at 10 after relocation")
+        XCTAssertEqual(mineCountAfter, 15, "Mine count should stay at 15 after relocation")
     }
 
     func testRelocateMineMovesToDifferentCell() {
@@ -324,8 +324,8 @@ final class BoardTests: XCTestCase {
 
         // Find a cell with a mine
         var mineRow = -1, mineCol = -1
-        outer: for r in 0..<8 {
-            for c in 0..<8 {
+        outer: for r in 0..<9 {
+            for c in 0..<9 {
                 if board.cells[r][c].hasMine {
                     mineRow = r
                     mineCol = c
@@ -341,10 +341,10 @@ final class BoardTests: XCTestCase {
 
         // Get positions of mines before relocation
         var minePositionsBefore = Set<Int>()
-        for r in 0..<8 {
-            for c in 0..<8 {
+        for r in 0..<9 {
+            for c in 0..<9 {
                 if board.cells[r][c].hasMine {
-                    minePositionsBefore.insert(r * 8 + c)
+                    minePositionsBefore.insert(r * 9 + c)
                 }
             }
         }
@@ -353,10 +353,10 @@ final class BoardTests: XCTestCase {
 
         // Get positions of mines after relocation
         var minePositionsAfter = Set<Int>()
-        for r in 0..<8 {
-            for c in 0..<8 {
+        for r in 0..<9 {
+            for c in 0..<9 {
                 if board.cells[r][c].hasMine {
-                    minePositionsAfter.insert(r * 8 + c)
+                    minePositionsAfter.insert(r * 9 + c)
                 }
             }
         }
@@ -374,8 +374,8 @@ final class BoardTests: XCTestCase {
 
         // Find a cell without a mine
         var emptyRow = -1, emptyCol = -1
-        outer: for r in 0..<8 {
-            for c in 0..<8 {
+        outer: for r in 0..<9 {
+            for c in 0..<9 {
                 if !board.cells[r][c].hasMine {
                     emptyRow = r
                     emptyCol = c
@@ -401,8 +401,8 @@ final class BoardTests: XCTestCase {
 
         // Find a cell with a mine
         var mineRow = -1, mineCol = -1
-        outer: for r in 0..<8 {
-            for c in 0..<8 {
+        outer: for r in 0..<9 {
+            for c in 0..<9 {
                 if board.cells[r][c].hasMine {
                     mineRow = r
                     mineCol = c
@@ -429,12 +429,12 @@ final class BoardTests: XCTestCase {
         // These should not crash
         board.markExploded(row: -1, col: 0)
         board.markExploded(row: 0, col: -1)
-        board.markExploded(row: 8, col: 0)
-        board.markExploded(row: 0, col: 8)
+        board.markExploded(row: 9, col: 0)
+        board.markExploded(row: 0, col: 9)
 
         // Verify no cells are exploded
-        for r in 0..<8 {
-            for c in 0..<8 {
+        for r in 0..<9 {
+            for c in 0..<9 {
                 XCTAssertFalse(board.cells[r][c].isExploded)
             }
         }
@@ -502,8 +502,8 @@ final class BoardTests: XCTestCase {
 
         // Find a cell with 0 adjacent mines and reveal it
         var targetRow = -1, targetCol = -1
-        outer: for r in 0..<8 {
-            for c in 0..<8 {
+        outer: for r in 0..<9 {
+            for c in 0..<9 {
                 if !board.cells[r][c].hasMine && board.adjacentMineCount(row: r, col: c) == 0 {
                     targetRow = r
                     targetCol = c
@@ -528,8 +528,8 @@ final class BoardTests: XCTestCase {
 
         // Find a cell with adjacent mines > 0
         var targetRow = -1, targetCol = -1
-        outer: for r in 0..<8 {
-            for c in 0..<8 {
+        outer: for r in 0..<9 {
+            for c in 0..<9 {
                 if !board.cells[r][c].hasMine {
                     let adj = board.adjacentMineCount(row: r, col: c)
                     if adj > 0 {
@@ -559,8 +559,8 @@ final class BoardTests: XCTestCase {
         // Find a revealed cell with exactly 1 adjacent mine
         var targetRow = -1, targetCol = -1
         var mineRow = -1, mineCol = -1
-        outer: for r in 0..<8 {
-            for c in 0..<8 {
+        outer: for r in 0..<9 {
+            for c in 0..<9 {
                 if !board.cells[r][c].hasMine {
                     let adj = board.adjacentMineCount(row: r, col: c)
                     if adj == 1 {
@@ -570,7 +570,7 @@ final class BoardTests: XCTestCase {
                                 if dr == 0 && dc == 0 { continue }
                                 let mr = r + dr
                                 let mc = c + dc
-                                if mr >= 0, mr < 8, mc >= 0, mc < 8 {
+                                if mr >= 0, mr < 9, mc >= 0, mc < 9 {
                                     if board.cells[mr][mc].hasMine {
                                         targetRow = r
                                         targetCol = c
@@ -609,8 +609,8 @@ final class BoardTests: XCTestCase {
         // Find a revealed cell with exactly 1 adjacent mine
         var targetRow = -1, targetCol = -1
         var wrongFlagRow = -1, wrongFlagCol = -1
-        outer: for r in 0..<8 {
-            for c in 0..<8 {
+        outer: for r in 0..<9 {
+            for c in 0..<9 {
                 if !board.cells[r][c].hasMine {
                     let adj = board.adjacentMineCount(row: r, col: c)
                     if adj == 1 {
@@ -620,7 +620,7 @@ final class BoardTests: XCTestCase {
                                 if dr == 0 && dc == 0 { continue }
                                 let nr = r + dr
                                 let nc = c + dc
-                                if nr >= 0, nr < 8, nc >= 0, nc < 8 {
+                                if nr >= 0, nr < 9, nc >= 0, nc < 9 {
                                     if !board.cells[nr][nc].hasMine {
                                         targetRow = r
                                         targetCol = c
@@ -654,8 +654,8 @@ final class BoardTests: XCTestCase {
 
         XCTAssertEqual(board.chordReveal(row: -1, col: 0), .safe(cellsRevealed: 0))
         XCTAssertEqual(board.chordReveal(row: 0, col: -1), .safe(cellsRevealed: 0))
-        XCTAssertEqual(board.chordReveal(row: 8, col: 0), .safe(cellsRevealed: 0))
-        XCTAssertEqual(board.chordReveal(row: 0, col: 8), .safe(cellsRevealed: 0))
+        XCTAssertEqual(board.chordReveal(row: 9, col: 0), .safe(cellsRevealed: 0))
+        XCTAssertEqual(board.chordReveal(row: 0, col: 9), .safe(cellsRevealed: 0))
     }
 
     func testChordRevealCanTriggerCascade() {
@@ -666,8 +666,8 @@ final class BoardTests: XCTestCase {
         var mineRow = -1, mineCol = -1
         var hasZeroNeighbor = false
 
-        outer: for r in 0..<8 {
-            for c in 0..<8 {
+        outer: for r in 0..<9 {
+            for c in 0..<9 {
                 if !board.cells[r][c].hasMine {
                     let adj = board.adjacentMineCount(row: r, col: c)
                     if adj == 1 {
@@ -677,7 +677,7 @@ final class BoardTests: XCTestCase {
                                 if dr == 0 && dc == 0 { continue }
                                 let mr = r + dr
                                 let mc = c + dc
-                                if mr >= 0, mr < 8, mc >= 0, mc < 8 {
+                                if mr >= 0, mr < 9, mc >= 0, mc < 9 {
                                     if board.cells[mr][mc].hasMine {
                                         mineRow = mr
                                         mineCol = mc
@@ -692,7 +692,7 @@ final class BoardTests: XCTestCase {
                                 if dr == 0 && dc == 0 { continue }
                                 let nr = r + dr
                                 let nc = c + dc
-                                if nr >= 0, nr < 8, nc >= 0, nc < 8 {
+                                if nr >= 0, nr < 9, nc >= 0, nc < 9 {
                                     if !board.cells[nr][nc].hasMine {
                                         if board.adjacentMineCount(row: nr, col: nc) == 0 {
                                             hasZeroNeighbor = true

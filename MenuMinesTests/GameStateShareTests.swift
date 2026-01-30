@@ -132,7 +132,7 @@ struct GameStateShareTests {
         #expect(shareText.contains(expectedTime), "Share text should include formatted time")
     }
 
-    @Test("Share text includes 8x8 emoji grid")
+    @Test("Share text includes 9x9 emoji grid")
     func testShareTextIncludesEmojiGrid() {
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
@@ -146,11 +146,11 @@ struct GameStateShareTests {
 
         let lines = shareText.split(separator: "\n", omittingEmptySubsequences: false)
 
-        // Should have: header, result, 8 grid rows, marked count = 11 lines
-        #expect(lines.count == 11, "Share text should have 11 lines (header, result, 8 grid rows, marked)")
+        // Should have: header, result, 9 grid rows, marked count = 12 lines
+        #expect(lines.count == 12, "Share text should have 12 lines (header, result, 9 grid rows, marked)")
 
-        // Grid rows should be lines 2-9 (0-indexed)
-        for i in 2..<10 {
+        // Grid rows should be lines 2-10 (0-indexed)
+        for i in 2..<11 {
             let line = String(lines[i])
             // Each grid line should only contain the three emoji types
             let validEmojis = Set(["🟩", "🚩", "⬛️"])
@@ -172,7 +172,7 @@ struct GameStateShareTests {
                     break
                 }
             }
-            #expect(emojiCount == 8, "Grid line \(i) should have exactly 8 emojis, got \(emojiCount)")
+            #expect(emojiCount == 9, "Grid line \(i) should have exactly 9 emojis, got \(emojiCount)")
         }
     }
 

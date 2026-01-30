@@ -13,7 +13,7 @@ struct CellView: View {
     @State private var isHovered = false
     @Environment(\.colorScheme) private var colorScheme
 
-    private static let cellSize: CGFloat = 32
+    private static let cellSize: CGFloat = 28
 
     var body: some View {
         ZStack {

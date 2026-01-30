@@ -78,11 +78,11 @@ struct GameStateSelectionTests {
         for _ in 0..<10 {
             gameState.moveSelection(.down)
         }
-        #expect(gameState.selectedRow == 7)
+        #expect(gameState.selectedRow == 8)
 
         // Try to move past bottom
         gameState.moveSelection(.down)
-        #expect(gameState.selectedRow == 7)
+        #expect(gameState.selectedRow == 8)
     }
 
     @Test("Selection stays at left boundary")
@@ -104,11 +104,11 @@ struct GameStateSelectionTests {
         for _ in 0..<10 {
             gameState.moveSelection(.right)
         }
-        #expect(gameState.selectedCol == 7)
+        #expect(gameState.selectedCol == 8)
 
         // Try to move past right
         gameState.moveSelection(.right)
-        #expect(gameState.selectedCol == 7)
+        #expect(gameState.selectedCol == 8)
     }
 
     @Test("Reveal selected cell")
@@ -163,8 +163,8 @@ struct GameStateSelectionTests {
 
         gameState.reveal(row: -1, col: 0)
         gameState.reveal(row: 0, col: -1)
-        gameState.reveal(row: 8, col: 0)
-        gameState.reveal(row: 0, col: 8)
+        gameState.reveal(row: 9, col: 0)
+        gameState.reveal(row: 0, col: 9)
 
         #expect(gameState.status == .notStarted)
         #expect(gameState.elapsedTime == 0)
@@ -181,8 +181,8 @@ struct GameStateSelectionTests {
 
         gameState.toggleFlag(row: -1, col: 0)
         gameState.toggleFlag(row: 0, col: -1)
-        gameState.toggleFlag(row: 8, col: 0)
-        gameState.toggleFlag(row: 0, col: 8)
+        gameState.toggleFlag(row: 9, col: 0)
+        gameState.toggleFlag(row: 0, col: 9)
 
         #expect(gameState.flagCount == 0)
         #expect(gameState.board.cells[0][0].state == .hidden)
