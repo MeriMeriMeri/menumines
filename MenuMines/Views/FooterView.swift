@@ -66,6 +66,12 @@ struct FooterView: View {
                     onAbout()
                 }
 
+                Button(String(localized: "contact_support_menu_item")) {
+                    if let url = URL(string: "mailto:support@merimerimeri.com") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }
+
                 Divider()
 
                 Button(String(localized: "quit_menu_item")) {

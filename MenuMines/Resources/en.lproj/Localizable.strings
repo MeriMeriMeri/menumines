@@ -6,6 +6,7 @@
 "about_menu_item" = "About MenuMines";
 "settings_menu_item" = "Settings...";
 "quit_menu_item" = "Quit MenuMines";
+"contact_support_menu_item" = "Contact Support";
 "footer_menu_accessibility_label" = "App menu";
 
 /* Game status */
