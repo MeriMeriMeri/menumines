@@ -205,14 +205,19 @@ final class GameState {
         // Emoji grid - encode only visual outcome, not mine locations
         // 🟩 = revealed safe cell
         // 🚩 = flagged cell
-        // ⬛️ = unrevealed/hidden cell
+        // ⬛️ = unrevealed/hidden cell or mine (mines are hidden for fairness)
         for row in 0..<Board.rows {
             var rowEmojis = ""
             for col in 0..<Board.cols {
                 let cell = board.cells[row][col]
                 switch cell.state {
                 case .revealed:
-                    rowEmojis += "🟩"
+                    // Don't reveal mine positions in share text (for fairness)
+                    if cell.hasMine {
+                        rowEmojis += "⬛️"
+                    } else {
+                        rowEmojis += "🟩"
+                    }
                 case .flagged:
                     rowEmojis += "🚩"
                 case .hidden:
@@ -269,6 +274,7 @@ final class GameState {
         switch result {
         case .mine:
             status = .lost
+            board.revealAllMines()
             handleGameComplete(won: false)
         case .safe:
             if checkWinCondition() {
@@ -453,6 +459,11 @@ final class GameState {
         // Stats restoration uses a fresh board without flags, so trust the stored count
         state.flagCount = stats.flagCount
 
+        // For lost games, reveal all mines so display is correct
+        if !stats.won {
+            state.board.revealAllMines()
+        }
+
         if !isDailyPuzzleComplete() {
             markDailyPuzzleComplete()
         }
@@ -618,6 +629,11 @@ final class GameState {
         selectedRow = 0
         selectedCol = 0
         isPaused = false
+
+        // For lost games, reveal all mines so display is correct
+        if !stats.won {
+            board.revealAllMines()
+        }
     }
 
     /// Moves the keyboard selection in the given direction.
@@ -704,6 +720,7 @@ final class GameState {
         switch board.chordReveal(row: row, col: col) {
         case .mine:
             status = .lost
+            board.revealAllMines()
             handleGameComplete(won: false)
         case .safe:
             if checkWinCondition() {
