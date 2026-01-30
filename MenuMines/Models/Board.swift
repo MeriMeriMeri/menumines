@@ -7,11 +7,11 @@ enum RevealResult: Equatable {
     case mine
 }
 
-/// The 8x8 Minesweeper game board.
+/// The 9x9 Minesweeper game board.
 struct Board: Equatable, Codable {
-    static let rows = 8
-    static let cols = 8
-    static let mineCount = 10
+    static let rows = 9
+    static let cols = 9
+    static let mineCount = 15
 
     private(set) var cells: [[Cell]]
 

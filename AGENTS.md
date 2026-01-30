@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-MenuMines is a menu bar Minesweeper game for macOS. It features an 8x8 board with 10 mines, generating the same daily puzzle for all players using deterministic seeding.
+MenuMines is a menu bar Minesweeper game for macOS. It features a 9x9 board with 15 mines, generating the same daily puzzle for all players using deterministic seeding.
 
 ## Technology Stack
 
@@ -21,7 +21,7 @@ MenuMines/
 ├── MenuMinesApp.swift              # App entry point, MenuBarExtra setup
 ├── Constants.swift             # App-wide constants and UserDefaults keys
 ├── Models/
-│   ├── Board.swift             # 8x8 grid, mine placement, reveal logic
+│   ├── Board.swift             # 9x9 grid, mine placement, reveal logic
 │   ├── Cell.swift              # Cell state enum
 │   ├── DailyBoard.swift        # Date-based board generation
 │   ├── GameResult.swift        # Win/loss result with timing
@@ -33,7 +33,7 @@ MenuMines/
 │   ├── CellView.swift          # Individual cell rendering
 │   ├── ConfettiView.swift      # Win celebration animation
 │   ├── FooterView.swift        # Menu and quit button
-│   ├── GameBoardView.swift     # 8x8 grid of cells
+│   ├── GameBoardView.swift     # 9x9 grid of cells
 │   ├── HeaderView.swift        # Timer, flag count, reset
 │   ├── MenuContentView.swift   # Main popover content
 │   ├── SettingsView.swift      # App settings
@@ -142,8 +142,8 @@ Use these tools to verify accessibility:
 
 ## Game Constants
 
-- Board size: 8x8 (64 cells)
-- Mine count: 10
+- Board size: 9x9 (81 cells)
+- Mine count: 15
 - First click is always safe (relocate mine if needed)
 - If the first click hits a mine, relocation uses system randomness (boards can diverge after that first click)
 
