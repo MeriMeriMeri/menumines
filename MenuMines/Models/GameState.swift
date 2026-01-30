@@ -192,44 +192,42 @@ final class GameState {
         let dateString = formatter.string(from: date)
         lines.append(String(format: String(localized: "share_header"), dateString))
 
-        // Result line with formatted time
+        // Result line with formatted time and flag count
         let minutes = Int(elapsedTime) / 60
         let seconds = Int(elapsedTime) % 60
         let timeString = String(format: "%d:%02d", minutes, seconds)
+        let markedCorrect = countCorrectlyMarkedMines()
         if status == .won {
-            lines.append(String(format: String(localized: "share_solved"), timeString))
+            lines.append(String(format: String(localized: "share_solved"), timeString, markedCorrect, Board.mineCount))
         } else {
-            lines.append(String(format: String(localized: "share_failed"), timeString))
+            lines.append(String(format: String(localized: "share_failed"), timeString, markedCorrect, Board.mineCount))
         }
 
-        // Emoji grid - encode only visual outcome, not mine locations
-        // 🟩 = revealed safe cell
-        // 🚩 = flagged cell
-        // ⬛️ = unrevealed/hidden cell or mine (mines are hidden for fairness)
+        // Emoji grid - difficulty heat map (fully spoiler-free)
+        // Every cell shows its difficulty based on adjacent mine count
+        // Mines are indistinguishable from safe cells - no gaps in the pattern
+        // 🟩 = 0 adjacent mines (safe zone)
+        // 🟡 = 1-2 adjacent mines (easy)
+        // 🟠 = 3-4 adjacent mines (medium)
+        // 🔴 = 5+ adjacent mines (danger zone)
         for row in 0..<Board.rows {
             var rowEmojis = ""
             for col in 0..<Board.cols {
-                let cell = board.cells[row][col]
-                switch cell.state {
-                case .revealed:
-                    // Don't reveal mine positions in share text (for fairness)
-                    if cell.hasMine {
-                        rowEmojis += "⬛️"
-                    } else {
-                        rowEmojis += "🟩"
-                    }
-                case .flagged:
-                    rowEmojis += "🚩"
-                case .hidden:
-                    rowEmojis += "⬛️"
+                // Use adjacentMineCount for ALL cells (including mines)
+                // This hides mine positions by showing uniform difficulty colors
+                let adjacentMines = board.adjacentMineCount(row: row, col: col)
+                if adjacentMines == 0 {
+                    rowEmojis += "🟩"
+                } else if adjacentMines <= 2 {
+                    rowEmojis += "🟡"
+                } else if adjacentMines <= 4 {
+                    rowEmojis += "🟠"
+                } else {
+                    rowEmojis += "🔴"
                 }
             }
             lines.append(rowEmojis)
         }
-
-        // Marked count
-        let markedCorrect = countCorrectlyMarkedMines()
-        lines.append(String(format: String(localized: "share_marked"), markedCorrect, Board.mineCount))
 
         return lines.joined(separator: "\n")
     }
