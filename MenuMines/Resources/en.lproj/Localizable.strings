@@ -22,8 +22,8 @@
 "settings_show_streaks_footer" = "Show current and longest streaks in Stats.";
 "settings_confirm_before_reset" = "Confirm before reset";
 "settings_confirm_before_reset_footer" = "Show a confirmation dialog before resetting the game.";
-"settings_allow_refresh_after_completion" = "Allow refresh after completion";
-"settings_allow_refresh_after_completion_footer" = "When on, you can replay today's puzzle after winning or losing. Only your first game counts toward stats.";
+"settings_continuous_play" = "Continuous Play";
+"settings_continuous_play_footer" = "After completing the daily puzzle, continue with unlimited random puzzles. Only the daily counts toward streaks.";
 
 /* Reset confirmation dialog */
 "reset_confirmation_title" = "Reset Game?";
@@ -63,6 +63,8 @@
 "stats_reset_confirmation_confirm" = "Reset";
 "stats_empty_message" = "Play a game to see your stats!";
 "stats_empty_subtitle" = "Stats are stored locally.";
+"stats_section_daily" = "Daily Puzzles";
+"stats_section_all" = "All Games";
 
 /* Controls popover */
 "controls_button_accessibility" = "Show keyboard controls";

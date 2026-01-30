@@ -38,28 +38,48 @@ struct StatsWindow: View {
     // MARK: - Header
 
     private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(String(localized: "stats_title"))
-                .font(.title2)
-                .fontWeight(.semibold)
-            Text(String(localized: "stats_subtitle"))
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-        }
-        .padding()
+        Text(String(localized: "stats_title"))
+            .font(.title2)
+            .fontWeight(.semibold)
+            .padding()
     }
 
     // MARK: - Metrics
 
     private var metricsSection: some View {
-        VStack(spacing: 12) {
-            metricRow(label: String(localized: "stats_games_played"), value: "\(store.gamesPlayed)")
-            metricRow(label: String(localized: "stats_wins"), value: "\(store.wins)")
-            metricRow(label: String(localized: "stats_win_rate"), value: formattedWinRate)
-            metricRow(label: String(localized: "stats_best_time"), value: formattedBestTime)
-            metricRow(label: String(localized: "stats_avg_time"), value: formattedAverageTime)
-            if showStreaks {
-                streaksRows
+        VStack(spacing: 16) {
+            // Daily Puzzles Section
+            VStack(alignment: .leading, spacing: 12) {
+                Text(String(localized: "stats_section_daily"))
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+
+                VStack(spacing: 10) {
+                    metricRow(label: String(localized: "stats_games_played"), value: "\(store.dailyGamesPlayed)")
+                    metricRow(label: String(localized: "stats_wins"), value: "\(store.dailyWins)")
+                    metricRow(label: String(localized: "stats_win_rate"), value: formattedDailyWinRate)
+                    if showStreaks {
+                        streaksRows
+                    }
+                }
+            }
+
+            Divider()
+                .padding(.vertical, 4)
+
+            // All Games Section
+            VStack(alignment: .leading, spacing: 12) {
+                Text(String(localized: "stats_section_all"))
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+
+                VStack(spacing: 10) {
+                    metricRow(label: String(localized: "stats_games_played"), value: "\(store.gamesPlayed)")
+                    metricRow(label: String(localized: "stats_wins"), value: "\(store.wins)")
+                    metricRow(label: String(localized: "stats_win_rate"), value: formattedWinRate)
+                    metricRow(label: String(localized: "stats_best_time"), value: formattedBestTime)
+                    metricRow(label: String(localized: "stats_avg_time"), value: formattedAverageTime)
+                }
             }
         }
         .padding()
@@ -83,6 +103,11 @@ struct StatsWindow: View {
             metricRow(label: String(localized: "stats_current_streak"), value: "\(store.currentStreak)")
             metricRow(label: String(localized: "stats_longest_streak"), value: "\(store.longestStreak)")
         }
+    }
+
+    private var formattedDailyWinRate: String {
+        guard let rate = store.dailyWinRate else { return String(localized: "stats_no_data") }
+        return "\(rate)%"
     }
 
     private var formattedWinRate: String {

@@ -8,7 +8,7 @@ struct SettingsView: View {
 
     @AppStorage(Constants.SettingsKeys.showMenuBarIndicators) private var showMenuBarIndicators = true
     @AppStorage(Constants.SettingsKeys.confirmBeforeReset) private var confirmBeforeReset = false
-    @AppStorage(Constants.SettingsKeys.allowRefreshAfterCompletion) private var allowRefreshAfterCompletion = false
+    @AppStorage(Constants.SettingsKeys.continuousPlay) private var continuousPlay = true
     @AppStorage(Constants.SettingsKeys.showStreaks) private var showStreaks = true
 
     var body: some View {
@@ -45,11 +45,11 @@ struct SettingsView: View {
 
             Section {
                 Toggle(
-                    String(localized: "settings_allow_refresh_after_completion"),
-                    isOn: $allowRefreshAfterCompletion
+                    String(localized: "settings_continuous_play"),
+                    isOn: $continuousPlay
                 )
             } footer: {
-                Text(String(localized: "settings_allow_refresh_after_completion_footer"))
+                Text(String(localized: "settings_continuous_play_footer"))
                     .foregroundStyle(.secondary)
             }
         }

@@ -82,7 +82,6 @@ struct HeaderView: View {
             }
             .buttonStyle(.plain)
             .disabled(!canReset)
-            .opacity(canReset ? 1.0 : 0.5)
             .accessibilityLabel(String(format: String(localized: "reset_accessibility_combined"), statusDescription))
             .accessibilityHint(canReset ? String(localized: "reset_accessibility_hint") : String(localized: "reset_locked_hint"))
 
@@ -117,10 +116,5 @@ struct HeaderView: View {
 
 #Preview("Lost") {
     HeaderView(status: .lost, elapsedTime: 45, flagCount: 5, canReset: true, onReset: {})
-        .padding()
-}
-
-#Preview("Reset Locked") {
-    HeaderView(status: .won, elapsedTime: 120, flagCount: 10, canReset: false, onReset: {})
         .padding()
 }
