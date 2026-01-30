@@ -147,6 +147,20 @@ struct Board: Equatable, Codable {
         cells[row][col].isExploded = true
     }
 
+    /// Reveals all mines on the board (used when game is lost).
+    /// Preserves flagged mines so correct flags remain visible.
+    /// Does not mark them as exploded - only the clicked mine gets that flag.
+    mutating func revealAllMines() {
+        for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                if cells[r][c].hasMine && !cells[r][c].isExploded {
+                    if case .flagged = cells[r][c].state { continue }
+                    cells[r][c].state = .revealed(adjacentMines: 0)
+                }
+            }
+        }
+    }
+
     /// Relocates a mine from the given position to a random empty cell.
     /// Used for first-click safety.
     mutating func relocateMine(from row: Int, col: Int) {

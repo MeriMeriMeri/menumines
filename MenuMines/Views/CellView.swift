@@ -44,17 +44,15 @@ struct CellView: View {
             return "\(position), exploded mine"
         }
 
-        if gameStatus == .lost && cell.hasMine {
-            return "\(position), mine"
-        }
-
         switch cell.state {
         case .hidden:
             return "\(position), covered"
         case .flagged:
             return "\(position), flagged"
         case .revealed(let adjacentMines):
-            if adjacentMines == 0 {
+            if cell.hasMine {
+                return "\(position), mine"
+            } else if adjacentMines == 0 {
                 return "\(position), empty"
             } else if adjacentMines == 1 {
                 return "\(position), 1 adjacent mine"
@@ -123,7 +121,7 @@ struct CellView: View {
 
     @ViewBuilder
     private var content: some View {
-        if cell.isExploded || (gameStatus == .lost && cell.hasMine) {
+        if cell.isExploded {
             mineIcon
         } else {
             switch cell.state {
@@ -133,7 +131,9 @@ struct CellView: View {
                 Text("🚩")
                     .font(.system(size: 14))
             case .revealed(let adjacentMines):
-                if adjacentMines > 0 {
+                if cell.hasMine {
+                    mineIcon
+                } else if adjacentMines > 0 {
                     Text("\(adjacentMines)")
                         .font(.system(size: 16, weight: .bold, design: .monospaced))
                         .foregroundStyle(color(for: adjacentMines))
@@ -357,7 +357,7 @@ private struct RaisedCellBackground: View {
 
 #Preview("Mine (Game Over)") {
     CellView(
-        cell: Cell(state: .hidden, hasMine: true),
+        cell: Cell(state: .revealed(adjacentMines: 0), hasMine: true),
         row: 0,
         col: 0,
         gameStatus: .lost,
