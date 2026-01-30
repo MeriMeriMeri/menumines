@@ -372,6 +372,56 @@ struct GameStatePersistenceTests {
         #expect(gameState.elapsedTime == elapsedAfterWin)
     }
 
+    @Test("Disabling continuous play while on random puzzle restores daily state")
+    func testDisablingContinuousPlayRestoresDaily() {
+        GameSnapshot.clear()
+        let settingKey = Constants.SettingsKeys.continuousPlay
+        let initialSettingValue = UserDefaults.standard.object(forKey: settingKey)
+        UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+        let todaySeed = seedFromDate(Date())
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        defer {
+            GameSnapshot.clear()
+            if let initial = initialSettingValue {
+                UserDefaults.standard.set(initial, forKey: settingKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: settingKey)
+            }
+            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        }
+
+        // Enable continuous play
+        UserDefaults.standard.set(true, forKey: settingKey)
+
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Complete the daily puzzle
+        winGame(gameState)
+        #expect(gameState.status == .won)
+        #expect(gameState.puzzleType == .daily)
+        let dailyElapsedTime = gameState.elapsedTime
+
+        // Reset to start a random puzzle
+        gameState.reset()
+        #expect(gameState.puzzleType == .random, "Should be on random puzzle after reset")
+        #expect(gameState.status == .notStarted)
+
+        // Now disable continuous play
+        UserDefaults.standard.set(false, forKey: settingKey)
+
+        // Check setting - should restore daily state
+        gameState.checkContinuousPlaySetting()
+
+        #expect(gameState.puzzleType == .daily, "Should be back on daily puzzle")
+        #expect(gameState.status == .won, "Should show completed daily state")
+        #expect(gameState.elapsedTime == dailyElapsedTime, "Should have original elapsed time")
+        #expect(gameState.canReset == false, "Reset should be locked")
+    }
+
     @Test("Reset before daily completion starts daily puzzle")
     func testResetBeforeDailyStartsDaily() {
         let settingKey = Constants.SettingsKeys.continuousPlay

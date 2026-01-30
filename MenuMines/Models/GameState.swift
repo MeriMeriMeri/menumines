@@ -556,6 +556,70 @@ final class GameState {
         GameSnapshot.clear()
     }
 
+    /// Checks if continuous play was disabled while on a random puzzle.
+    /// If so, restores the completed daily puzzle state.
+    ///
+    /// This handles the scenario where:
+    /// 1. User completes daily puzzle with continuous play enabled
+    /// 2. User plays random puzzles
+    /// 3. User disables continuous play
+    /// 4. User should now see their completed daily puzzle (locked)
+    func checkContinuousPlaySetting() {
+        // Only applies when on a random puzzle with continuous play disabled
+        guard puzzleType == .random, !isContinuousPlayEnabled else { return }
+
+        // If daily is complete, restore that state
+        guard isDailyPuzzleComplete() else { return }
+
+        let todaySeed = seedFromDate(Date())
+
+        // Try to restore from saved snapshot first
+        if let snapshot = GameSnapshot.load(), snapshot.dailySeed == todaySeed {
+            restoreFromDailySnapshot(snapshot)
+            return
+        }
+
+        // Fall back to restoring from stats
+        if let stats = getStats(for: Date()), stats.seed == todaySeed {
+            restoreFromDailyStats(stats, seed: todaySeed)
+        }
+    }
+
+    /// Restores state from a daily snapshot.
+    private func restoreFromDailySnapshot(_ snapshot: GameSnapshot) {
+        stopTimer()
+        board = snapshot.board
+        dailySeed = snapshot.dailySeed
+        puzzleType = .daily
+        status = snapshot.status
+        elapsedTime = snapshot.elapsedTime
+
+        // Count actual flags on board
+        let actualFlagCount = snapshot.board.cells.flatMap { $0 }.filter {
+            if case .flagged = $0.state { return true }
+            return false
+        }.count
+        flagCount = actualFlagCount
+
+        selectedRow = snapshot.selectedRow
+        selectedCol = snapshot.selectedCol
+        isPaused = false
+    }
+
+    /// Restores state from daily stats when snapshot is not available.
+    private func restoreFromDailyStats(_ stats: DailyStats, seed: Int64) {
+        stopTimer()
+        board = Board(seed: seed)
+        dailySeed = seed
+        puzzleType = .daily
+        status = stats.won ? .won : .lost
+        elapsedTime = stats.elapsedTime
+        flagCount = stats.flagCount
+        selectedRow = 0
+        selectedCol = 0
+        isPaused = false
+    }
+
     /// Moves the keyboard selection in the given direction.
     func moveSelection(_ direction: Direction) {
         let oldRow = selectedRow
