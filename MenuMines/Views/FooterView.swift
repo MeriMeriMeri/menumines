@@ -68,6 +68,7 @@ struct FooterView: View {
                 }
 
                 Button(String(localized: "contact_support_menu_item")) {
+                    NSApp.activate(ignoringOtherApps: true)
                     if let url = URL(string: "mailto:support@merimerimeri.com") {
                         NSWorkspace.shared.open(url)
                     }
