@@ -52,6 +52,25 @@ struct SettingsView: View {
                 Text(String(localized: "settings_allow_refresh_after_completion_footer"))
                     .foregroundStyle(.secondary)
             }
+
+            #if SPARKLE_ENABLED
+            Section {
+                Toggle(
+                    String(localized: "settings_auto_check_updates"),
+                    isOn: Binding(
+                        get: { UpdateManager.automaticallyChecksForUpdates },
+                        set: { UpdateManager.automaticallyChecksForUpdates = $0 }
+                    )
+                )
+
+                Button(String(localized: "check_for_updates_button")) {
+                    UpdateManager.checkForUpdates()
+                }
+                .disabled(!UpdateManager.canCheckForUpdates)
+            } header: {
+                Text(String(localized: "settings_updates_section"))
+            }
+            #endif
         }
         .formStyle(.grouped)
         .frame(width: Layout.width, height: Layout.height)

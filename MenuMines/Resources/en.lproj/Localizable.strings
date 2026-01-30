@@ -96,3 +96,9 @@
 "about_version" = "Version %@";
 "about_description" = "A daily Minesweeper puzzle";
 "about_copyright" = "© 2024-2025";
+
+/* Updates (Direct Distribution only) */
+"check_for_updates_menu_item" = "Check for Updates…";
+"check_for_updates_button" = "Check for Updates";
+"settings_updates_section" = "Updates";
+"settings_auto_check_updates" = "Automatically check for updates";

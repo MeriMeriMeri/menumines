@@ -1,0 +1,323 @@
+name: Release Direct Distribution
+
+on:
+  push:
+    tags:
+      - 'v*-direct'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version number (e.g., 1.1.0)'
+        required: true
+
+concurrency:
+  group: release-direct-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  SCHEME: MenuMines-Direct
+  CONFIGURATION: Release-Direct
+  ARCHIVE_PATH: build/MenuMines.xcarchive
+  EXPORT_PATH: build/export
+  DMG_PATH: build/MenuMines.dmg
+  KEYCHAIN_NAME: build.keychain-db
+  KEYCHAIN_PASSWORD: temporary-ci-password
+
+jobs:
+  release-direct:
+    name: Build, Sign, Notarize, and Release
+    runs-on: macos-15
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode 16.2
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+
+      - name: Show Build Environment
+        run: |
+          xcodebuild -version
+          swift --version
+
+      # ── Install Developer ID Certificate ──
+
+      - name: Install Developer ID Certificate
+        env:
+          DEVELOPER_ID_P12_BASE64: ${{ secrets.DEVELOPER_ID_P12_BASE64 }}
+          DEVELOPER_ID_PASSWORD: ${{ secrets.DEVELOPER_ID_PASSWORD }}
+        run: |
+          CERTIFICATE_PATH="$RUNNER_TEMP/certificate.p12"
+
+          echo "$DEVELOPER_ID_P12_BASE64" | base64 --decode -o "$CERTIFICATE_PATH"
+
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_NAME"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_NAME"
+
+          security import "$CERTIFICATE_PATH" \
+            -P "$DEVELOPER_ID_PASSWORD" \
+            -A \
+            -t cert \
+            -f pkcs12 \
+            -k "$KEYCHAIN_NAME"
+
+          security set-key-partition-list \
+            -S apple-tool:,apple:,codesign: \
+            -s \
+            -k "$KEYCHAIN_PASSWORD" \
+            "$KEYCHAIN_NAME"
+
+          security list-keychains -d user -s "$KEYCHAIN_NAME" $(security list-keychains -d user | tr -d '"')
+          security default-keychain -s "$KEYCHAIN_NAME"
+
+          security find-identity -v -p codesigning "$KEYCHAIN_NAME"
+
+      # ── Install Notarization Credentials ──
+
+      - name: Install App Store Connect API Key
+        env:
+          ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+        run: |
+          mkdir -p ~/.private_keys
+          echo "$ASC_API_KEY_P8_BASE64" | base64 --decode -o ~/.private_keys/AuthKey_${ASC_KEY_ID}.p8
+
+      # ── Set Version Numbers ──
+
+      - name: Set Version Numbers
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+            VERSION="${VERSION%-direct}"
+          fi
+          BUILD_NUMBER=${{ github.run_number }}
+
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
+          echo "Building version $VERSION (build $BUILD_NUMBER)"
+
+      # ── Resolve SPM Dependencies ──
+
+      - name: Resolve Swift Package Dependencies
+        run: |
+          xcodebuild -resolvePackageDependencies \
+            -scheme "$SCHEME" \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/spm-cache"
+
+      # ── Archive ──
+
+      - name: Archive
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
+          SPARKLE_PUBLIC_ED_KEY: ${{ secrets.SPARKLE_PUBLIC_ED_KEY }}
+        run: |
+          xcodebuild archive \
+            -scheme "$SCHEME" \
+            -configuration "$CONFIGURATION" \
+            -destination 'generic/platform=macOS' \
+            -archivePath "$ARCHIVE_PATH" \
+            -clonedSourcePackagesDirPath "$RUNNER_TEMP/spm-cache" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="Developer ID Application" \
+            MARKETING_VERSION="$VERSION" \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
+            SENTRY_DSN="$SENTRY_DSN" \
+            SPARKLE_PUBLIC_ED_KEY="$SPARKLE_PUBLIC_ED_KEY"
+
+      # ── Export ──
+
+      - name: Generate ExportOptions.plist
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+            "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key>
+            <string>developer-id</string>
+            <key>teamID</key>
+            <string>${APPLE_TEAM_ID}</string>
+            <key>signingStyle</key>
+            <string>manual</string>
+            <key>signingCertificate</key>
+            <string>Developer ID Application</string>
+          </dict>
+          </plist>
+          EOF
+
+      - name: Export Archive
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath "$ARCHIVE_PATH" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -exportPath "$EXPORT_PATH"
+
+      # ── Notarize ──
+
+      - name: Notarize App
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          APP_PATH="$EXPORT_PATH/MenuMines.app"
+
+          # Create ZIP for notarization
+          ditto -c -k --keepParent "$APP_PATH" "$RUNNER_TEMP/MenuMines.zip"
+
+          # Submit for notarization
+          xcrun notarytool submit "$RUNNER_TEMP/MenuMines.zip" \
+            --key ~/.private_keys/AuthKey_${ASC_KEY_ID}.p8 \
+            --key-id "$ASC_KEY_ID" \
+            --issuer "$ASC_ISSUER_ID" \
+            --wait
+
+          # Staple the notarization ticket
+          xcrun stapler staple "$APP_PATH"
+
+      # ── Create DMG ──
+
+      - name: Create DMG
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/dmg-staging"
+          cp -R "$EXPORT_PATH/MenuMines.app" "$RUNNER_TEMP/dmg-staging/"
+          ln -s /Applications "$RUNNER_TEMP/dmg-staging/Applications"
+
+          hdiutil create -volname "MenuMines" \
+            -srcfolder "$RUNNER_TEMP/dmg-staging" \
+            -ov -format UDZO \
+            "$DMG_PATH"
+
+          # Notarize DMG
+          xcrun notarytool submit "$DMG_PATH" \
+            --key ~/.private_keys/AuthKey_${ASC_KEY_ID}.p8 \
+            --key-id "$ASC_KEY_ID" \
+            --issuer "$ASC_ISSUER_ID" \
+            --wait
+
+          xcrun stapler staple "$DMG_PATH"
+
+      # ── Sign for Sparkle & Generate Appcast ──
+
+      - name: Sign DMG for Sparkle
+        env:
+          SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
+        run: |
+          # Write private key to temp file
+          echo "$SPARKLE_PRIVATE_KEY" > "$RUNNER_TEMP/sparkle_private_key"
+
+          # Find the sign_update tool from Sparkle package
+          SIGN_UPDATE=$(find "$RUNNER_TEMP/spm-cache" -name "sign_update" -type f | head -1)
+
+          if [ -z "$SIGN_UPDATE" ]; then
+            echo "sign_update tool not found in SPM cache, building from source..."
+            git clone --depth 1 --branch 2.5.0 https://github.com/sparkle-project/Sparkle.git "$RUNNER_TEMP/Sparkle"
+            cd "$RUNNER_TEMP/Sparkle"
+            xcodebuild -project Sparkle.xcodeproj \
+              -scheme sign_update \
+              -configuration Release \
+              -derivedDataPath "$RUNNER_TEMP/sparkle-build" \
+              ONLY_ACTIVE_ARCH=NO
+            SIGN_UPDATE="$RUNNER_TEMP/sparkle-build/Build/Products/Release/sign_update"
+          fi
+
+          # Sign the DMG
+          SIGNATURE=$("$SIGN_UPDATE" "$GITHUB_WORKSPACE/$DMG_PATH" \
+            --ed-key-file "$RUNNER_TEMP/sparkle_private_key")
+
+          echo "SPARKLE_SIGNATURE=$SIGNATURE" >> "$GITHUB_ENV"
+
+          # Get file size
+          DMG_SIZE=$(stat -f%z "$GITHUB_WORKSPACE/$DMG_PATH")
+          echo "DMG_SIZE=$DMG_SIZE" >> "$GITHUB_ENV"
+
+      - name: Generate Appcast
+        run: |
+          cat > "$EXPORT_PATH/appcast.xml" <<EOF
+          <?xml version="1.0" encoding="utf-8"?>
+          <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+            <channel>
+              <title>MenuMines Updates</title>
+              <link>https://github.com/${{ github.repository }}/releases</link>
+              <description>Most recent updates to MenuMines</description>
+              <language>en</language>
+              <item>
+                <title>Version $VERSION</title>
+                <sparkle:version>$BUILD_NUMBER</sparkle:version>
+                <sparkle:shortVersionString>$VERSION</sparkle:shortVersionString>
+                <sparkle:releaseNotesLink>
+                  https://github.com/${{ github.repository }}/releases/tag/v$VERSION-direct
+                </sparkle:releaseNotesLink>
+                <pubDate>$(date -u +"%a, %d %b %Y %H:%M:%S +0000")</pubDate>
+                <enclosure
+                  url="https://github.com/${{ github.repository }}/releases/download/v$VERSION-direct/MenuMines-$VERSION.dmg"
+                  sparkle:edSignature="$SPARKLE_SIGNATURE"
+                  length="$DMG_SIZE"
+                  type="application/octet-stream" />
+                <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+              </item>
+            </channel>
+          </rss>
+          EOF
+
+      # ── Rename DMG for Release ──
+
+      - name: Rename DMG
+        run: |
+          mv "$DMG_PATH" "build/MenuMines-$VERSION.dmg"
+          echo "FINAL_DMG_PATH=build/MenuMines-$VERSION.dmg" >> "$GITHUB_ENV"
+
+      # ── Create GitHub Release ──
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: "v${{ env.VERSION }} (Direct Distribution)"
+          tag_name: "v${{ env.VERSION }}-direct"
+          draft: false
+          prerelease: false
+          files: |
+            ${{ env.FINAL_DMG_PATH }}
+            ${{ env.EXPORT_PATH }}/appcast.xml
+          body: |
+            ## MenuMines v${{ env.VERSION }} - Direct Distribution
+
+            Download the DMG and drag MenuMines to your Applications folder.
+
+            **Note**: This is the direct distribution build with auto-updates.
+            For the App Store version, download from the Mac App Store.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Upload Artifacts ──
+
+      - name: Upload Archive Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: MenuMines-${{ env.VERSION }}-Direct.xcarchive
+          path: ${{ env.ARCHIVE_PATH }}
+          retention-days: 30
+
+      # ── Cleanup ──
+
+      - name: Cleanup
+        if: always()
+        run: |
+          security delete-keychain "$KEYCHAIN_NAME" 2>/dev/null || true
+          rm -f "$RUNNER_TEMP/certificate.p12"
+          rm -f "$RUNNER_TEMP/sparkle_private_key"
+          rm -rf ~/.private_keys
+          rm -rf "$RUNNER_TEMP/Sparkle"
+          rm -rf "$RUNNER_TEMP/sparkle-build"
