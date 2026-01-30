@@ -84,6 +84,14 @@ xcodebuild test -scheme MenuMines
 xcodebuild clean -scheme MenuMines
 ```
 
+## Testing Requirements
+
+**Tests must always be run:**
+- After any substantive code change, even if not explicitly asked
+- Before every commit
+
+This is non-negotiable. CI does not run on PRs, so local test runs are the only safeguard.
+
 ## Accessibility
 
 MenuMines must be fully playable with VoiceOver. Accessibility is a core requirement, not an afterthought.
