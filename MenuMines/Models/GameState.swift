@@ -12,6 +12,37 @@ struct GameSnapshot: Codable {
     let selectedRow: Int
     let selectedCol: Int
     let dailySeed: Int64
+    let puzzleType: PuzzleType
+
+    /// Coding keys for backward-compatible decoding.
+    private enum CodingKeys: String, CodingKey {
+        case board, status, elapsedTime, flagCount, selectedRow, selectedCol, dailySeed, puzzleType
+    }
+
+    /// Custom decoder to provide backward compatibility for existing snapshots without puzzleType.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        board = try container.decode(Board.self, forKey: .board)
+        status = try container.decode(GameStatus.self, forKey: .status)
+        elapsedTime = try container.decode(TimeInterval.self, forKey: .elapsedTime)
+        flagCount = try container.decode(Int.self, forKey: .flagCount)
+        selectedRow = try container.decode(Int.self, forKey: .selectedRow)
+        selectedCol = try container.decode(Int.self, forKey: .selectedCol)
+        dailySeed = try container.decode(Int64.self, forKey: .dailySeed)
+        puzzleType = try container.decodeIfPresent(PuzzleType.self, forKey: .puzzleType) ?? .daily
+    }
+
+    init(board: Board, status: GameStatus, elapsedTime: TimeInterval, flagCount: Int,
+         selectedRow: Int, selectedCol: Int, dailySeed: Int64, puzzleType: PuzzleType = .daily) {
+        self.board = board
+        self.status = status
+        self.elapsedTime = elapsedTime
+        self.flagCount = flagCount
+        self.selectedRow = selectedRow
+        self.selectedCol = selectedCol
+        self.dailySeed = dailySeed
+        self.puzzleType = puzzleType
+    }
 
     private static let baseStorageKey = "gameSnapshot"
     @TaskLocal private static var storageKeySuffix: String?
@@ -113,6 +144,7 @@ final class GameState {
     private(set) var selectedCol: Int = 0
     private var dailySeed: Int64
     private(set) var isPaused: Bool = false
+    private(set) var puzzleType: PuzzleType = .daily
 
     private var timer: Timer?
     /// Cache the last date we checked for rollover to avoid redundant calculations
@@ -120,17 +152,24 @@ final class GameState {
     /// Task for debouncing selection change announcements to prevent overlapping VoiceOver messages.
     private var announcementTask: Task<Void, Never>?
 
-    /// Whether reset is allowed.
-    /// Reset is locked once today's puzzle is completed, unless the user has enabled
-    /// the "allow refresh after completion" setting.
-    var canReset: Bool {
-        let allowRefresh = UserDefaults.standard.bool(forKey: Constants.SettingsKeys.allowRefreshAfterCompletion)
-        return allowRefresh || !isDailyPuzzleComplete()
+    /// Whether continuous play mode is enabled.
+    private var isContinuousPlayEnabled: Bool {
+        UserDefaults.standard.bool(forKey: Constants.SettingsKeys.continuousPlay)
     }
 
-    init(board: Board, dailySeed: Int64 = seedFromDate(Date())) {
+    /// Whether reset is allowed.
+    /// Reset is locked once today's puzzle is completed unless continuous play is enabled.
+    var canReset: Bool {
+        if isDailyPuzzleComplete() {
+            return isContinuousPlayEnabled
+        }
+        return true
+    }
+
+    init(board: Board, dailySeed: Int64 = seedFromDate(Date()), puzzleType: PuzzleType = .daily) {
         self.board = board
         self.dailySeed = dailySeed
+        self.puzzleType = puzzleType
     }
 
     /// Generates a Wordle-style share text for the completed game.
@@ -269,30 +308,64 @@ final class GameState {
         }
     }
 
-    /// Resets the game to a fresh state with today's daily board.
-    /// Does nothing if reset is locked (daily puzzle already completed).
+    /// Resets the game to a fresh state.
+    /// If continuous play is enabled and daily puzzle is complete, starts a random puzzle.
+    /// Otherwise resets to today's daily puzzle.
+    /// Does nothing if reset is locked (daily puzzle already completed and continuous play disabled).
     func reset() {
         guard canReset else { return }
         stopTimer()
-        let seed = seedFromDate(Date())
-        board = Board(seed: seed)
-        dailySeed = seed
+
+        // If continuous play is enabled and daily is complete, start a random puzzle
+        if isContinuousPlayEnabled && isDailyPuzzleComplete() {
+            resetToRandomPuzzle()
+        } else {
+            // Reset to today's daily puzzle
+            let seed = seedFromDate(Date())
+            board = Board(seed: seed)
+            dailySeed = seed
+            puzzleType = .daily
+            status = .notStarted
+            elapsedTime = 0
+            flagCount = 0
+            selectedRow = 0
+            selectedCol = 0
+            isPaused = false
+            GameSnapshot.clear()
+        }
+    }
+
+    /// Resets to a new random puzzle for continuous play mode.
+    private func resetToRandomPuzzle() {
+        let randomSeed = generateRandomSeed()
+        board = Board(seed: randomSeed)
+        dailySeed = randomSeed
+        puzzleType = .random
         status = .notStarted
         elapsedTime = 0
         flagCount = 0
         selectedRow = 0
         selectedCol = 0
         isPaused = false
+        // Don't persist random puzzles
         GameSnapshot.clear()
+    }
+
+    /// Generates a random seed that won't collide with daily seeds (YYYYMMDD format).
+    /// Uses negative values to ensure no collision.
+    private func generateRandomSeed() -> Int64 {
+        -Int64.random(in: 1...Int64.max)
     }
 
     // MARK: - Persistence
 
     /// Saves the current game state to persistent storage.
-    /// Saves in-progress and completed games so state persists across app restarts.
-    /// Does not save if game hasn't started yet.
+    /// Saves in-progress and completed daily games so state persists across app restarts.
+    /// Does not save if game hasn't started yet or if it's a random puzzle.
     func save() {
         guard status != .notStarted else { return }
+        // Don't persist random puzzles - they're discarded on app close
+        guard puzzleType == .daily else { return }
 
         let snapshot = GameSnapshot(
             board: board,
@@ -301,7 +374,8 @@ final class GameState {
             flagCount: flagCount,
             selectedRow: selectedRow,
             selectedCol: selectedCol,
-            dailySeed: dailySeed
+            dailySeed: dailySeed,
+            puzzleType: puzzleType
         )
         snapshot.save()
     }
@@ -316,13 +390,17 @@ final class GameState {
     /// - If snapshot is from a previous day AND game is not in progress:
     ///   create fresh game for today (allow rollover)
     ///
+    /// Continuous play behavior:
+    /// - If daily is complete: restore completed state from stats
+    /// - Continuous play only affects whether reset can start a random puzzle
+    ///
     /// Error recovery behavior:
     /// - If snapshot is corrupted but daily is complete: restore completed state from stats
     /// - If snapshot is corrupted and daily is not complete: create fresh game
     static func restored() -> GameState {
         let todaySeed = seedFromDate(Date())
 
-        // Try to restore from snapshot
+        // Try to restore from snapshot (only daily puzzles are persisted)
         if let snapshot = GameSnapshot.loadAnyDay() {
             if snapshot.dailySeed == todaySeed {
                 return restoreFromSnapshot(snapshot)
@@ -336,14 +414,16 @@ final class GameState {
             GameSnapshot.clear()
         }
 
-        // Create fresh board for today
-        let board = Board(seed: todaySeed)
-
-        // Try to restore completion state from stats if available
-        if let restoredState = tryRestoreFromStats(seed: todaySeed, board: board) {
-            return restoredState
+        // Check if daily is complete and restore completed state from stats if available
+        if isDailyPuzzleComplete() {
+            let board = Board(seed: todaySeed)
+            if let restoredState = tryRestoreFromStats(seed: todaySeed, board: board) {
+                return restoredState
+            }
         }
 
+        // Create fresh board for today
+        let board = Board(seed: todaySeed)
         return GameState(board: board, dailySeed: todaySeed)
     }
 
@@ -382,7 +462,7 @@ final class GameState {
 
     /// Helper to restore a GameState from a snapshot.
     private static func restoreFromSnapshot(_ snapshot: GameSnapshot) -> GameState {
-        let state = GameState(board: snapshot.board, dailySeed: snapshot.dailySeed)
+        let state = GameState(board: snapshot.board, dailySeed: snapshot.dailySeed, puzzleType: snapshot.puzzleType)
         state.status = snapshot.status
         state.elapsedTime = snapshot.elapsedTime
 
@@ -429,11 +509,16 @@ final class GameState {
     /// Called when the popover appears to handle day changes.
     ///
     /// Rollover happens when:
+    /// - The current game is a daily puzzle (not random)
     /// - The current game's seed is from a previous day
     /// - AND the game is not in progress (status != .playing)
     ///
     /// If game is in progress, it continues until completion.
+    /// Random puzzles are not date-bound and skip rollover checks.
     func checkForDailyRollover() {
+        // Random puzzles are not tied to dates - skip rollover check
+        guard puzzleType == .daily else { return }
+
         let now = Date()
 
         // Check if we've already checked today (cache optimization)
@@ -461,6 +546,7 @@ final class GameState {
         stopTimer()
         board = Board(seed: seed)
         dailySeed = seed
+        puzzleType = .daily
         status = .notStarted
         elapsedTime = 0
         flagCount = 0
@@ -468,6 +554,70 @@ final class GameState {
         selectedRow = 0
         selectedCol = 0
         GameSnapshot.clear()
+    }
+
+    /// Checks if continuous play was disabled while on a random puzzle.
+    /// If so, restores the completed daily puzzle state.
+    ///
+    /// This handles the scenario where:
+    /// 1. User completes daily puzzle with continuous play enabled
+    /// 2. User plays random puzzles
+    /// 3. User disables continuous play
+    /// 4. User should now see their completed daily puzzle (locked)
+    func checkContinuousPlaySetting() {
+        // Only applies when on a random puzzle with continuous play disabled
+        guard puzzleType == .random, !isContinuousPlayEnabled else { return }
+
+        // If daily is complete, restore that state
+        guard isDailyPuzzleComplete() else { return }
+
+        let todaySeed = seedFromDate(Date())
+
+        // Try to restore from saved snapshot first
+        if let snapshot = GameSnapshot.load(), snapshot.dailySeed == todaySeed {
+            restoreFromDailySnapshot(snapshot)
+            return
+        }
+
+        // Fall back to restoring from stats
+        if let stats = getStats(for: Date()), stats.seed == todaySeed {
+            restoreFromDailyStats(stats, seed: todaySeed)
+        }
+    }
+
+    /// Restores state from a daily snapshot.
+    private func restoreFromDailySnapshot(_ snapshot: GameSnapshot) {
+        stopTimer()
+        board = snapshot.board
+        dailySeed = snapshot.dailySeed
+        puzzleType = .daily
+        status = snapshot.status
+        elapsedTime = snapshot.elapsedTime
+
+        // Count actual flags on board
+        let actualFlagCount = snapshot.board.cells.flatMap { $0 }.filter {
+            if case .flagged = $0.state { return true }
+            return false
+        }.count
+        flagCount = actualFlagCount
+
+        selectedRow = snapshot.selectedRow
+        selectedCol = snapshot.selectedCol
+        isPaused = false
+    }
+
+    /// Restores state from daily stats when snapshot is not available.
+    private func restoreFromDailyStats(_ stats: DailyStats, seed: Int64) {
+        stopTimer()
+        board = Board(seed: seed)
+        dailySeed = seed
+        puzzleType = .daily
+        status = stats.won ? .won : .lost
+        elapsedTime = stats.elapsedTime
+        flagCount = stats.flagCount
+        selectedRow = 0
+        selectedCol = 0
+        isPaused = false
     }
 
     /// Moves the keyboard selection in the given direction.
@@ -588,7 +738,8 @@ final class GameState {
         let result = GameResult(
             won: won,
             elapsedTime: elapsedTime,
-            dailySeed: dailySeed
+            dailySeed: dailySeed,
+            puzzleType: puzzleType
         )
         Task { @MainActor in
             StatsStore.shared.record(result)
@@ -607,10 +758,16 @@ final class GameState {
     }
 
     /// Handles game completion (win or loss).
-    /// Atomically marks daily puzzle as complete, records stats, and saves the board state.
+    /// For daily puzzles: marks complete, records stats, and saves state.
+    /// For random puzzles: records stats only (no daily tracking).
     private func handleGameComplete(won: Bool) {
         stopTimer()
-        markCompleteAndRecordStats(won: won, elapsedTime: elapsedTime, flagCount: flagCount)
+
+        if puzzleType == .daily {
+            // Only mark daily completion and record daily stats for daily puzzles
+            markCompleteAndRecordStats(won: won, elapsedTime: elapsedTime, flagCount: flagCount)
+        }
+
         recordGameResult(won: won)
         save()
     }

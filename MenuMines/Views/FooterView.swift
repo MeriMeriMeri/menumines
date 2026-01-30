@@ -38,7 +38,7 @@ struct FooterView: View {
             }
             .buttonStyle(.borderless)
             .popover(isPresented: $showControls) {
-                ControlsPopoverView(canReset: canReset)
+                ControlsPopoverView()
             }
             .accessibilityLabel(String(localized: "controls_button_accessibility"))
 
@@ -49,6 +49,7 @@ struct FooterView: View {
                 }
                 .keyboardShortcut("r", modifiers: .command)
                 .disabled(!canReset)
+                .accessibilityHint(canReset ? String(localized: "reset_accessibility_hint") : String(localized: "reset_locked_hint"))
 
                 Divider()
 
@@ -64,6 +65,12 @@ struct FooterView: View {
 
                 Button(String(localized: "about_menu_item")) {
                     onAbout()
+                }
+
+                Button(String(localized: "contact_support_menu_item")) {
+                    if let url = URL(string: "mailto:support@merimerimeri.com") {
+                        NSWorkspace.shared.open(url)
+                    }
                 }
 
                 #if SPARKLE_ENABLED
@@ -95,8 +102,6 @@ struct FooterView: View {
 // MARK: - Controls Popover
 
 private struct ControlsPopoverView: View {
-    let canReset: Bool
-
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(String(localized: "controls_title"))
@@ -106,9 +111,7 @@ private struct ControlsPopoverView: View {
                 controlRow(key: "↑ ↓ ← →", action: String(localized: "controls_move"))
                 controlRow(key: "Space", action: String(localized: "controls_reveal"))
                 controlRow(key: "F", action: String(localized: "controls_flag"))
-                if canReset {
-                    controlRow(key: "⌘R", action: String(localized: "controls_reset"))
-                }
+                controlRow(key: "⌘R", action: String(localized: "controls_reset"))
             }
             .font(.system(.body, design: .monospaced))
         }
@@ -135,10 +138,5 @@ private struct ControlsPopoverView: View {
 
 #Preview("Footer - Game Complete") {
     FooterView(isGameComplete: true, canReset: true, onReset: {}, onShare: {}, onAbout: {})
-        .padding()
-}
-
-#Preview("Footer - Reset Locked") {
-    FooterView(isGameComplete: true, canReset: false, onReset: {}, onShare: {}, onAbout: {})
         .padding()
 }

@@ -15,9 +15,10 @@ enum Constants {
         /// Controls whether streaks are displayed in the Stats window.
         /// When false, streak data is still collected but hidden in the UI.
         static let showStreaks = "com.menumines.showStreaks"
-        /// Controls whether the game can be refreshed after completing the daily puzzle.
-        /// When true, users can reset and replay even after winning or losing.
-        /// Stats are only recorded for the first completion regardless of this setting.
-        static let allowRefreshAfterCompletion = "com.menumines.allowRefreshAfterCompletion"
+
+        /// Controls whether continuous play mode is enabled.
+        /// When true (default), after completing the daily puzzle, users can continue
+        /// playing unlimited random puzzles. Only the daily puzzle counts toward streaks.
+        static let continuousPlay = "com.menumines.continuousPlay"
     }
 }

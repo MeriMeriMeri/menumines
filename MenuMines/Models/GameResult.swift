@@ -1,5 +1,11 @@
 import Foundation
 
+/// Distinguishes between daily puzzles and random continuous play puzzles.
+enum PuzzleType: String, Codable {
+    case daily
+    case random
+}
+
 /// Represents the outcome of a single completed game.
 /// Stores raw data to enable computing derived metrics at runtime.
 struct GameResult: Codable, Equatable {
@@ -15,15 +21,35 @@ struct GameResult: Codable, Equatable {
     /// Timestamp when the game was completed.
     let completedAt: Date
 
+    /// Whether this was a daily puzzle or a random continuous play puzzle.
+    let puzzleType: PuzzleType
+
     /// Creates a game result from the current game state.
     /// - Parameters:
     ///   - won: Whether the player won.
     ///   - elapsedTime: Time taken in seconds.
     ///   - dailySeed: The daily puzzle seed.
-    init(won: Bool, elapsedTime: TimeInterval, dailySeed: Int64, completedAt: Date = Date()) {
+    ///   - puzzleType: Whether this was a daily or random puzzle.
+    init(won: Bool, elapsedTime: TimeInterval, dailySeed: Int64, completedAt: Date = Date(), puzzleType: PuzzleType = .daily) {
         self.won = won
         self.elapsedTime = elapsedTime
         self.dailySeed = dailySeed
         self.completedAt = completedAt
+        self.puzzleType = puzzleType
+    }
+
+    /// Coding keys for backward-compatible decoding.
+    private enum CodingKeys: String, CodingKey {
+        case won, elapsedTime, dailySeed, completedAt, puzzleType
+    }
+
+    /// Custom decoder to provide backward compatibility for existing records without puzzleType.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        won = try container.decode(Bool.self, forKey: .won)
+        elapsedTime = try container.decode(TimeInterval.self, forKey: .elapsedTime)
+        dailySeed = try container.decode(Int64.self, forKey: .dailySeed)
+        completedAt = try container.decode(Date.self, forKey: .completedAt)
+        puzzleType = try container.decodeIfPresent(PuzzleType.self, forKey: .puzzleType) ?? .daily
     }
 }
