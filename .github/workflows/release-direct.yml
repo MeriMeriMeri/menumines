@@ -35,6 +35,23 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify Checkout
+        run: |
+          echo "Checked out commit: $(git rev-parse HEAD)"
+          echo "Tag ref: ${{ github.ref }}"
+          git log --oneline -3
+
+      - name: Clean All Caches
+        run: |
+          # Remove any Xcode derived data
+          rm -rf ~/Library/Developer/Xcode/DerivedData
+          # Remove any previous build artifacts
+          rm -rf build/
+          # Clean git ignored files
+          git clean -fdx -e ".env"
 
       - name: Select Xcode 16.2
         run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
