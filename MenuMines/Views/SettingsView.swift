@@ -2,7 +2,7 @@ import SwiftUI
 
 struct SettingsView: View {
     enum Layout {
-        static let width: CGFloat = 350
+        static let width: CGFloat = 420
         static let height: CGFloat = 480
     }
 
