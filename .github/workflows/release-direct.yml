@@ -139,6 +139,16 @@ jobs:
             -scheme "$SCHEME" \
             -clonedSourcePackagesDirPath "$RUNNER_TEMP/spm-cache"
 
+      # ── Verify Source Before Build ──
+
+      - name: Verify Source Files
+        run: |
+          echo "=== FooterView.swift SPARKLE section ==="
+          grep -A5 -B5 "SPARKLE_ENABLED" MenuMines/Views/FooterView.swift || echo "SPARKLE_ENABLED not found!"
+          echo ""
+          echo "=== Checking for debug text ==="
+          grep "SPARKLE=YES\|SPARKLE=NO" MenuMines/Views/FooterView.swift || echo "Debug text not found!"
+
       # ── Archive ──
 
       - name: Archive
