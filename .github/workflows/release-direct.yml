@@ -143,11 +143,11 @@ jobs:
 
       - name: Verify Source Files
         run: |
+          echo "=== FooterView.swift layout fix ==="
+          grep -n "frame(maxWidth: .infinity)" MenuMines/Views/FooterView.swift || echo "Layout fix not found!"
+          echo ""
           echo "=== FooterView.swift SPARKLE section ==="
           grep -A5 -B5 "SPARKLE_ENABLED" MenuMines/Views/FooterView.swift || echo "SPARKLE_ENABLED not found!"
-          echo ""
-          echo "=== Checking for debug text ==="
-          grep "SPARKLE=YES\|SPARKLE=NO" MenuMines/Views/FooterView.swift || echo "Debug text not found!"
 
       # ── Archive ──
 
