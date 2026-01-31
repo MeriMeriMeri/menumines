@@ -63,13 +63,16 @@ struct FooterView: View {
                 }
                 .keyboardShortcut(",", modifiers: .command)
 
-                #if SPARKLE_ENABLED
+                // DEBUG: Always show to verify compilation flag
                 Divider()
-
-                Button(String(localized: "check_for_updates_menu_item")) {
+                #if SPARKLE_ENABLED
+                Button("Check for Updates (SPARKLE=YES)") {
                     UpdateManager.checkForUpdates()
                 }
                 .disabled(!UpdateManager.canCheckForUpdates)
+                #else
+                Button("Updates Disabled (SPARKLE=NO)") {}
+                    .disabled(true)
                 #endif
 
                 Divider()
