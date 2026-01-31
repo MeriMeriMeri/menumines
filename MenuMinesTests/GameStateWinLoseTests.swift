@@ -92,15 +92,15 @@ struct GameStateWinLoseTests {
 
         // Count mines after first click
         var mineCount = 0
-        for r in 0..<8 {
-            for c in 0..<8 {
+        for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
                 if gameState.board.cells[r][c].hasMine {
                     mineCount += 1
                 }
             }
         }
 
-        #expect(mineCount == 10, "Mine count should remain 10 after first-click relocation")
+        #expect(mineCount == Board.mineCount, "Mine count should remain \(Board.mineCount) after first-click relocation")
     }
 
     @Test("Cannot reveal after game is lost")

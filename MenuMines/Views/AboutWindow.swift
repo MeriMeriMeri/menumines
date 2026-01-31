@@ -57,6 +57,9 @@ private struct AboutView: View {
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
 
+            Link(String(localized: "about_support_email"), destination: URL(string: "mailto:support@merimerimeri.com")!)
+                .font(.caption)
+
             Text(String(localized: "about_copyright"))
                 .font(.caption)
                 .foregroundStyle(.tertiary)

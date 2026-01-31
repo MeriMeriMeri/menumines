@@ -6,7 +6,6 @@
 "about_menu_item" = "About MenuMines";
 "settings_menu_item" = "Settings...";
 "quit_menu_item" = "Quit MenuMines";
-"contact_support_menu_item" = "Contact Support";
 "footer_menu_accessibility_label" = "App menu";
 
 /* Game status */
@@ -98,6 +97,7 @@
 "about_title" = "MenuMines";
 "about_version" = "Version %@";
 "about_description" = "A daily Minesweeper puzzle";
+"about_support_email" = "support@merimerimeri.com";
 "about_copyright" = "© 2024-2025";
 
 /* Updates (Direct Distribution only) */
