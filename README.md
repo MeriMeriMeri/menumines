@@ -78,19 +78,21 @@ The `release-direct.yml` workflow:
 
 | Secret | Description |
 |--------|-------------|
-| `APP_STORE_CONNECT_API_KEY_ID` | App Store Connect API key ID |
-| `APP_STORE_CONNECT_API_ISSUER_ID` | App Store Connect API issuer ID |
-| `APP_STORE_CONNECT_API_KEY` | App Store Connect API private key |
-| `APPLE_DISTRIBUTION_P12_BASE64` | Base64-encoded Apple Distribution certificate |
-| `APPLE_DISTRIBUTION_PASSWORD` | Certificate password |
+| `APPLE_CERTIFICATE_P12_BASE64` | Base64-encoded Apple Distribution certificate |
+| `APPLE_CERTIFICATE_PASSWORD` | Certificate password |
+| `PROVISIONING_PROFILE_BASE64` | Base64-encoded provisioning profile |
+| `ASC_API_KEY_P8_BASE64` | Base64-encoded App Store Connect API key (.p8) |
+| `ASC_KEY_ID` | App Store Connect API key ID |
+| `ASC_ISSUER_ID` | App Store Connect API issuer ID |
+| `APPLE_TEAM_ID` | Apple Developer Team ID |
 | `SENTRY_DSN` | Sentry DSN for error tracking |
 
 #### Direct Distribution (release-direct.yml)
 
 | Secret | Description |
 |--------|-------------|
-| `DEVELOPER_ID_P12_BASE64` | Base64-encoded Developer ID Application certificate |
-| `DEVELOPER_ID_PASSWORD` | Certificate password |
+| `DEVELOPER_ID_CERT_BASE64` | Base64-encoded Developer ID Application certificate |
+| `DEVELOPER_ID_CERT_PASSWORD` | Certificate password |
 | `APPLE_ID` | Apple ID for notarization |
 | `APPLE_ID_PASSWORD` | App-specific password for notarization |
 | `APPLE_TEAM_ID` | Apple Developer Team ID |
