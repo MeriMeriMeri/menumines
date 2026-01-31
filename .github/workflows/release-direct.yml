@@ -108,13 +108,6 @@ jobs:
 
       # ── Resolve SPM Dependencies ──
 
-      - name: Cache SPM Dependencies
-        uses: actions/cache@v4
-        with:
-          path: ${{ runner.temp }}/spm-cache
-          key: spm-${{ hashFiles('MenuMines.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
-          restore-keys: spm-
-
       - name: Resolve Swift Package Dependencies
         run: |
           xcodebuild -resolvePackageDependencies \
@@ -125,9 +118,23 @@ jobs:
 
       - name: Clean Build
         run: |
-          # Remove any cached DerivedData to ensure fresh build
+          # Remove all build artifacts to ensure completely fresh build
           rm -rf ~/Library/Developer/Xcode/DerivedData
           rm -rf build/
+          rm -rf "$RUNNER_TEMP/DerivedData"
+
+      - name: Verify Source Files
+        run: |
+          echo "=== Checking source files contain expected changes ==="
+          echo "FooterView.swift should have .frame(maxWidth: .infinity):"
+          grep -n "frame(maxWidth: .infinity)" MenuMines/Views/FooterView.swift || echo "NOT FOUND!"
+          echo ""
+          echo "SettingsView.swift should have .frame(maxWidth: .infinity, alignment: .leading):"
+          grep -n "frame(maxWidth: .infinity, alignment: .leading)" MenuMines/Views/SettingsView.swift || echo "NOT FOUND!"
+          echo ""
+          echo "=== Git status ==="
+          git log --oneline -5
+          git status
 
       - name: Archive
         env:
@@ -135,7 +142,7 @@ jobs:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SPARKLE_PUBLIC_ED_KEY: ${{ secrets.SPARKLE_PUBLIC_ED_KEY }}
         run: |
-          xcodebuild archive \
+          xcodebuild clean archive \
             -scheme "$SCHEME" \
             -configuration "$CONFIGURATION" \
             -destination 'generic/platform=macOS' \
