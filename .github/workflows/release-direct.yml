@@ -157,6 +157,17 @@ jobs:
             SENTRY_DSN="$SENTRY_DSN" \
             SPARKLE_PUBLIC_ED_KEY="$SPARKLE_PUBLIC_ED_KEY"
 
+      - name: Verify Archive Contents
+        run: |
+          echo "=== Archive Info.plist ==="
+          cat "$ARCHIVE_PATH/Info.plist"
+          echo ""
+          echo "=== App Info.plist ==="
+          cat "$ARCHIVE_PATH/Products/Applications/MenuMinesDirect.app/Contents/Info.plist"
+          echo ""
+          echo "=== Build number in archive ==="
+          /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$ARCHIVE_PATH/Products/Applications/MenuMinesDirect.app/Contents/Info.plist"
+
       # ── Export ──
 
       - name: Generate ExportOptions.plist
@@ -183,10 +194,21 @@ jobs:
 
       - name: Export Archive
         run: |
+          # Clean export path first
+          rm -rf "$EXPORT_PATH"
+
           xcodebuild -exportArchive \
             -archivePath "$ARCHIVE_PATH" \
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
             -exportPath "$EXPORT_PATH"
+
+      - name: Verify Exported App
+        run: |
+          echo "=== Exported app build number ==="
+          /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$EXPORT_PATH/MenuMinesDirect.app/Contents/Info.plist"
+          echo ""
+          echo "=== Exported app version ==="
+          /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$EXPORT_PATH/MenuMinesDirect.app/Contents/Info.plist"
 
       # ── Create & Notarize DMG ──
       # Note: We only notarize the DMG, not the app separately.
@@ -194,7 +216,10 @@ jobs:
 
       - name: Create and Notarize DMG
         run: |
+          # Clean staging directory first
+          rm -rf "$RUNNER_TEMP/dmg-staging"
           mkdir -p "$RUNNER_TEMP/dmg-staging"
+
           cp -R "$EXPORT_PATH/MenuMinesDirect.app" "$RUNNER_TEMP/dmg-staging/MenuMines.app"
           ln -s /Applications "$RUNNER_TEMP/dmg-staging/Applications"
 
