@@ -184,6 +184,60 @@ struct Board: Equatable, Codable {
         cells[target.0][target.1] = Cell(state: .hidden, hasMine: true)
     }
 
+    /// Clears mines from a 3x3 area around the given position.
+    /// Mines are relocated deterministically to empty cells outside this area.
+    /// Used for first-click opening guarantee.
+    /// - Parameters:
+    ///   - row: Center row of the area to clear
+    ///   - col: Center column of the area to clear
+    ///   - seed: Board seed for deterministic relocation
+    mutating func clearAreaForOpening(centerRow row: Int, centerCol col: Int, seed: Int64) {
+        // Create deterministic RNG from board seed + click position
+        let relocationSeed = UInt64(bitPattern: seed ^ Int64(row * 31 + col) ^ 0x4d4d_4f52)
+        let rng = GKLinearCongruentialRandomSource(seed: relocationSeed)
+
+        // Collect positions in 3x3 area (sorted for determinism)
+        var clearPositions: [(Int, Int)] = []
+        for dr in -1...1 {
+            for dc in -1...1 {
+                let r = row + dr
+                let c = col + dc
+                if r >= 0, r < Board.rows, c >= 0, c < Board.cols {
+                    clearPositions.append((r, c))
+                }
+            }
+        }
+
+        // Find empty cells outside clear zone (sorted for determinism)
+        var targetCells: [(Int, Int)] = []
+        for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                let inClearZone = clearPositions.contains { $0.0 == r && $0.1 == c }
+                if !inClearZone && !cells[r][c].hasMine {
+                    targetCells.append((r, c))
+                }
+            }
+        }
+
+        // Fisher-Yates shuffle with seeded RNG for deterministic ordering
+        for i in stride(from: targetCells.count - 1, through: 1, by: -1) {
+            let j = rng.nextInt(upperBound: i + 1)
+            targetCells.swapAt(i, j)
+        }
+
+        // Relocate each mine in clear zone (in sorted order for determinism)
+        var targetIndex = 0
+        for (r, c) in clearPositions {
+            if cells[r][c].hasMine {
+                guard targetIndex < targetCells.count else { continue }
+                let target = targetCells[targetIndex]
+                cells[r][c] = Cell(state: .hidden, hasMine: false)
+                cells[target.0][target.1] = Cell(state: .hidden, hasMine: true)
+                targetIndex += 1
+            }
+        }
+    }
+
     /// Returns the count of mines in adjacent cells (including diagonals).
     func adjacentMineCount(row: Int, col: Int) -> Int {
         countAdjacentCells(row: row, col: col) { $0.hasMine }

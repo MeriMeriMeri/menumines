@@ -38,13 +38,32 @@ struct GameStateBasicTests {
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
 
-        #expect(gameState.flagCount == 0)
-        #expect(gameState.board.cells[0][0].state == .hidden)
+        // Start the game first (flags only allowed after first reveal)
+        gameState.reveal(row: 0, col: 0)
 
-        gameState.toggleFlag(row: 0, col: 0)
+        // Find a hidden cell to flag
+        var flagRow = -1, flagCol = -1
+        outer: for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                if case .hidden = gameState.board.cells[r][c].state {
+                    flagRow = r
+                    flagCol = c
+                    break outer
+                }
+            }
+        }
+
+        guard flagRow >= 0 else {
+            Issue.record("No hidden cell found")
+            return
+        }
+
+        #expect(gameState.flagCount == 0)
+
+        gameState.toggleFlag(row: flagRow, col: flagCol)
 
         #expect(gameState.flagCount == 1)
-        #expect(gameState.board.cells[0][0].state == .flagged)
+        #expect(gameState.board.cells[flagRow][flagCol].state == .flagged)
     }
 
     @Test("Toggle flag off a flagged cell")
@@ -52,12 +71,32 @@ struct GameStateBasicTests {
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
 
-        gameState.toggleFlag(row: 0, col: 0)
+        // Start the game first (flags only allowed after first reveal)
+        gameState.reveal(row: 0, col: 0)
+
+        // Find a hidden cell to flag
+        var flagRow = -1, flagCol = -1
+        outer: for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                if case .hidden = gameState.board.cells[r][c].state {
+                    flagRow = r
+                    flagCol = c
+                    break outer
+                }
+            }
+        }
+
+        guard flagRow >= 0 else {
+            Issue.record("No hidden cell found")
+            return
+        }
+
+        gameState.toggleFlag(row: flagRow, col: flagCol)
         #expect(gameState.flagCount == 1)
 
-        gameState.toggleFlag(row: 0, col: 0)
+        gameState.toggleFlag(row: flagRow, col: flagCol)
         #expect(gameState.flagCount == 0)
-        #expect(gameState.board.cells[0][0].state == .hidden)
+        #expect(gameState.board.cells[flagRow][flagCol].state == .hidden)
     }
 
     @Test("Cannot reveal a flagged cell")
@@ -65,11 +104,31 @@ struct GameStateBasicTests {
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
 
-        gameState.toggleFlag(row: 0, col: 0)
+        // Start the game first (flags only allowed after first reveal)
         gameState.reveal(row: 0, col: 0)
 
+        // Find a hidden cell to flag
+        var flagRow = -1, flagCol = -1
+        outer: for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                if case .hidden = gameState.board.cells[r][c].state {
+                    flagRow = r
+                    flagCol = c
+                    break outer
+                }
+            }
+        }
+
+        guard flagRow >= 0 else {
+            Issue.record("No hidden cell found")
+            return
+        }
+
+        gameState.toggleFlag(row: flagRow, col: flagCol)
+        gameState.reveal(row: flagRow, col: flagCol)
+
         // Cell should still be flagged
-        #expect(gameState.board.cells[0][0].state == .flagged)
+        #expect(gameState.board.cells[flagRow][flagCol].state == .flagged)
     }
 
     @Test("Cannot flag a revealed cell")

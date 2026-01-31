@@ -220,7 +220,10 @@ struct GameStateShareTests {
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
 
-        // Find and flag some mines
+        // Start the game first to trigger first-click clearing
+        gameState.reveal(row: 0, col: 0)
+
+        // Find and flag some mines (after first-click clearing)
         var flaggedMines = 0
         for r in 0..<Board.rows {
             for c in 0..<Board.cols {
