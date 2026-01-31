@@ -257,7 +257,7 @@ jobs:
                 </sparkle:releaseNotesLink>
                 <pubDate>$(date -u +"%a, %d %b %Y %H:%M:%S +0000")</pubDate>
                 <enclosure
-                  url="https://github.com/${{ github.repository }}/releases/download/v$VERSION-direct/MenuMines-$VERSION.dmg"
+                  url="${{ vars.R2_PUBLIC_URL }}/MenuMines-$VERSION.dmg"
                   sparkle:edSignature="$SPARKLE_SIGNATURE"
                   length="$DMG_SIZE"
                   type="application/octet-stream" />
@@ -273,6 +273,28 @@ jobs:
         run: |
           mv "$DMG_PATH" "build/MenuMines-$VERSION.dmg"
           echo "FINAL_DMG_PATH=build/MenuMines-$VERSION.dmg" >> "$GITHUB_ENV"
+
+      # ── Upload to Cloudflare R2 ──
+
+      - name: Upload to Cloudflare R2
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
+          AWS_REGION: auto
+        run: |
+          R2_ENDPOINT="https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com"
+
+          # Upload DMG
+          aws s3 cp "$FINAL_DMG_PATH" "s3://menumines/MenuMines-$VERSION.dmg" \
+            --endpoint-url "$R2_ENDPOINT"
+
+          # Upload appcast
+          aws s3 cp "$EXPORT_PATH/appcast.xml" "s3://menumines/appcast.xml" \
+            --endpoint-url "$R2_ENDPOINT"
+
+          echo "Uploaded to R2:"
+          echo "  - MenuMines-$VERSION.dmg"
+          echo "  - appcast.xml"
 
       # ── Create GitHub Release ──
 
