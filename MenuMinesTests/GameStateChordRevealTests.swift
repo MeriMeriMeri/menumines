@@ -22,21 +22,24 @@ struct GameStateChordRevealTests {
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
 
-        // Find a cell with exactly 1 adjacent mine
+        // Start the game first (triggers 3x3 clearing)
+        gameState.reveal(row: 0, col: 0)
+        #expect(gameState.status == .playing)
+
+        // Now find a cell with exactly 1 adjacent mine (after first-click clearing)
         guard let target = findCellWithAdjacentMines(count: 1, in: gameState.board) else {
             Issue.record("No suitable cell found")
             return
         }
 
-        // Find the adjacent mine
+        // Reveal the target cell
+        gameState.reveal(row: target.row, col: target.col)
+
+        // Find the adjacent mine (after game started)
         guard let mine = findAdjacentMine(to: target.row, col: target.col, in: gameState.board) else {
             Issue.record("No adjacent mine found")
             return
         }
-
-        // Start the game and reveal the target cell
-        gameState.reveal(row: target.row, col: target.col)
-        #expect(gameState.status == .playing)
 
         // Flag the mine
         gameState.toggleFlag(row: mine.row, col: mine.col)
@@ -58,21 +61,24 @@ struct GameStateChordRevealTests {
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
 
-        // Find a cell with exactly 1 adjacent mine
+        // Start the game first (triggers 3x3 clearing)
+        gameState.reveal(row: 0, col: 0)
+        #expect(gameState.status == .playing)
+
+        // Find a cell with exactly 1 adjacent mine (after first-click clearing)
         guard let target = findCellWithAdjacentMines(count: 1, in: gameState.board) else {
             Issue.record("No suitable cell found")
             return
         }
 
-        // Find an adjacent non-mine cell to place wrong flag
+        // Reveal the target cell
+        gameState.reveal(row: target.row, col: target.col)
+
+        // Find an adjacent non-mine cell to place wrong flag (after game started)
         guard let wrongFlag = findAdjacentNonMine(to: target.row, col: target.col, in: gameState.board) else {
             Issue.record("No adjacent non-mine found")
             return
         }
-
-        // Start the game
-        gameState.reveal(row: target.row, col: target.col)
-        #expect(gameState.status == .playing)
 
         // Place flag on wrong cell
         gameState.toggleFlag(row: wrongFlag.row, col: wrongFlag.col)
@@ -88,21 +94,24 @@ struct GameStateChordRevealTests {
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
 
-        // Find a cell with exactly 1 adjacent mine
+        // Start the game first (triggers 3x3 clearing)
+        gameState.reveal(row: 0, col: 0)
+        #expect(gameState.status == .playing)
+
+        // Find a cell with exactly 1 adjacent mine (after first-click clearing)
         guard let target = findCellWithAdjacentMines(count: 1, in: gameState.board) else {
             Issue.record("No suitable cell found")
             return
         }
 
-        // Find the adjacent mine
+        // Reveal the target cell
+        gameState.reveal(row: target.row, col: target.col)
+
+        // Find the adjacent mine (after game started)
         guard let mine = findAdjacentMine(to: target.row, col: target.col, in: gameState.board) else {
             Issue.record("No adjacent mine found")
             return
         }
-
-        // Start the game and reveal the target cell
-        gameState.reveal(row: target.row, col: target.col)
-        #expect(gameState.status == .playing)
 
         // Flag the mine
         gameState.toggleFlag(row: mine.row, col: mine.col)
@@ -124,20 +133,23 @@ struct GameStateChordRevealTests {
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
 
-        // Find a cell with exactly 1 adjacent mine
+        // Start the game first (triggers 3x3 clearing)
+        gameState.reveal(row: 0, col: 0)
+
+        // Find a cell with exactly 1 adjacent mine (after first-click clearing)
         guard let target = findCellWithAdjacentMines(count: 1, in: gameState.board) else {
             Issue.record("No suitable cell found")
             return
         }
 
-        // Find the adjacent mine
+        // Reveal the target cell
+        gameState.reveal(row: target.row, col: target.col)
+
+        // Find the adjacent mine (after game started)
         guard let mine = findAdjacentMine(to: target.row, col: target.col, in: gameState.board) else {
             Issue.record("No adjacent mine found")
             return
         }
-
-        // Start the game and reveal the target cell
-        gameState.reveal(row: target.row, col: target.col)
 
         // Flag the mine
         gameState.toggleFlag(row: mine.row, col: mine.col)
@@ -165,7 +177,10 @@ struct GameStateChordRevealTests {
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
 
-        // Find a number cell with exactly 1 adjacent mine and at least one non-mine hidden neighbor
+        // Start the game first (triggers 3x3 clearing)
+        gameState.reveal(row: 0, col: 0)
+
+        // Find a number cell with exactly 1 adjacent mine (after first-click clearing)
         guard let numberCell = findCellWithAdjacentMines(count: 1, in: gameState.board) else {
             Issue.record("No suitable number cell found")
             return

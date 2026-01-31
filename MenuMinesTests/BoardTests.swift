@@ -396,6 +396,150 @@ final class BoardTests: XCTestCase {
         XCTAssertEqual(mineCountBefore, mineCountAfter, "Mine count should not change when relocating from non-mine cell")
     }
 
+    // MARK: - First-Click Opening Guarantee
+
+    func testClearAreaForOpeningRemovesMinesFromClickedCell() {
+        var board = Board(seed: 12345)
+
+        // Find a cell with a mine in center area for testing
+        var mineRow = -1, mineCol = -1
+        outer: for r in 1..<8 {
+            for c in 1..<8 {
+                if board.cells[r][c].hasMine {
+                    mineRow = r
+                    mineCol = c
+                    break outer
+                }
+            }
+        }
+
+        guard mineRow >= 0 else {
+            XCTFail("No mine found in center area")
+            return
+        }
+
+        board.clearAreaForOpening(centerRow: mineRow, centerCol: mineCol, seed: 12345)
+
+        XCTAssertFalse(board.cells[mineRow][mineCol].hasMine,
+                       "Clicked cell should have no mine after clearing")
+    }
+
+    func testClearAreaForOpeningRemovesMinesFromNeighbors() {
+        var board = Board(seed: 12345)
+
+        board.clearAreaForOpening(centerRow: 4, centerCol: 4, seed: 12345)
+
+        // Check all 9 cells in 3x3 have no mines
+        for dr in -1...1 {
+            for dc in -1...1 {
+                let r = 4 + dr
+                let c = 4 + dc
+                XCTAssertFalse(board.cells[r][c].hasMine,
+                               "Cell at (\(r),\(c)) should have no mine")
+            }
+        }
+    }
+
+    func testClearAreaForOpeningPreservesTotalMineCount() {
+        var board = Board(seed: 12345)
+
+        let mineCountBefore = board.cells.flatMap { $0 }.filter(\.hasMine).count
+
+        board.clearAreaForOpening(centerRow: 4, centerCol: 4, seed: 12345)
+
+        let mineCountAfter = board.cells.flatMap { $0 }.filter(\.hasMine).count
+
+        XCTAssertEqual(mineCountBefore, mineCountAfter,
+                       "Total mine count should remain \(Board.mineCount)")
+    }
+
+    func testClearAreaForOpeningWorksAtCorner() {
+        var board = Board(seed: 12345)
+
+        board.clearAreaForOpening(centerRow: 0, centerCol: 0, seed: 12345)
+
+        // Check 2x2 area at corner (only valid neighbors)
+        XCTAssertFalse(board.cells[0][0].hasMine)
+        XCTAssertFalse(board.cells[0][1].hasMine)
+        XCTAssertFalse(board.cells[1][0].hasMine)
+        XCTAssertFalse(board.cells[1][1].hasMine)
+
+        // Verify mine count preserved
+        let mineCount = board.cells.flatMap { $0 }.filter(\.hasMine).count
+        XCTAssertEqual(mineCount, Board.mineCount)
+    }
+
+    func testClearAreaForOpeningWorksAtEdge() {
+        var board = Board(seed: 12345)
+
+        board.clearAreaForOpening(centerRow: 0, centerCol: 4, seed: 12345)
+
+        // Check 2x3 area at top edge
+        for c in 3...5 {
+            XCTAssertFalse(board.cells[0][c].hasMine)
+            XCTAssertFalse(board.cells[1][c].hasMine)
+        }
+
+        // Verify mine count preserved
+        let mineCount = board.cells.flatMap { $0 }.filter(\.hasMine).count
+        XCTAssertEqual(mineCount, Board.mineCount)
+    }
+
+    func testClearAreaForOpeningGuaranteesZeroAdjacentMines() {
+        var board = Board(seed: 12345)
+
+        board.clearAreaForOpening(centerRow: 4, centerCol: 4, seed: 12345)
+
+        let adjacentMines = board.adjacentMineCount(row: 4, col: 4)
+        XCTAssertEqual(adjacentMines, 0,
+                       "Clicked cell should have 0 adjacent mines to trigger cascade")
+    }
+
+    func testClearAreaForOpeningRelocatesMinesOutsideClearZone() {
+        var board = Board(seed: 12345)
+
+        board.clearAreaForOpening(centerRow: 4, centerCol: 4, seed: 12345)
+
+        // All mines should be outside the 3x3 zone
+        var minesOutside = 0
+        for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                let inClearZone = (r >= 3 && r <= 5 && c >= 3 && c <= 5)
+                if !inClearZone && board.cells[r][c].hasMine {
+                    minesOutside += 1
+                }
+            }
+        }
+
+        XCTAssertEqual(minesOutside, Board.mineCount,
+                       "All mines should be outside the clear zone")
+    }
+
+    func testClearAreaForOpeningIsDeterministic() {
+        // Two boards with same seed, cleared at same position, should be identical
+        var board1 = Board(seed: 12345)
+        var board2 = Board(seed: 12345)
+
+        board1.clearAreaForOpening(centerRow: 4, centerCol: 4, seed: 12345)
+        board2.clearAreaForOpening(centerRow: 4, centerCol: 4, seed: 12345)
+
+        XCTAssertEqual(board1.cells, board2.cells,
+                       "Same seed + same click position should produce identical boards")
+    }
+
+    func testClearAreaForOpeningDifferentClickPositionsProduceDifferentBoards() {
+        // Different click positions should produce different relocation
+        var board1 = Board(seed: 12345)
+        var board2 = Board(seed: 12345)
+
+        board1.clearAreaForOpening(centerRow: 0, centerCol: 0, seed: 12345)
+        board2.clearAreaForOpening(centerRow: 8, centerCol: 8, seed: 12345)
+
+        // The boards should differ (different mines relocated to different places)
+        XCTAssertNotEqual(board1.cells, board2.cells,
+                          "Different click positions should produce different boards")
+    }
+
     func testMarkExplodedSetsIsExplodedTrue() {
         var board = Board(seed: 12345)
 

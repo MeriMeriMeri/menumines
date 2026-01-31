@@ -103,6 +103,84 @@ struct GameStateWinLoseTests {
         #expect(mineCount == Board.mineCount, "Mine count should remain \(Board.mineCount) after first-click relocation")
     }
 
+    @Test("First click always reveals multiple cells (opening)")
+    func testFirstClickAlwaysRevealsMultipleCells() {
+        // Test across multiple seeds and click positions
+        let seeds: [Int64] = [12345, 20240101, 99999, 1, 20261231]
+        let positions = [(0, 0), (4, 4), (8, 8), (0, 4), (4, 0)]
+
+        for seed in seeds {
+            for (row, col) in positions {
+                let board = Board(seed: seed)
+                let gameState = GameState(board: board)
+
+                gameState.reveal(row: row, col: col)
+
+                // Count revealed cells
+                var revealedCount = 0
+                for r in 0..<Board.rows {
+                    for c in 0..<Board.cols {
+                        if case .revealed = gameState.board.cells[r][c].state {
+                            revealedCount += 1
+                        }
+                    }
+                }
+
+                #expect(revealedCount > 1,
+                        "First click at (\(row),\(col)) with seed \(seed) should reveal multiple cells, got \(revealedCount)")
+            }
+        }
+    }
+
+    @Test("First click clears 3x3 area of mines")
+    func testFirstClickClears3x3Area() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        // Click center
+        gameState.reveal(row: 4, col: 4)
+
+        // Verify all 9 cells in 3x3 have no mines
+        for dr in -1...1 {
+            for dc in -1...1 {
+                let r = 4 + dr
+                let c = 4 + dc
+                #expect(!gameState.board.cells[r][c].hasMine,
+                        "Cell at (\(r),\(c)) should have no mine after first click")
+            }
+        }
+    }
+
+    @Test("First click produces deterministic board")
+    func testFirstClickIsDeterministic() {
+        // Same seed + same click position should produce identical boards
+        let board1 = Board(seed: 12345)
+        let gameState1 = GameState(board: board1, dailySeed: 12345)
+
+        let board2 = Board(seed: 12345)
+        let gameState2 = GameState(board: board2, dailySeed: 12345)
+
+        gameState1.reveal(row: 4, col: 4)
+        gameState2.reveal(row: 4, col: 4)
+
+        #expect(gameState1.board == gameState2.board,
+                "Same seed + same first click should produce identical boards")
+    }
+
+    @Test("Flags disallowed before first reveal")
+    func testFlagsDisallowedBeforeFirstReveal() {
+        let board = Board(seed: 12345)
+        let gameState = GameState(board: board)
+
+        #expect(gameState.status == .notStarted)
+
+        // Try to flag before first reveal
+        gameState.toggleFlag(row: 0, col: 0)
+
+        #expect(gameState.flagCount == 0, "Flags should be disallowed before first reveal")
+        #expect(gameState.board.cells[0][0].state == .hidden, "Cell should remain hidden")
+    }
+
     @Test("Cannot reveal after game is lost")
     func testCannotRevealAfterGameLost() {
         let board = Board(seed: 12345)

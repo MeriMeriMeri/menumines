@@ -96,10 +96,22 @@ struct GameStatePersistenceTests {
         gameState.reveal(row: 0, col: 0)
         #expect(gameState.status == .playing)
 
-        // Flag a cell and move selection
-        gameState.toggleFlag(row: 1, col: 1)
-        gameState.moveSelection(.down)
-        gameState.moveSelection(.right)
+        // Find and flag a hidden cell (after first-click clearing may reveal some cells)
+        var flagRow = 0, flagCol = 0
+        outer: for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                if case .hidden = gameState.board.cells[r][c].state {
+                    gameState.toggleFlag(row: r, col: c)
+                    flagRow = r
+                    flagCol = c
+                    break outer
+                }
+            }
+        }
+
+        // Move selection to flagged cell position
+        while gameState.selectedRow < flagRow { gameState.moveSelection(.down) }
+        while gameState.selectedCol < flagCol { gameState.moveSelection(.right) }
 
         gameState.save()
 
@@ -110,8 +122,8 @@ struct GameStatePersistenceTests {
 
         #expect(loaded.status == .playing)
         #expect(loaded.flagCount == 1)
-        #expect(loaded.selectedRow == 1)
-        #expect(loaded.selectedCol == 1)
+        #expect(loaded.selectedRow == flagRow)
+        #expect(loaded.selectedCol == flagCol)
     }
 
     @Test("GameState save persists won status")
@@ -242,10 +254,23 @@ struct GameStatePersistenceTests {
         let originalBoard = Board(seed: 12345)
         let originalState = GameState(board: originalBoard)
         originalState.reveal(row: 0, col: 0)
-        originalState.toggleFlag(row: 2, col: 3)
-        originalState.moveSelection(.down)
-        originalState.moveSelection(.down)
-        originalState.moveSelection(.right)
+
+        // Find and flag a hidden cell (after first-click clearing may reveal some cells)
+        var flagRow = 0, flagCol = 0
+        outer: for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                if case .hidden = originalState.board.cells[r][c].state {
+                    originalState.toggleFlag(row: r, col: c)
+                    flagRow = r
+                    flagCol = c
+                    break outer
+                }
+            }
+        }
+
+        // Move selection to flagged cell
+        while originalState.selectedRow < flagRow { originalState.moveSelection(.down) }
+        while originalState.selectedCol < flagCol { originalState.moveSelection(.right) }
 
         originalState.save()
 
@@ -254,9 +279,9 @@ struct GameStatePersistenceTests {
 
         #expect(restoredState.status == .playing)
         #expect(restoredState.flagCount == 1)
-        #expect(restoredState.selectedRow == 2)
-        #expect(restoredState.selectedCol == 1)
-        #expect(restoredState.board.cells[2][3].state == .flagged)
+        #expect(restoredState.selectedRow == flagRow)
+        #expect(restoredState.selectedCol == flagCol)
+        #expect(restoredState.board.cells[flagRow][flagCol].state == .flagged)
     }
 
     @Test("GameState restored does not restore stale snapshot when game was completed")
@@ -656,7 +681,19 @@ struct GameStatePersistenceTests {
 
         // Play the game (don't complete it)
         gameState.reveal(row: 0, col: 0)
-        gameState.toggleFlag(row: 1, col: 1)
+
+        // Find and flag a hidden cell (after first-click clearing may reveal some cells)
+        var flagged = false
+        for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                if case .hidden = gameState.board.cells[r][c].state {
+                    gameState.toggleFlag(row: r, col: c)
+                    flagged = true
+                    break
+                }
+            }
+            if flagged { break }
+        }
 
         #expect(gameState.status == .playing)
         #expect(gameState.flagCount == 1)
@@ -900,7 +937,10 @@ struct GameStatePersistenceTests {
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
 
-        // Find and flag some mines
+        // Start the game first to trigger first-click clearing
+        gameState.reveal(row: 0, col: 0)
+
+        // Find and flag some mines (after first-click clearing)
         var flaggedPositions: [(row: Int, col: Int)] = []
         for r in 0..<Board.rows {
             for c in 0..<Board.cols {

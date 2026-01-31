@@ -140,13 +140,35 @@ struct GameStateSelectionTests {
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
 
-        // Move to (1, 1)
-        gameState.moveSelection(.down)
-        gameState.moveSelection(.right)
+        // Start the game first (flags only allowed after first reveal)
+        gameState.reveal(row: 0, col: 0)
+
+        // Find a hidden cell and move selection to it
+        var targetRow = -1, targetCol = -1
+        outer: for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                if case .hidden = gameState.board.cells[r][c].state {
+                    targetRow = r
+                    targetCol = c
+                    break outer
+                }
+            }
+        }
+
+        guard targetRow >= 0 else {
+            Issue.record("No hidden cell found")
+            return
+        }
+
+        // Move selection to target cell
+        while gameState.selectedRow < targetRow { gameState.moveSelection(.down) }
+        while gameState.selectedRow > targetRow { gameState.moveSelection(.up) }
+        while gameState.selectedCol < targetCol { gameState.moveSelection(.right) }
+        while gameState.selectedCol > targetCol { gameState.moveSelection(.left) }
 
         gameState.toggleFlagSelected()
 
-        #expect(gameState.board.cells[1][1].state == .flagged)
+        #expect(gameState.board.cells[targetRow][targetCol].state == .flagged)
         #expect(gameState.flagCount == 1)
     }
 

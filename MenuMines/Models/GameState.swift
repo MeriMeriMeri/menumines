@@ -260,9 +260,7 @@ final class GameState {
 
         let isFirstClick = (status == .notStarted)
         if isFirstClick {
-            if board.cells[row][col].hasMine {
-                board.relocateMine(from: row, col: col)
-            }
+            board.clearAreaForOpening(centerRow: row, centerCol: col, seed: dailySeed)
             startTimer()
             status = .playing
         }
@@ -283,8 +281,9 @@ final class GameState {
     }
 
     /// Toggles the flag on the cell at the given position.
+    /// Flags are only allowed after the game has started (first reveal).
     func toggleFlag(row: Int, col: Int) {
-        guard status == .notStarted || status == .playing else { return }
+        guard status == .playing else { return }
         guard row >= 0, row < Board.rows, col >= 0, col < Board.cols else { return }
 
         let previousState = board.cells[row][col].state
