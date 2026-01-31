@@ -98,7 +98,7 @@
 "about_version" = "Version %@";
 "about_description" = "A daily Minesweeper puzzle";
 "about_support_email" = "support@merimerimeri.com";
-"about_copyright" = "© 2024-2025";
+"about_copyright" = "© 2026";
 
 /* Updates (Direct Distribution only) */
 "check_for_updates_menu_item" = "Check for Updates…";
