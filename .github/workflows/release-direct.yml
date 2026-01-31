@@ -157,11 +157,16 @@ jobs:
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SPARKLE_PUBLIC_ED_KEY: ${{ secrets.SPARKLE_PUBLIC_ED_KEY }}
         run: |
-          xcodebuild archive \
+          # Use explicit derivedDataPath to ensure clean build
+          DERIVED_DATA="$RUNNER_TEMP/DerivedData"
+          rm -rf "$DERIVED_DATA"
+
+          xcodebuild clean archive \
             -scheme "$SCHEME" \
             -configuration "$CONFIGURATION" \
             -destination 'generic/platform=macOS' \
             -archivePath "$ARCHIVE_PATH" \
+            -derivedDataPath "$DERIVED_DATA" \
             -clonedSourcePackagesDirPath "$RUNNER_TEMP/spm-cache" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             CODE_SIGN_STYLE=Manual \
