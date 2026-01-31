@@ -89,6 +89,7 @@ struct FooterView: View {
             .menuIndicator(.hidden)
             .accessibilityLabel(String(localized: "footer_menu_accessibility_label"))
         }
+        .frame(maxWidth: .infinity)
         .padding(.horizontal, 8)
     }
 }
