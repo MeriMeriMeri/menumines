@@ -108,6 +108,13 @@ jobs:
 
       # ── Resolve SPM Dependencies ──
 
+      - name: Cache SPM Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/spm-cache
+          key: spm-${{ hashFiles('MenuMines.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+          restore-keys: spm-
+
       - name: Resolve Swift Package Dependencies
         run: |
           xcodebuild -resolvePackageDependencies \
@@ -167,26 +174,11 @@ jobs:
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
             -exportPath "$EXPORT_PATH"
 
-      # ── Notarize ──
+      # ── Create & Notarize DMG ──
+      # Note: We only notarize the DMG, not the app separately.
+      # The app inside is trusted because it's in a notarized container.
 
-      - name: Notarize App
-        run: |
-          APP_PATH="$EXPORT_PATH/MenuMinesDirect.app"
-
-          # Create ZIP for notarization
-          ditto -c -k --keepParent "$APP_PATH" "$RUNNER_TEMP/MenuMines.zip"
-
-          # Submit for notarization using stored credentials
-          xcrun notarytool submit "$RUNNER_TEMP/MenuMines.zip" \
-            --keychain-profile "MenuMines" \
-            --wait
-
-          # Staple the notarization ticket
-          xcrun stapler staple "$APP_PATH"
-
-      # ── Create DMG ──
-
-      - name: Create DMG
+      - name: Create and Notarize DMG
         run: |
           mkdir -p "$RUNNER_TEMP/dmg-staging"
           cp -R "$EXPORT_PATH/MenuMinesDirect.app" "$RUNNER_TEMP/dmg-staging/MenuMines.app"
@@ -206,37 +198,37 @@ jobs:
 
       # ── Sign for Sparkle & Generate Appcast ──
 
+      - name: Cache Sparkle sign_update
+        id: sparkle-cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/sparkle-tools/sign_update
+          key: sparkle-sign-update-2.5.0
+
+      - name: Build Sparkle sign_update
+        if: steps.sparkle-cache.outputs.cache-hit != 'true'
+        run: |
+          git clone --depth 1 --branch 2.5.0 https://github.com/sparkle-project/Sparkle.git "$RUNNER_TEMP/Sparkle"
+          cd "$RUNNER_TEMP/Sparkle"
+          xcodebuild -project Sparkle.xcodeproj \
+            -scheme sign_update \
+            -configuration Release \
+            -derivedDataPath "$RUNNER_TEMP/sparkle-build" \
+            ONLY_ACTIVE_ARCH=NO
+          mkdir -p "$RUNNER_TEMP/sparkle-tools"
+          cp "$RUNNER_TEMP/sparkle-build/Build/Products/Release/sign_update" "$RUNNER_TEMP/sparkle-tools/"
+
       - name: Sign DMG for Sparkle
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
-          # Write private key to temp file
           echo "$SPARKLE_PRIVATE_KEY" > "$RUNNER_TEMP/sparkle_private_key"
 
-          # Find the sign_update tool from Sparkle package
-          SIGN_UPDATE=$(find "$RUNNER_TEMP/spm-cache" -name "sign_update" -type f | head -1)
-
-          if [ -z "$SIGN_UPDATE" ]; then
-            echo "sign_update tool not found in SPM cache, building from source..."
-            git clone --depth 1 --branch 2.5.0 https://github.com/sparkle-project/Sparkle.git "$RUNNER_TEMP/Sparkle"
-            cd "$RUNNER_TEMP/Sparkle"
-            xcodebuild -project Sparkle.xcodeproj \
-              -scheme sign_update \
-              -configuration Release \
-              -derivedDataPath "$RUNNER_TEMP/sparkle-build" \
-              ONLY_ACTIVE_ARCH=NO
-            SIGN_UPDATE="$RUNNER_TEMP/sparkle-build/Build/Products/Release/sign_update"
-          fi
-
-          # Sign the DMG
-          SIGNATURE=$("$SIGN_UPDATE" "$GITHUB_WORKSPACE/$DMG_PATH" \
+          SIGNATURE=$("$RUNNER_TEMP/sparkle-tools/sign_update" "$GITHUB_WORKSPACE/$DMG_PATH" \
             --ed-key-file "$RUNNER_TEMP/sparkle_private_key")
 
           echo "SPARKLE_SIGNATURE=$SIGNATURE" >> "$GITHUB_ENV"
-
-          # Get file size
-          DMG_SIZE=$(stat -f%z "$GITHUB_WORKSPACE/$DMG_PATH")
-          echo "DMG_SIZE=$DMG_SIZE" >> "$GITHUB_ENV"
+          echo "DMG_SIZE=$(stat -f%z "$GITHUB_WORKSPACE/$DMG_PATH")" >> "$GITHUB_ENV"
 
       - name: Generate Appcast
         run: |
@@ -318,16 +310,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # ── Upload Artifacts ──
-
-      - name: Upload Archive Artifact
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: MenuMines-${{ env.VERSION }}-Direct.xcarchive
-          path: ${{ env.ARCHIVE_PATH }}
-          retention-days: 30
-
       # ── Cleanup ──
 
       - name: Cleanup
@@ -336,5 +318,3 @@ jobs:
           security delete-keychain "$KEYCHAIN_NAME" 2>/dev/null || true
           rm -f "$RUNNER_TEMP/certificate.p12"
           rm -f "$RUNNER_TEMP/sparkle_private_key"
-          rm -rf "$RUNNER_TEMP/Sparkle"
-          rm -rf "$RUNNER_TEMP/sparkle-build"
