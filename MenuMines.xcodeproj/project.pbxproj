@@ -7,6 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0AC57C4436544784BE0A0B2E /* Cell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001A229E001A /* Cell.swift */; };
+		0F68E64C3165091121DCAE48 /* MenuMinesApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002229E0002 /* MenuMinesApp.swift */; };
+		1386B88ACDED0641786C4D8A /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A1000043229E0043 /* Localizable.strings */; };
+		219A5CF7F2A69EF871B71E2C /* GameState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001E229E001E /* GameState.swift */; };
+		2543E589DC0E74C44F7D2A0D /* StatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000083229E0083 /* StatsStore.swift */; };
+		34103414FF5D2B975D24A5CA /* CellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000022229E0022 /* CellView.swift */; };
+		45A72912B6FD53A73F0C12B8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000006229E0006 /* Assets.xcassets */; };
+		55595706A38B9DA60CF373DA /* GameBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000024229E0024 /* GameBoardView.swift */; };
+		56AB90C03535B7B699ABDC7E /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000026229E0026 /* HeaderView.swift */; };
+		6B961CC5DBBCDD066107D8BA /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100009B229E009B /* Constants.swift */; };
+		6FFC1BBBD7193BD1213415D4 /* MenuContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004229E0004 /* MenuContentView.swift */; };
+		7318CF5C5241562104D235AD /* Board.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001C229E001C /* Board.swift */; };
+		7B6F917CBF187910503D305C /* MenuBarIconState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000071229E0071 /* MenuBarIconState.swift */; };
+		93730F02D86DC62DE56DCEA4 /* UpdateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000210229E0210 /* UpdateManager.swift */; };
 		A1000001229E0001 /* MenuMinesApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002229E0002 /* MenuMinesApp.swift */; };
 		A1000003229E0003 /* MenuContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004229E0004 /* MenuContentView.swift */; };
 		A1000005229E0005 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000006229E0006 /* Assets.xcassets */; };
@@ -45,30 +59,16 @@
 		A10001B2229E01B2 /* GameStatePersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001B3229E01B3 /* GameStatePersistenceTests.swift */; };
 		A10001C0229E01C0 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A10001C1229E01C1 /* PrivacyInfo.xcprivacy */; };
 		A1000211229E0211 /* UpdateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000210229E0210 /* UpdateManager.swift */; };
-		0F68E64C3165091121DCAE48 /* MenuMinesApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002229E0002 /* MenuMinesApp.swift */; };
-		6B961CC5DBBCDD066107D8BA /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100009B229E009B /* Constants.swift */; };
-		6FFC1BBBD7193BD1213415D4 /* MenuContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004229E0004 /* MenuContentView.swift */; };
-		0AC57C4436544784BE0A0B2E /* Cell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001A229E001A /* Cell.swift */; };
-		7318CF5C5241562104D235AD /* Board.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001C229E001C /* Board.swift */; };
-		219A5CF7F2A69EF871B71E2C /* GameState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001E229E001E /* GameState.swift */; };
-		ED2D6D9B294CBD70425A29F2 /* DailyBoard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000020229E0020 /* DailyBoard.swift */; };
-		E8041408A3156729C177A080 /* GameResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000081229E0081 /* GameResult.swift */; };
-		7B6F917CBF187910503D305C /* MenuBarIconState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000071229E0071 /* MenuBarIconState.swift */; };
-		2543E589DC0E74C44F7D2A0D /* StatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000083229E0083 /* StatsStore.swift */; };
-		34103414FF5D2B975D24A5CA /* CellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000022229E0022 /* CellView.swift */; };
-		55595706A38B9DA60CF373DA /* GameBoardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000024229E0024 /* GameBoardView.swift */; };
-		56AB90C03535B7B699ABDC7E /* HeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000026229E0026 /* HeaderView.swift */; };
-		F6A9B00514DDA34B302994CB /* FooterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000028229E0028 /* FooterView.swift */; };
-		E04DF0A7CE1D3F4F171D58C0 /* ConfettiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000040229E0040 /* ConfettiView.swift */; };
-		DFDC43CE73E73FAFE5F0271D /* AboutWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000042229E0042 /* AboutWindow.swift */; };
 		BDEDFA31900C31F86AB3C009 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000061229E0061 /* SettingsView.swift */; };
-		C34F31163447957155669BA1 /* StatsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000085229E0085 /* StatsWindow.swift */; };
-		93730F02D86DC62DE56DCEA4 /* UpdateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000210229E0210 /* UpdateManager.swift */; };
-		45A72912B6FD53A73F0C12B8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000006229E0006 /* Assets.xcassets */; };
-		1386B88ACDED0641786C4D8A /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = A1000043229E0043 /* Localizable.strings */; };
 		C025A855A60908A57B9EA2B7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A10001C1229E01C1 /* PrivacyInfo.xcprivacy */; };
-		F902E835C962D5F0BA173690 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = A1000051229E0051 /* Sentry */; };
+		C34F31163447957155669BA1 /* StatsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000085229E0085 /* StatsWindow.swift */; };
 		C8510E2FB3392D4D721AAF45 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = A1000054229E0054 /* Sparkle */; };
+		DFDC43CE73E73FAFE5F0271D /* AboutWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000042229E0042 /* AboutWindow.swift */; };
+		E04DF0A7CE1D3F4F171D58C0 /* ConfettiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000040229E0040 /* ConfettiView.swift */; };
+		E8041408A3156729C177A080 /* GameResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000081229E0081 /* GameResult.swift */; };
+		ED2D6D9B294CBD70425A29F2 /* DailyBoard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000020229E0020 /* DailyBoard.swift */; };
+		F6A9B00514DDA34B302994CB /* FooterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000028229E0028 /* FooterView.swift */; };
+		F902E835C962D5F0BA173690 /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = A1000051229E0051 /* Sentry */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -82,11 +82,12 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4F52D4F4F17DB0C6CB089578 /* MenuMinesDirect.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MenuMinesDirect.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9E865C24732BA18B1DB15C88 /* Info-Direct.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-Direct.plist"; sourceTree = "<group>"; };
 		A1000002229E0002 /* MenuMinesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuMinesApp.swift; sourceTree = "<group>"; };
 		A1000004229E0004 /* MenuContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuContentView.swift; sourceTree = "<group>"; };
 		A1000006229E0006 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A1000007229E0007 /* MenuMines.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MenuMines.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		4F52D4F4F17DB0C6CB089578 /* MenuMinesDirect.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MenuMinesDirect.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A100001A229E001A /* Cell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cell.swift; sourceTree = "<group>"; };
 		A100001C229E001C /* Board.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Board.swift; sourceTree = "<group>"; };
 		A100001E229E001E /* GameState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameState.swift; sourceTree = "<group>"; };
@@ -121,25 +122,24 @@
 		A10001B1229E01B1 /* GameStateCodableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStateCodableTests.swift; sourceTree = "<group>"; };
 		A10001B3229E01B3 /* GameStatePersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStatePersistenceTests.swift; sourceTree = "<group>"; };
 		A10001C1229E01C1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		9E865C24732BA18B1DB15C88 /* Info-Direct.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-Direct.plist"; sourceTree = "<group>"; };
 		A1000210229E0210 /* UpdateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		A1000008229E0008 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A1000050229E0050 /* Sentry in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		9EE8152F4B8B2CFF4E68BE7F /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				F902E835C962D5F0BA173690 /* Sentry in Frameworks */,
 				C8510E2FB3392D4D721AAF45 /* Sparkle in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1000008229E0008 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000050229E0050 /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -271,6 +271,24 @@
 			productReference = A1000007229E0007 /* MenuMines.app */;
 			productType = "com.apple.product-type.application";
 		};
+		A100002F229E002F /* MenuMinesTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A1000030229E0030 /* Build configuration list for PBXNativeTarget "MenuMinesTests" */;
+			buildPhases = (
+				A1000031229E0031 /* Sources */,
+				A100002D229E002D /* Frameworks */,
+				A1000032229E0032 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				A1000033229E0033 /* PBXTargetDependency */,
+			);
+			name = MenuMinesTests;
+			productName = MenuMinesTests;
+			productReference = A100002C229E002C /* MenuMinesTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		AA38618B4B928DB1C297A974 /* MenuMinesDirect */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = B9442F0769C5A52820062E92 /* Build configuration list for PBXNativeTarget "MenuMinesDirect" */;
@@ -292,24 +310,6 @@
 			productReference = 4F52D4F4F17DB0C6CB089578 /* MenuMinesDirect.app */;
 			productType = "com.apple.product-type.application";
 		};
-		A100002F229E002F /* MenuMinesTests */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = A1000030229E0030 /* Build configuration list for PBXNativeTarget "MenuMinesTests" */;
-			buildPhases = (
-				A1000031229E0031 /* Sources */,
-				A100002D229E002D /* Frameworks */,
-				A1000032229E0032 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				A1000033229E0033 /* PBXTargetDependency */,
-			);
-			name = MenuMinesTests;
-			productName = MenuMinesTests;
-			productReference = A100002C229E002C /* MenuMinesTests.xctest */;
-			productType = "com.apple.product-type.bundle.unit-test";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -323,12 +323,12 @@
 					A100000F229E000F = {
 						CreatedOnToolsVersion = 15.0;
 					};
-					AA38618B4B928DB1C297A974 = {
-						CreatedOnToolsVersion = 15.0;
-					};
 					A100002F229E002F = {
 						CreatedOnToolsVersion = 15.0;
 						TestTargetID = A100000F229E000F;
+					};
+					AA38618B4B928DB1C297A974 = {
+						CreatedOnToolsVersion = 15.0;
 					};
 				};
 			};
@@ -357,16 +357,6 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		A1000012229E0012 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A1000005229E0005 /* Assets.xcassets in Resources */,
-				A1000045229E0045 /* Localizable.strings in Resources */,
-				A10001C0229E01C0 /* PrivacyInfo.xcprivacy in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		659EF83CF83D0889F7E7695E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -374,6 +364,16 @@
 				45A72912B6FD53A73F0C12B8 /* Assets.xcassets in Resources */,
 				1386B88ACDED0641786C4D8A /* Localizable.strings in Resources */,
 				C025A855A60908A57B9EA2B7 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A1000012229E0012 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A1000005229E0005 /* Assets.xcassets in Resources */,
+				A1000045229E0045 /* Localizable.strings in Resources */,
+				A10001C0229E01C0 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -413,6 +413,28 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		A1000031229E0031 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10001A0229E01A0 /* GameStateTestHelpers.swift in Sources */,
+				A10001A2229E01A2 /* GameStateBasicTests.swift in Sources */,
+				A10001A4229E01A4 /* GameStateSelectionTests.swift in Sources */,
+				A10001A6229E01A6 /* GameStateWinLoseTests.swift in Sources */,
+				A10001A8229E01A8 /* GameStateTimerTests.swift in Sources */,
+				A10001AA229E01AA /* GameStateChordRevealTests.swift in Sources */,
+				A10001AC229E01AC /* GameStateShareTests.swift in Sources */,
+				A10001AE229E01AE /* GameStatePauseTests.swift in Sources */,
+				A10001B0229E01B0 /* GameStateCodableTests.swift in Sources */,
+				A10001B2229E01B2 /* GameStatePersistenceTests.swift in Sources */,
+				A100003D229E003D /* BoardTests.swift in Sources */,
+				A1000062229E0062 /* MenuBarIconStateTests.swift in Sources */,
+				A1000064229E0064 /* DailyCompletionTests.swift in Sources */,
+				A1000086229E0086 /* StatsStoreTests.swift in Sources */,
+				A1000088229E0088 /* SettingsTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F55F9D9EAAB50EEFD18F7E6B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -439,28 +461,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A1000031229E0031 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A10001A0229E01A0 /* GameStateTestHelpers.swift in Sources */,
-				A10001A2229E01A2 /* GameStateBasicTests.swift in Sources */,
-				A10001A4229E01A4 /* GameStateSelectionTests.swift in Sources */,
-				A10001A6229E01A6 /* GameStateWinLoseTests.swift in Sources */,
-				A10001A8229E01A8 /* GameStateTimerTests.swift in Sources */,
-				A10001AA229E01AA /* GameStateChordRevealTests.swift in Sources */,
-				A10001AC229E01AC /* GameStateShareTests.swift in Sources */,
-				A10001AE229E01AE /* GameStatePauseTests.swift in Sources */,
-				A10001B0229E01B0 /* GameStateCodableTests.swift in Sources */,
-				A10001B2229E01B2 /* GameStatePersistenceTests.swift in Sources */,
-				A100003D229E003D /* BoardTests.swift in Sources */,
-				A1000062229E0062 /* MenuBarIconStateTests.swift in Sources */,
-				A1000064229E0064 /* DailyCompletionTests.swift in Sources */,
-				A1000086229E0086 /* StatsStoreTests.swift in Sources */,
-				A1000088229E0088 /* SettingsTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -483,60 +483,6 @@
 /* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
-		A1000200229E0200 /* Release-Direct */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CLANG_ANALYZER_NONNULL = YES;
-				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CLANG_ENABLE_MODULES = YES;
-				CLANG_ENABLE_OBJC_ARC = YES;
-				CLANG_ENABLE_OBJC_WEAK = YES;
-				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
-				CLANG_WARN_BOOL_CONVERSION = YES;
-				CLANG_WARN_COMMA = YES;
-				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
-				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
-				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
-				CLANG_WARN_EMPTY_BODY = YES;
-				CLANG_WARN_ENUM_CONVERSION = YES;
-				CLANG_WARN_INFINITE_RECURSION = YES;
-				CLANG_WARN_INT_CONVERSION = YES;
-				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
-				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
-				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
-				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
-				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
-				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
-				CLANG_WARN_STRICT_PROTOTYPES = YES;
-				CLANG_WARN_SUSPICIOUS_MOVE = YES;
-				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
-				CLANG_WARN_UNREACHABLE_CODE = YES;
-				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				COPY_PHASE_STRIP = NO;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_NS_ASSERTIONS = NO;
-				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				GCC_NO_COMMON_BLOCKS = YES;
-				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
-				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
-				GCC_WARN_UNDECLARED_SELECTOR = YES;
-				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
-				GCC_WARN_UNUSED_FUNCTION = YES;
-				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MTL_ENABLE_DEBUG_INFO = NO;
-				MTL_FAST_MATH = YES;
-				SDKROOT = macosx;
-				SWIFT_COMPILATION_MODE = wholemodule;
-			};
-			name = "Release-Direct";
-		};
 		A1000015229E0015 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -664,7 +610,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 8G4H6268W7;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -678,7 +624,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.merimerimeri.menumines;
+				PRODUCT_BUNDLE_IDENTIFIER = com.merimerimeri.MenuMines;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SENTRY_DSN = "";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -697,7 +643,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 8G4H6268W7;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -711,7 +657,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.merimerimeri.menumines;
+				PRODUCT_BUNDLE_IDENTIFIER = com.merimerimeri.MenuMines;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SENTRY_DSN = "https://f8ecbb949a8bf0fd4753391a9947b061@o4510771621789696.ingest.us.sentry.io/4510771626311680";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -753,6 +699,60 @@
 			};
 			name = Release;
 		};
+		A1000200229E0200 /* Release-Direct */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = "Release-Direct";
+		};
 		A1000201229E0201 /* Release-Direct */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -765,11 +765,11 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = 8G4H6268W7;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = MenuMines/Info-Direct.plist;
+				INFOPLIST_FILE = "MenuMines/Info-Direct.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = MenuMines;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.puzzle-games";
 				INFOPLIST_KEY_LSUIElement = YES;
@@ -779,7 +779,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.merimerimeri.menumines;
+				PRODUCT_BUNDLE_IDENTIFIER = com.merimerimeri.MenuMines;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SENTRY_DSN = "$(SENTRY_DSN)";
@@ -807,6 +807,37 @@
 			};
 			name = "Release-Direct";
 		};
+		CC228F492F2D90E500479B7E /* Release-Direct */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 8G4H6268W7;
+				PRODUCT_BUNDLE_IDENTIFIER = com.merimerimeri.MenuMines;
+				PRODUCT_NAME = MenuMines;
+				PROVISIONING_PROFILE_SPECIFIER = "";
+			};
+			name = "Release-Direct";
+		};
+		CC228F4A2F2D90E500479B7E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				PRODUCT_NAME = MenuMinesDirect;
+			};
+			name = Debug;
+		};
+		CC228F4B2F2D90E500479B7E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				PRODUCT_NAME = MenuMinesDirect;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -815,17 +846,10 @@
 			buildConfigurations = (
 				A1000017229E0017 /* Debug */,
 				A1000018229E0018 /* Release */,
+				CC228F492F2D90E500479B7E /* Release-Direct */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
-		};
-		B9442F0769C5A52820062E92 /* Build configuration list for PBXNativeTarget "MenuMinesDirect" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				A1000201229E0201 /* Release-Direct */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = "Release-Direct";
 		};
 		A1000014229E0014 /* Build configuration list for PBXProject "MenuMines" */ = {
 			isa = XCConfigurationList;
@@ -846,6 +870,16 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
+		};
+		B9442F0769C5A52820062E92 /* Build configuration list for PBXNativeTarget "MenuMinesDirect" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A1000201229E0201 /* Release-Direct */,
+				CC228F4A2F2D90E500479B7E /* Debug */,
+				CC228F4B2F2D90E500479B7E /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "Release-Direct";
 		};
 /* End XCConfigurationList section */
 

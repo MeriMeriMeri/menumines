@@ -45,8 +45,8 @@ jobs:
 
       - name: Install Developer ID Certificate
         env:
-          DEVELOPER_ID_P12_BASE64: ${{ secrets.DEVELOPER_ID_P12_BASE64 }}
-          DEVELOPER_ID_PASSWORD: ${{ secrets.DEVELOPER_ID_PASSWORD }}
+          DEVELOPER_ID_P12_BASE64: ${{ secrets.DEVELOPER_ID_CERT_BASE64 }}
+          DEVELOPER_ID_PASSWORD: ${{ secrets.DEVELOPER_ID_CERT_PASSWORD }}
         run: |
           CERTIFICATE_PATH="$RUNNER_TEMP/certificate.p12"
 
@@ -74,15 +74,18 @@ jobs:
 
           security find-identity -v -p codesigning "$KEYCHAIN_NAME"
 
-      # ── Install Notarization Credentials ──
+      # ── Store Notarization Credentials ──
 
-      - name: Install App Store Connect API Key
+      - name: Store Notarization Credentials
         env:
-          ASC_API_KEY_P8_BASE64: ${{ secrets.ASC_API_KEY_P8_BASE64 }}
-          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
         run: |
-          mkdir -p ~/.private_keys
-          echo "$ASC_API_KEY_P8_BASE64" | base64 --decode -o ~/.private_keys/AuthKey_${ASC_KEY_ID}.p8
+          xcrun notarytool store-credentials "MenuMines" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_ID_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID"
 
       # ── Set Version Numbers ──
 
@@ -164,20 +167,15 @@ jobs:
       # ── Notarize ──
 
       - name: Notarize App
-        env:
-          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
         run: |
-          APP_PATH="$EXPORT_PATH/MenuMines.app"
+          APP_PATH="$EXPORT_PATH/MenuMinesDirect.app"
 
           # Create ZIP for notarization
           ditto -c -k --keepParent "$APP_PATH" "$RUNNER_TEMP/MenuMines.zip"
 
-          # Submit for notarization
+          # Submit for notarization using stored credentials
           xcrun notarytool submit "$RUNNER_TEMP/MenuMines.zip" \
-            --key ~/.private_keys/AuthKey_${ASC_KEY_ID}.p8 \
-            --key-id "$ASC_KEY_ID" \
-            --issuer "$ASC_ISSUER_ID" \
+            --keychain-profile "MenuMines" \
             --wait
 
           # Staple the notarization ticket
@@ -186,12 +184,9 @@ jobs:
       # ── Create DMG ──
 
       - name: Create DMG
-        env:
-          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
         run: |
           mkdir -p "$RUNNER_TEMP/dmg-staging"
-          cp -R "$EXPORT_PATH/MenuMines.app" "$RUNNER_TEMP/dmg-staging/"
+          cp -R "$EXPORT_PATH/MenuMinesDirect.app" "$RUNNER_TEMP/dmg-staging/MenuMines.app"
           ln -s /Applications "$RUNNER_TEMP/dmg-staging/Applications"
 
           hdiutil create -volname "MenuMines" \
@@ -199,11 +194,9 @@ jobs:
             -ov -format UDZO \
             "$DMG_PATH"
 
-          # Notarize DMG
+          # Notarize DMG using stored credentials
           xcrun notarytool submit "$DMG_PATH" \
-            --key ~/.private_keys/AuthKey_${ASC_KEY_ID}.p8 \
-            --key-id "$ASC_KEY_ID" \
-            --issuer "$ASC_ISSUER_ID" \
+            --keychain-profile "MenuMines" \
             --wait
 
           xcrun stapler staple "$DMG_PATH"
@@ -318,6 +311,5 @@ jobs:
           security delete-keychain "$KEYCHAIN_NAME" 2>/dev/null || true
           rm -f "$RUNNER_TEMP/certificate.p12"
           rm -f "$RUNNER_TEMP/sparkle_private_key"
-          rm -rf ~/.private_keys
           rm -rf "$RUNNER_TEMP/Sparkle"
           rm -rf "$RUNNER_TEMP/sparkle-build"
