@@ -116,39 +116,18 @@ jobs:
 
       # ── Archive ──
 
-      - name: Clean Build
-        run: |
-          # Remove all build artifacts to ensure completely fresh build
-          rm -rf ~/Library/Developer/Xcode/DerivedData
-          rm -rf build/
-          rm -rf "$RUNNER_TEMP/DerivedData"
-
-      - name: Verify Source Files
-        run: |
-          echo "=== Checking source files contain expected changes ==="
-          echo "FooterView.swift should have .frame(maxWidth: .infinity):"
-          grep -n "frame(maxWidth: .infinity)" MenuMines/Views/FooterView.swift || echo "NOT FOUND!"
-          echo ""
-          echo "SettingsView.swift should have .frame(maxWidth: .infinity, alignment: .leading):"
-          grep -n "frame(maxWidth: .infinity, alignment: .leading)" MenuMines/Views/SettingsView.swift || echo "NOT FOUND!"
-          echo ""
-          echo "=== Git status ==="
-          git log --oneline -5
-          git status
-
       - name: Archive
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
           SPARKLE_PUBLIC_ED_KEY: ${{ secrets.SPARKLE_PUBLIC_ED_KEY }}
         run: |
-          xcodebuild clean archive \
+          xcodebuild archive \
             -scheme "$SCHEME" \
             -configuration "$CONFIGURATION" \
             -destination 'generic/platform=macOS' \
             -archivePath "$ARCHIVE_PATH" \
             -clonedSourcePackagesDirPath "$RUNNER_TEMP/spm-cache" \
-            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Developer ID Application" \
@@ -156,17 +135,6 @@ jobs:
             CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
             SENTRY_DSN="$SENTRY_DSN" \
             SPARKLE_PUBLIC_ED_KEY="$SPARKLE_PUBLIC_ED_KEY"
-
-      - name: Verify Archive Contents
-        run: |
-          echo "=== Archive Info.plist ==="
-          cat "$ARCHIVE_PATH/Info.plist"
-          echo ""
-          echo "=== App Info.plist ==="
-          cat "$ARCHIVE_PATH/Products/Applications/MenuMinesDirect.app/Contents/Info.plist"
-          echo ""
-          echo "=== Build number in archive ==="
-          /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$ARCHIVE_PATH/Products/Applications/MenuMinesDirect.app/Contents/Info.plist"
 
       # ── Export ──
 
@@ -194,32 +162,33 @@ jobs:
 
       - name: Export Archive
         run: |
-          # Clean export path first
-          rm -rf "$EXPORT_PATH"
-
           xcodebuild -exportArchive \
             -archivePath "$ARCHIVE_PATH" \
             -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
             -exportPath "$EXPORT_PATH"
 
-      - name: Verify Exported App
-        run: |
-          echo "=== Exported app build number ==="
-          /usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$EXPORT_PATH/MenuMinesDirect.app/Contents/Info.plist"
-          echo ""
-          echo "=== Exported app version ==="
-          /usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$EXPORT_PATH/MenuMinesDirect.app/Contents/Info.plist"
+      # ── Notarize ──
 
-      # ── Create & Notarize DMG ──
-      # Note: We only notarize the DMG, not the app separately.
-      # The app inside is trusted because it's in a notarized container.
-
-      - name: Create and Notarize DMG
+      - name: Notarize App
         run: |
-          # Clean staging directory first
-          rm -rf "$RUNNER_TEMP/dmg-staging"
+          APP_PATH="$EXPORT_PATH/MenuMinesDirect.app"
+
+          # Create ZIP for notarization
+          ditto -c -k --keepParent "$APP_PATH" "$RUNNER_TEMP/MenuMines.zip"
+
+          # Submit for notarization using stored credentials
+          xcrun notarytool submit "$RUNNER_TEMP/MenuMines.zip" \
+            --keychain-profile "MenuMines" \
+            --wait
+
+          # Staple the notarization ticket
+          xcrun stapler staple "$APP_PATH"
+
+      # ── Create DMG ──
+
+      - name: Create DMG
+        run: |
           mkdir -p "$RUNNER_TEMP/dmg-staging"
-
           cp -R "$EXPORT_PATH/MenuMinesDirect.app" "$RUNNER_TEMP/dmg-staging/MenuMines.app"
           ln -s /Applications "$RUNNER_TEMP/dmg-staging/Applications"
 
@@ -288,7 +257,7 @@ jobs:
                 </sparkle:releaseNotesLink>
                 <pubDate>$(date -u +"%a, %d %b %Y %H:%M:%S +0000")</pubDate>
                 <enclosure
-                  url="${{ vars.R2_PUBLIC_URL }}/MenuMines-$VERSION.dmg"
+                  url="https://github.com/${{ github.repository }}/releases/download/v$VERSION-direct/MenuMines-$VERSION.dmg"
                   sparkle:edSignature="$SPARKLE_SIGNATURE"
                   length="$DMG_SIZE"
                   type="application/octet-stream" />
@@ -304,28 +273,6 @@ jobs:
         run: |
           mv "$DMG_PATH" "build/MenuMines-$VERSION.dmg"
           echo "FINAL_DMG_PATH=build/MenuMines-$VERSION.dmg" >> "$GITHUB_ENV"
-
-      # ── Upload to Cloudflare R2 ──
-
-      - name: Upload to Cloudflare R2
-        env:
-          AWS_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_R2_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_R2_SECRET_ACCESS_KEY }}
-          AWS_REGION: auto
-        run: |
-          R2_ENDPOINT="https://${{ secrets.CLOUDFLARE_ACCOUNT_ID }}.r2.cloudflarestorage.com"
-
-          # Upload DMG
-          aws s3 cp "$FINAL_DMG_PATH" "s3://menumines/MenuMines-$VERSION.dmg" \
-            --endpoint-url "$R2_ENDPOINT"
-
-          # Upload appcast
-          aws s3 cp "$EXPORT_PATH/appcast.xml" "s3://menumines/appcast.xml" \
-            --endpoint-url "$R2_ENDPOINT"
-
-          echo "Uploaded to R2:"
-          echo "  - MenuMines-$VERSION.dmg"
-          echo "  - appcast.xml"
 
       # ── Create GitHub Release ──
 
@@ -348,6 +295,16 @@ jobs:
             For the App Store version, download from the Mac App Store.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── Upload Artifacts ──
+
+      - name: Upload Archive Artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: MenuMines-${{ env.VERSION }}-Direct.xcarchive
+          path: ${{ env.ARCHIVE_PATH }}
+          retention-days: 30
 
       # ── Cleanup ──
 
