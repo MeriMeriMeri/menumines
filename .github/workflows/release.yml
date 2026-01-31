@@ -23,6 +23,7 @@ jobs:
     name: Archive and Upload to TestFlight
     runs-on: macos-15
     timeout-minutes: 30
+    if: ${{ !contains(github.ref_name, '-direct') }}
 
     steps:
       - name: Checkout
