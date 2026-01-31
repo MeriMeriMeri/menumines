@@ -11,7 +11,7 @@ enum RevealResult: Equatable {
 struct Board: Equatable, Codable {
     static let rows = 9
     static let cols = 9
-    static let mineCount = 15
+    static let mineCount = 12
 
     private(set) var cells: [[Cell]]
 

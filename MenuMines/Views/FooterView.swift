@@ -63,17 +63,6 @@ struct FooterView: View {
                 }
                 .keyboardShortcut(",", modifiers: .command)
 
-                Button(String(localized: "about_menu_item")) {
-                    onAbout()
-                }
-
-                Button(String(localized: "contact_support_menu_item")) {
-                    NSApp.activate(ignoringOtherApps: true)
-                    if let url = URL(string: "mailto:support@merimerimeri.com") {
-                        NSWorkspace.shared.open(url)
-                    }
-                }
-
                 #if SPARKLE_ENABLED
                 Divider()
 
@@ -84,6 +73,10 @@ struct FooterView: View {
                 #endif
 
                 Divider()
+
+                Button(String(localized: "about_menu_item")) {
+                    onAbout()
+                }
 
                 Button(String(localized: "quit_menu_item")) {
                     NSApplication.shared.terminate(nil)

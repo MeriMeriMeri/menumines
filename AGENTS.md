@@ -143,7 +143,7 @@ Use these tools to verify accessibility:
 ## Game Constants
 
 - Board size: 9x9 (81 cells)
-- Mine count: 15
+- Mine count: 12
 - First click is always safe (relocate mine if needed)
 - If the first click hits a mine, relocation uses system randomness (boards can diverge after that first click)
 

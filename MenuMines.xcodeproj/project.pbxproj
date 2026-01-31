@@ -826,6 +826,7 @@
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				PRODUCT_NAME = MenuMinesDirect;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG SPARKLE_ENABLED $(inherited)";
 			};
 			name = Debug;
 		};

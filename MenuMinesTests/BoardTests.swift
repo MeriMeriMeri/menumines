@@ -38,7 +38,7 @@ final class BoardTests: XCTestCase {
         }
     }
 
-    func testMultipleSeedsAllHaveFifteenMines() {
+    func testMultipleSeedsAllHaveCorrectMineCount() {
         let seeds: [Int64] = [1, 100, 20240101, 20241231, 99999999]
 
         for seed in seeds {
@@ -49,7 +49,7 @@ final class BoardTests: XCTestCase {
                     mineCount += 1
                 }
             }
-            XCTAssertEqual(mineCount, 15, "Board with seed \(seed) should have exactly 15 mines")
+            XCTAssertEqual(mineCount, Board.mineCount, "Board with seed \(seed) should have exactly \(Board.mineCount) mines")
         }
     }
 
@@ -69,7 +69,7 @@ final class BoardTests: XCTestCase {
         for seed in extremeSeeds {
             let board = Board(seed: seed)
             let mineCount = board.cells.flatMap { $0 }.filter(\.hasMine).count
-            XCTAssertEqual(mineCount, 15, "Seed \(seed) should produce exactly 15 mines")
+            XCTAssertEqual(mineCount, Board.mineCount, "Seed \(seed) should produce exactly \(Board.mineCount) mines")
         }
     }
 
@@ -311,12 +311,12 @@ final class BoardTests: XCTestCase {
         }
 
         let mineCountBefore = board.cells.flatMap { $0 }.filter(\.hasMine).count
-        XCTAssertEqual(mineCountBefore, 15)
+        XCTAssertEqual(mineCountBefore, Board.mineCount)
 
         board.relocateMine(from: mineRow, col: mineCol)
 
         let mineCountAfter = board.cells.flatMap { $0 }.filter(\.hasMine).count
-        XCTAssertEqual(mineCountAfter, 15, "Mine count should stay at 15 after relocation")
+        XCTAssertEqual(mineCountAfter, Board.mineCount, "Mine count should stay at \(Board.mineCount) after relocation")
     }
 
     func testRelocateMineMovesToDifferentCell() {
