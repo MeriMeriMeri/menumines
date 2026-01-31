@@ -123,6 +123,12 @@ jobs:
 
       # ── Archive ──
 
+      - name: Clean Build
+        run: |
+          # Remove any cached DerivedData to ensure fresh build
+          rm -rf ~/Library/Developer/Xcode/DerivedData
+          rm -rf build/
+
       - name: Archive
         env:
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
@@ -135,6 +141,7 @@ jobs:
             -destination 'generic/platform=macOS' \
             -archivePath "$ARCHIVE_PATH" \
             -clonedSourcePackagesDirPath "$RUNNER_TEMP/spm-cache" \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
             DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="Developer ID Application" \
