@@ -61,6 +61,14 @@ jobs:
           xcodebuild -version
           swift --version
 
+      - name: Verify Build Settings
+        run: |
+          echo "=== Checking SWIFT_ACTIVE_COMPILATION_CONDITIONS for MenuMinesDirect Release-Direct ==="
+          xcodebuild -showBuildSettings \
+            -scheme "$SCHEME" \
+            -configuration "$CONFIGURATION" \
+            | grep -E "SWIFT_ACTIVE_COMPILATION_CONDITIONS|PRODUCT_NAME|TARGET_NAME"
+
       # ── Install Developer ID Certificate ──
 
       - name: Install Developer ID Certificate
