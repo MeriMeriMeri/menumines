@@ -121,14 +121,14 @@ struct MenuBarIconStateTests {
         #expect(MenuBarIconState.normal.overlaySymbol == nil)
     }
 
-    @Test("Incomplete state has ellipsis overlay")
+    @Test("Incomplete state has dot overlay")
     func testIncompleteOverlaySymbol() {
-        #expect(MenuBarIconState.incomplete.overlaySymbol == "ellipsis.circle.fill")
+        #expect(MenuBarIconState.incomplete.overlaySymbol == "circle.fill")
     }
 
     @Test("Paused state has pause overlay")
     func testPausedOverlaySymbol() {
-        #expect(MenuBarIconState.paused.overlaySymbol == "pause.circle.fill")
+        #expect(MenuBarIconState.paused.overlaySymbol == "pause.fill")
     }
 
     @Test("Lost state has X overlay")

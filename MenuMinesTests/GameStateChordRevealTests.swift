@@ -8,7 +8,7 @@ struct GameStateChordRevealTests {
     @Test("Chord reveal does nothing before game starts")
     func testChordRevealDoesNothingBeforeGameStarts() {
         let board = Board(seed: 12345)
-        let gameState = GameState(board: board)
+        let gameState = GameState(board: board, dailySeed: 12345)
 
         #expect(gameState.status == .notStarted)
 
@@ -20,7 +20,7 @@ struct GameStateChordRevealTests {
     @Test("Chord reveal works on revealed number cell with correct flags")
     func testChordRevealWorksWithCorrectFlags() {
         let board = Board(seed: 12345)
-        let gameState = GameState(board: board)
+        let gameState = GameState(board: board, dailySeed: 12345)
 
         // Start the game first (triggers 3x3 clearing)
         gameState.reveal(row: 0, col: 0)
@@ -59,7 +59,7 @@ struct GameStateChordRevealTests {
     @Test("Chord reveal loses game with incorrect flag")
     func testChordRevealLosesWithIncorrectFlag() {
         let board = Board(seed: 12345)
-        let gameState = GameState(board: board)
+        let gameState = GameState(board: board, dailySeed: 12345)
 
         // Start the game first (triggers 3x3 clearing)
         gameState.reveal(row: 0, col: 0)
@@ -92,7 +92,7 @@ struct GameStateChordRevealTests {
     @Test("Chord reveal via reveal on revealed cell")
     func testRevealOnRevealedCellTriggersChordReveal() {
         let board = Board(seed: 12345)
-        let gameState = GameState(board: board)
+        let gameState = GameState(board: board, dailySeed: 12345)
 
         // Start the game first (triggers 3x3 clearing)
         gameState.reveal(row: 0, col: 0)
@@ -131,7 +131,7 @@ struct GameStateChordRevealTests {
     @Test("Chord reveal selected works with keyboard navigation")
     func testChordRevealSelectedWorks() {
         let board = Board(seed: 12345)
-        let gameState = GameState(board: board)
+        let gameState = GameState(board: board, dailySeed: 12345)
 
         // Start the game first (triggers 3x3 clearing)
         gameState.reveal(row: 0, col: 0)
@@ -175,7 +175,7 @@ struct GameStateChordRevealTests {
     @Test("Chord reveal can win the game")
     func testChordRevealCanWinGame() {
         let board = Board(seed: 12345)
-        let gameState = GameState(board: board)
+        let gameState = GameState(board: board, dailySeed: 12345)
 
         // Start the game first (triggers 3x3 clearing)
         gameState.reveal(row: 0, col: 0)
@@ -242,7 +242,7 @@ struct GameStateChordRevealTests {
     @Test("Chord reveal does nothing after game is won")
     func testChordRevealDoesNothingAfterWin() {
         let board = Board(seed: 12345)
-        let gameState = GameState(board: board)
+        let gameState = GameState(board: board, dailySeed: 12345)
 
         winGame(gameState)
         #expect(gameState.status == .won)
@@ -262,7 +262,7 @@ struct GameStateChordRevealTests {
     @Test("Chord reveal does nothing after game is lost")
     func testChordRevealDoesNothingAfterLoss() {
         let board = Board(seed: 12345)
-        let gameState = GameState(board: board)
+        let gameState = GameState(board: board, dailySeed: 12345)
 
         // Start game
         guard let safe = findSafeCell(in: gameState.board) else {
