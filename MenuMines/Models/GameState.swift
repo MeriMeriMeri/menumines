@@ -143,17 +143,18 @@ final class GameState {
     private(set) var selectedRow: Int = 0
     private(set) var selectedCol: Int = 0
     private var dailySeed: Int64
-    private(set) var isPaused: Bool = false
     private(set) var puzzleType: PuzzleType = .daily
+    private(set) var isPaused: Bool = false
     /// Count of correctly marked mines at the time of winning (before auto-flagging).
     /// Used for share text to show player's actual skill.
     private var markedMinesAtWin: Int = 0
 
-    private var timer: Timer?
+    /// Timer for tracking elapsed game time.
+    private let gameTimer = GameTimer()
+    /// Handles VoiceOver announcements with debouncing.
+    private let announcer = AccessibilityAnnouncer()
     /// Cache the last date we checked for rollover to avoid redundant calculations
     private var lastRolloverCheckDate: Date?
-    /// Task for debouncing selection change announcements to prevent overlapping VoiceOver messages.
-    private var announcementTask: Task<Void, Never>?
 
     /// Whether continuous play mode is enabled.
     private var isContinuousPlayEnabled: Bool {
@@ -173,6 +174,9 @@ final class GameState {
         self.board = board
         self.dailySeed = dailySeed
         self.puzzleType = puzzleType
+        gameTimer.onTick = { [weak self] in
+            self?.elapsedTime += 1
+        }
     }
 
     /// Generates a Wordle-style share text for the completed game.
@@ -180,59 +184,13 @@ final class GameState {
     /// - Parameter date: The date to use for the header (defaults to current date formatted in UTC).
     /// - Returns: The formatted share text, or nil if the game is not complete.
     func shareText(for date: Date = Date()) -> String? {
-        guard status == .won || status == .lost else { return nil }
-
-        var lines: [String] = []
-
-        // Header with UTC date
-        let timeZone = TimeZone(identifier: "UTC") ?? TimeZone(secondsFromGMT: 0) ?? .current
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.timeZone = timeZone
-        formatter.locale = Locale.current
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
-        let dateString = formatter.string(from: date)
-        lines.append(String(format: String(localized: "share_header"), dateString))
-
-        // Result line with formatted time and flag count
-        let minutes = Int(elapsedTime) / 60
-        let seconds = Int(elapsedTime) % 60
-        let timeString = String(format: "%d:%02d", minutes, seconds)
-        let markedCorrect = countCorrectlyMarkedMines()
-        if status == .won {
-            lines.append(String(format: String(localized: "share_solved"), timeString, markedCorrect, Board.mineCount))
-        } else {
-            lines.append(String(format: String(localized: "share_failed"), timeString, markedCorrect, Board.mineCount))
-        }
-
-        // Emoji grid - difficulty heat map (fully spoiler-free)
-        // Every cell shows its difficulty based on adjacent mine count
-        // Mines are indistinguishable from safe cells - no gaps in the pattern
-        // 🟩 = 0 adjacent mines (safe zone)
-        // 🟡 = 1-2 adjacent mines (easy)
-        // 🟠 = 3-4 adjacent mines (medium)
-        // 🔴 = 5+ adjacent mines (danger zone)
-        for row in 0..<Board.rows {
-            var rowEmojis = ""
-            for col in 0..<Board.cols {
-                // Use adjacentMineCount for ALL cells (including mines)
-                // This hides mine positions by showing uniform difficulty colors
-                let adjacentMines = board.adjacentMineCount(row: row, col: col)
-                if adjacentMines == 0 {
-                    rowEmojis += "🟩"
-                } else if adjacentMines <= 2 {
-                    rowEmojis += "🟡"
-                } else if adjacentMines <= 4 {
-                    rowEmojis += "🟠"
-                } else {
-                    rowEmojis += "🔴"
-                }
-            }
-            lines.append(rowEmojis)
-        }
-
-        return lines.joined(separator: "\n")
+        ShareTextGenerator.generate(
+            status: status,
+            board: board,
+            elapsedTime: elapsedTime,
+            markedMinesCount: countCorrectlyMarkedMines(),
+            date: date
+        )
     }
 
     /// Counts the number of flags placed on actual mines.
@@ -333,6 +291,7 @@ final class GameState {
     func reset() {
         guard canReset else { return }
         stopTimer()
+        announcer.cancelPendingAnnouncement()
 
         // If continuous play is enabled and daily is complete, start a random puzzle
         if isContinuousPlayEnabled && isDailyPuzzleComplete() {
@@ -348,7 +307,6 @@ final class GameState {
             flagCount = 0
             selectedRow = 0
             selectedCol = 0
-            isPaused = false
             GameSnapshot.clear()
         }
     }
@@ -364,7 +322,6 @@ final class GameState {
         flagCount = 0
         selectedRow = 0
         selectedCol = 0
-        isPaused = false
         // Don't persist random puzzles
         GameSnapshot.clear()
     }
@@ -514,18 +471,19 @@ final class GameState {
 
     /// Pauses the timer (e.g., when popover closes).
     func pauseTimer() {
-        timer?.invalidate()
-        timer = nil
         if status == .playing {
+            gameTimer.pause()
             isPaused = true
+        } else {
+            gameTimer.stop()
         }
     }
 
     /// Resumes the timer (e.g., when popover reopens).
     func resumeTimer() {
         guard status == .playing else { return }
+        gameTimer.resume()
         isPaused = false
-        startTimer()
     }
 
     /// Checks if we should roll over to today's puzzle and performs the rollover if needed.
@@ -565,8 +523,8 @@ final class GameState {
 
     /// Performs a rollover to a new day's puzzle.
     private func rolloverToNewDay(seed: Int64) {
-        // Stop timer and reset isPaused flag (stopTimer handles both)
         stopTimer()
+        announcer.cancelPendingAnnouncement()
         board = Board(seed: seed)
         dailySeed = seed
         puzzleType = .daily
@@ -626,7 +584,6 @@ final class GameState {
 
         selectedRow = snapshot.selectedRow
         selectedCol = snapshot.selectedCol
-        isPaused = false
     }
 
     /// Restores state from daily stats when snapshot is not available.
@@ -640,7 +597,6 @@ final class GameState {
         flagCount = stats.flagCount
         selectedRow = 0
         selectedCol = 0
-        isPaused = false
 
         // For lost games, reveal all mines so display is correct
         if !stats.won {
@@ -672,46 +628,8 @@ final class GameState {
     /// Announces the currently selected cell for VoiceOver users.
     /// Debounced to prevent overlapping announcements during rapid navigation.
     private func announceSelectedCell() {
-        // Cancel any pending announcement
-        announcementTask?.cancel()
-
-        // Capture values for announcement
-        let row = selectedRow
-        let col = selectedCol
-        let cell = board.cells[row][col]
-
-        // Schedule new announcement after brief delay
-        announcementTask = Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(150))
-            guard !Task.isCancelled else { return }
-
-            let stateDescription = cellStateDescription(cell)
-            let message = String(
-                format: String(localized: "announcement_selection_changed"),
-                row + 1,
-                col + 1,
-                stateDescription
-            )
-            AccessibilityNotification.Announcement(message).post()
-        }
-    }
-
-    /// Returns a description of the cell state for accessibility announcements.
-    private func cellStateDescription(_ cell: Cell) -> String {
-        switch cell.state {
-        case .hidden:
-            return String(localized: "cell_state_covered")
-        case .flagged:
-            return String(localized: "cell_state_flagged")
-        case .revealed(let adjacentMines):
-            if adjacentMines == 0 {
-                return String(localized: "cell_state_empty")
-            } else if adjacentMines == 1 {
-                return String(localized: "cell_state_one_mine")
-            } else {
-                return String(format: String(localized: "cell_state_mines"), adjacentMines)
-            }
-        }
+        let cell = board.cells[selectedRow][selectedCol]
+        announcer.announceSelectionChange(row: selectedRow, col: selectedCol, cell: cell)
     }
 
     /// Reveals the currently selected cell.
@@ -753,15 +671,11 @@ final class GameState {
     // MARK: - Private
 
     private func startTimer() {
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            self?.elapsedTime += 1
-        }
+        gameTimer.start()
     }
 
     private func stopTimer() {
-        timer?.invalidate()
-        timer = nil
+        gameTimer.stop()
         isPaused = false
     }
 

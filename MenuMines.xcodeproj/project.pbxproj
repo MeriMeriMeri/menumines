@@ -19,6 +19,8 @@
 		6B961CC5DBBCDD066107D8BA /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100009B229E009B /* Constants.swift */; };
 		6FFC1BBBD7193BD1213415D4 /* MenuContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000004229E0004 /* MenuContentView.swift */; };
 		7318CF5C5241562104D235AD /* Board.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001C229E001C /* Board.swift */; };
+		77814D5E996FB19EAC310DDC /* ShareTextGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69E7024973DDFB0D12DA5C0B /* ShareTextGenerator.swift */; };
+		79B32F9AB74D435C11D6CAA2 /* AccessibilityAnnouncer.swift in Sources */ = {isa = PBXBuildFile; fileRef = ADBC0D03C616C4EDBC3F1A6C /* AccessibilityAnnouncer.swift */; };
 		7B6F917CBF187910503D305C /* MenuBarIconState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000071229E0071 /* MenuBarIconState.swift */; };
 		93730F02D86DC62DE56DCEA4 /* UpdateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000210229E0210 /* UpdateManager.swift */; };
 		A1000001229E0001 /* MenuMinesApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000002229E0002 /* MenuMinesApp.swift */; };
@@ -61,6 +63,7 @@
 		A1000211229E0211 /* UpdateManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000210229E0210 /* UpdateManager.swift */; };
 		BDEDFA31900C31F86AB3C009 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000061229E0061 /* SettingsView.swift */; };
 		C025A855A60908A57B9EA2B7 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A10001C1229E01C1 /* PrivacyInfo.xcprivacy */; };
+		C1A2E8249E61CE4F458FB08A /* GameTimer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98646FF50DD548507DF79EFF /* GameTimer.swift */; };
 		C34F31163447957155669BA1 /* StatsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000085229E0085 /* StatsWindow.swift */; };
 		C8510E2FB3392D4D721AAF45 /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = A1000054229E0054 /* Sparkle */; };
 		DFDC43CE73E73FAFE5F0271D /* AboutWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000042229E0042 /* AboutWindow.swift */; };
@@ -83,6 +86,8 @@
 
 /* Begin PBXFileReference section */
 		4F52D4F4F17DB0C6CB089578 /* MenuMinesDirect.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MenuMinesDirect.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		69E7024973DDFB0D12DA5C0B /* ShareTextGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareTextGenerator.swift; sourceTree = "<group>"; };
+		98646FF50DD548507DF79EFF /* GameTimer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameTimer.swift; sourceTree = "<group>"; };
 		9E865C24732BA18B1DB15C88 /* Info-Direct.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Info-Direct.plist"; sourceTree = "<group>"; };
 		A1000002229E0002 /* MenuMinesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuMinesApp.swift; sourceTree = "<group>"; };
 		A1000004229E0004 /* MenuContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuContentView.swift; sourceTree = "<group>"; };
@@ -123,6 +128,7 @@
 		A10001B3229E01B3 /* GameStatePersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStatePersistenceTests.swift; sourceTree = "<group>"; };
 		A10001C1229E01C1 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		A1000210229E0210 /* UpdateManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UpdateManager.swift; sourceTree = "<group>"; };
+		ADBC0D03C616C4EDBC3F1A6C /* AccessibilityAnnouncer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityAnnouncer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -213,6 +219,9 @@
 				A1000081229E0081 /* GameResult.swift */,
 				A1000071229E0071 /* MenuBarIconState.swift */,
 				A1000083229E0083 /* StatsStore.swift */,
+				98646FF50DD548507DF79EFF /* GameTimer.swift */,
+				69E7024973DDFB0D12DA5C0B /* ShareTextGenerator.swift */,
+				ADBC0D03C616C4EDBC3F1A6C /* AccessibilityAnnouncer.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -410,6 +419,9 @@
 				A1000060229E0060 /* SettingsView.swift in Sources */,
 				A1000084229E0084 /* StatsWindow.swift in Sources */,
 				A1000211229E0211 /* UpdateManager.swift in Sources */,
+				C1A2E8249E61CE4F458FB08A /* GameTimer.swift in Sources */,
+				77814D5E996FB19EAC310DDC /* ShareTextGenerator.swift in Sources */,
+				79B32F9AB74D435C11D6CAA2 /* AccessibilityAnnouncer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
