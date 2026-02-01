@@ -21,6 +21,7 @@ struct SettingsView: View {
             } footer: {
                 Text(String(localized: "settings_show_menu_bar_indicators_footer"))
                     .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 
@@ -32,6 +33,7 @@ struct SettingsView: View {
             } footer: {
                 Text(String(localized: "settings_show_streaks_footer"))
                     .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 
@@ -43,6 +45,7 @@ struct SettingsView: View {
             } footer: {
                 Text(String(localized: "settings_confirm_before_reset_footer"))
                     .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 
@@ -54,6 +57,7 @@ struct SettingsView: View {
             } footer: {
                 Text(String(localized: "settings_continuous_play_footer"))
                     .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading)
                     .frame(maxWidth: .infinity, alignment: .leading)
             }
 
