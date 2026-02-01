@@ -94,8 +94,7 @@ struct FooterView: View {
             .fixedSize()
             .accessibilityLabel(String(localized: "footer_menu_accessibility_label"))
         }
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, 8)
+        .frame(width: 260)
     }
 }
 

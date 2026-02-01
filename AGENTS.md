@@ -77,8 +77,8 @@ Set `LSUIElement = YES` in Info.plist to hide from Dock. The UI must provide a Q
 # Build release
 xcodebuild -scheme MenuMines -configuration Release
 
-# Run tests
-xcodebuild test -scheme MenuMines
+# Run tests (code signing must be disabled to avoid Team ID mismatch errors)
+xcodebuild test -scheme MenuMines CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY=""
 
 # Clean build
 xcodebuild clean -scheme MenuMines
