@@ -2,124 +2,6 @@ import AppKit
 import Foundation
 import Sentry
 
-/// Snapshot of game state for persistence.
-/// Includes all data needed to restore an in-progress game.
-struct GameSnapshot: Codable {
-    let board: Board
-    let status: GameStatus
-    let elapsedTime: TimeInterval
-    let flagCount: Int
-    let selectedRow: Int
-    let selectedCol: Int
-    let dailySeed: Int64
-    let puzzleType: PuzzleType
-
-    /// Coding keys for backward-compatible decoding.
-    private enum CodingKeys: String, CodingKey {
-        case board, status, elapsedTime, flagCount, selectedRow, selectedCol, dailySeed, puzzleType
-    }
-
-    /// Custom decoder to provide backward compatibility for existing snapshots without puzzleType.
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        board = try container.decode(Board.self, forKey: .board)
-        status = try container.decode(GameStatus.self, forKey: .status)
-        elapsedTime = try container.decode(TimeInterval.self, forKey: .elapsedTime)
-        flagCount = try container.decode(Int.self, forKey: .flagCount)
-        selectedRow = try container.decode(Int.self, forKey: .selectedRow)
-        selectedCol = try container.decode(Int.self, forKey: .selectedCol)
-        dailySeed = try container.decode(Int64.self, forKey: .dailySeed)
-        puzzleType = try container.decodeIfPresent(PuzzleType.self, forKey: .puzzleType) ?? .daily
-    }
-
-    init(board: Board, status: GameStatus, elapsedTime: TimeInterval, flagCount: Int,
-         selectedRow: Int, selectedCol: Int, dailySeed: Int64, puzzleType: PuzzleType = .daily) {
-        self.board = board
-        self.status = status
-        self.elapsedTime = elapsedTime
-        self.flagCount = flagCount
-        self.selectedRow = selectedRow
-        self.selectedCol = selectedCol
-        self.dailySeed = dailySeed
-        self.puzzleType = puzzleType
-    }
-
-    private static let baseStorageKey = "gameSnapshot"
-    @TaskLocal private static var storageKeySuffix: String?
-
-    private static var storageKey: String {
-        guard let suffix = storageKeySuffix, !suffix.isEmpty else {
-            return baseStorageKey
-        }
-        return "\(baseStorageKey).\(suffix)"
-    }
-
-    /// Executes a closure using a namespaced snapshot storage key.
-    static func withStorageKey<T>(_ suffix: String, _ body: () throws -> T) rethrows -> T {
-        try $storageKeySuffix.withValue(suffix, operation: body)
-    }
-
-    /// Saves the snapshot to UserDefaults.
-    func save() {
-        do {
-            let data = try JSONEncoder().encode(self)
-            UserDefaults.standard.set(data, forKey: Self.storageKey)
-        } catch {
-            SentrySDK.capture(error: error) { scope in
-                scope.setTag(value: "snapshot_save", key: "operation")
-                scope.setContext(value: [
-                    "daily_seed": dailySeed,
-                    "status": status.rawValue,
-                    "elapsed_time": elapsedTime,
-                    "flag_count": flagCount
-                ], key: "game_state")
-            }
-        }
-    }
-
-    /// Loads a snapshot from UserDefaults if one exists and is for today's puzzle.
-    /// - Returns: The snapshot if valid for today, nil otherwise.
-    static func load() -> GameSnapshot? {
-        guard let snapshot = loadAnyDay() else { return nil }
-
-        let todaySeed = seedFromDate(Date())
-        guard snapshot.dailySeed == todaySeed else {
-            clear()
-            return nil
-        }
-
-        return snapshot
-    }
-
-    /// Loads a snapshot from UserDefaults regardless of which day it was saved.
-    /// Used for rollover logic where we need to check the previous day's game status.
-    /// - Returns: The snapshot if one exists and can be decoded, nil otherwise.
-    static func loadAnyDay() -> GameSnapshot? {
-        guard let data = UserDefaults.standard.data(forKey: storageKey) else { return nil }
-
-        do {
-            let snapshot = try JSONDecoder().decode(GameSnapshot.self, from: data)
-            return snapshot
-        } catch {
-            // Snapshot corruption detected - log to Sentry and clear
-            SentrySDK.capture(error: error) { scope in
-                scope.setTag(value: "snapshot_load", key: "operation")
-                scope.setContext(value: [
-                    "data_size_bytes": data.count,
-                    "today_seed": seedFromDate(Date())
-                ], key: "persistence")
-            }
-            clear()
-            return nil
-        }
-    }
-
-    /// Clears any stored snapshot.
-    static func clear() {
-        UserDefaults.standard.removeObject(forKey: storageKey)
-    }
-}
-
 /// The current status of the game.
 enum GameStatus: String, Equatable, Codable {
     case notStarted
@@ -136,14 +18,15 @@ enum Direction {
 /// Observable game state that owns the board and manages game logic.
 @Observable
 final class GameState {
-    private(set) var board: Board
-    private(set) var status: GameStatus = .notStarted
-    private(set) var elapsedTime: TimeInterval = 0
-    private(set) var flagCount: Int = 0
-    private(set) var selectedRow: Int = 0
-    private(set) var selectedCol: Int = 0
-    private var dailySeed: Int64
-    private(set) var puzzleType: PuzzleType = .daily
+    // Note: internal(set) allows GamePersistenceCoordinator and checkContinuousPlaySetting to set these
+    internal(set) var board: Board
+    internal(set) var status: GameStatus = .notStarted
+    internal(set) var elapsedTime: TimeInterval = 0
+    internal(set) var flagCount: Int = 0
+    internal(set) var selectedRow: Int = 0
+    internal(set) var selectedCol: Int = 0
+    internal(set) var dailySeed: Int64
+    internal(set) var puzzleType: PuzzleType = .daily
     private(set) var isPaused: Bool = false
     /// Count of correctly marked mines at the time of winning (before auto-flagging).
     /// Used for share text to show player's actual skill.
@@ -355,118 +238,11 @@ final class GameState {
         snapshot.save()
     }
 
-    /// Creates a GameState by restoring from a saved snapshot if available,
+    /// Creates a GameState by restoring from a saved snapshot or stats if available,
     /// otherwise creates a fresh game with today's daily board.
-    ///
-    /// Rollover behavior:
-    /// - If snapshot is from today: restore full state
-    /// - If snapshot is from a previous day AND game is in progress (.playing):
-    ///   restore the old game (delay rollover until game ends)
-    /// - If snapshot is from a previous day AND game is not in progress:
-    ///   create fresh game for today (allow rollover)
-    ///
-    /// Continuous play behavior:
-    /// - If daily is complete: restore completed state from stats
-    /// - Continuous play only affects whether reset can start a random puzzle
-    ///
-    /// Error recovery behavior:
-    /// - If snapshot is corrupted but daily is complete: restore completed state from stats
-    /// - If snapshot is corrupted and daily is not complete: create fresh game
+    /// Delegates to GamePersistenceCoordinator for centralized persistence logic.
     static func restored() -> GameState {
-        let todaySeed = seedFromDate(Date())
-
-        // Try to restore from snapshot (only daily puzzles are persisted)
-        if let snapshot = GameSnapshot.loadAnyDay() {
-            if snapshot.dailySeed == todaySeed {
-                return restoreFromSnapshot(snapshot)
-            }
-
-            if shouldDelayRollover(snapshot: snapshot) {
-                return restoreFromSnapshot(snapshot)
-            }
-
-            // Snapshot from previous day, game not in progress - allow rollover
-            GameSnapshot.clear()
-        }
-
-        // Check if daily is complete and restore completed state from stats if available
-        if isDailyPuzzleComplete() {
-            let board = Board(seed: todaySeed)
-            if let restoredState = tryRestoreFromStats(seed: todaySeed, board: board) {
-                return restoredState
-            }
-        }
-
-        // Create fresh board for today
-        let board = Board(seed: todaySeed)
-        return GameState(board: board, dailySeed: todaySeed)
-    }
-
-    /// Determines if rollover should be delayed for a previous day's snapshot.
-    /// Rollover is delayed when the game is still in progress.
-    private static func shouldDelayRollover(snapshot: GameSnapshot) -> Bool {
-        snapshot.status == .playing
-    }
-
-    /// Attempts to restore game state from stats if today's puzzle was already completed.
-    /// - Returns: GameState restored from stats, or nil if stats don't exist or are invalid
-    private static func tryRestoreFromStats(seed: Int64, board: Board) -> GameState? {
-        guard let stats = getStats(for: Date()) else { return nil }
-
-        guard stats.seed == seed else {
-            // Data corruption - stats seed doesn't match expected seed
-            SentrySDK.capture(message: "Stats seed mismatch: expected \(seed), got \(stats.seed)") { scope in
-                scope.setLevel(.warning)
-                scope.setContext(value: ["expectedSeed": seed, "actualSeed": stats.seed], key: "seedMismatch")
-            }
-            return nil
-        }
-
-        let state = GameState(board: board, dailySeed: seed)
-        state.status = stats.won ? .won : .lost
-        state.elapsedTime = stats.elapsedTime
-        // Stats restoration uses a fresh board without flags, so trust the stored count
-        state.flagCount = stats.flagCount
-
-        // For lost games, reveal all mines so display is correct
-        if !stats.won {
-            state.board.revealAllMines()
-        }
-
-        if !isDailyPuzzleComplete() {
-            markDailyPuzzleComplete()
-        }
-
-        return state
-    }
-
-    /// Helper to restore a GameState from a snapshot.
-    private static func restoreFromSnapshot(_ snapshot: GameSnapshot) -> GameState {
-        let state = GameState(board: snapshot.board, dailySeed: snapshot.dailySeed, puzzleType: snapshot.puzzleType)
-        state.status = snapshot.status
-        state.elapsedTime = snapshot.elapsedTime
-
-        // Validate flagCount matches actual flags on board
-        let actualFlagCount = snapshot.board.cells.flatMap { $0 }.filter {
-            if case .flagged = $0.state { return true }
-            return false
-        }.count
-
-        if snapshot.flagCount != actualFlagCount {
-            SentrySDK.capture(message: "Flag count mismatch in snapshot") { scope in
-                scope.setLevel(.warning)
-                scope.setContext(value: [
-                    "stored_count": snapshot.flagCount,
-                    "actual_count": actualFlagCount,
-                    "daily_seed": snapshot.dailySeed
-                ], key: "flag_mismatch")
-            }
-        }
-        state.flagCount = actualFlagCount
-
-        state.selectedRow = snapshot.selectedRow
-        state.selectedCol = snapshot.selectedCol
-        return state
+        GamePersistenceCoordinator.restore()
     }
 
     /// Pauses the timer (e.g., when popover closes).
@@ -549,59 +325,21 @@ final class GameState {
         // Only applies when on a random puzzle with continuous play disabled
         guard puzzleType == .random, !isContinuousPlayEnabled else { return }
 
-        // If daily is complete, restore that state
+        // If daily is complete, restore that state using the coordinator
         guard isDailyPuzzleComplete() else { return }
 
-        let todaySeed = seedFromDate(Date())
-
-        // Try to restore from saved snapshot first
-        if let snapshot = GameSnapshot.load(), snapshot.dailySeed == todaySeed {
-            restoreFromDailySnapshot(snapshot)
-            return
-        }
-
-        // Fall back to restoring from stats
-        if let stats = getStats(for: Date()), stats.seed == todaySeed {
-            restoreFromDailyStats(stats, seed: todaySeed)
-        }
-    }
-
-    /// Restores state from a daily snapshot.
-    private func restoreFromDailySnapshot(_ snapshot: GameSnapshot) {
         stopTimer()
-        board = snapshot.board
-        dailySeed = snapshot.dailySeed
-        puzzleType = .daily
-        status = snapshot.status
-        elapsedTime = snapshot.elapsedTime
 
-        // Count actual flags on board
-        let actualFlagCount = snapshot.board.cells.flatMap { $0 }.filter {
-            if case .flagged = $0.state { return true }
-            return false
-        }.count
-        flagCount = actualFlagCount
-
-        selectedRow = snapshot.selectedRow
-        selectedCol = snapshot.selectedCol
-    }
-
-    /// Restores state from daily stats when snapshot is not available.
-    private func restoreFromDailyStats(_ stats: DailyStats, seed: Int64) {
-        stopTimer()
-        board = Board(seed: seed)
-        dailySeed = seed
-        puzzleType = .daily
-        status = stats.won ? .won : .lost
-        elapsedTime = stats.elapsedTime
-        flagCount = stats.flagCount
-        selectedRow = 0
-        selectedCol = 0
-
-        // For lost games, reveal all mines so display is correct
-        if !stats.won {
-            board.revealAllMines()
-        }
+        // Get the restored daily state from the coordinator and copy its values
+        let restored = GamePersistenceCoordinator.restore()
+        board = restored.board
+        dailySeed = restored.dailySeed
+        status = restored.status
+        elapsedTime = restored.elapsedTime
+        flagCount = restored.flagCount
+        selectedRow = restored.selectedRow
+        selectedCol = restored.selectedCol
+        puzzleType = restored.puzzleType
     }
 
     /// Moves the keyboard selection in the given direction.

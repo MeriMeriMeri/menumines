@@ -248,7 +248,19 @@ struct GameStatePersistenceTests {
     @Test("GameState restored restores from snapshot")
     func testGameStateRestoredFromSnapshot() {
         GameSnapshot.clear()
-        defer { GameSnapshot.clear() }
+        let settingKey = Constants.SettingsKeys.continuousPlay
+        let initialSettingValue = UserDefaults.standard.object(forKey: settingKey)
+        defer {
+            GameSnapshot.clear()
+            if let initial = initialSettingValue {
+                UserDefaults.standard.set(initial, forKey: settingKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: settingKey)
+            }
+        }
+
+        // Ensure continuousPlay is OFF so restore returns the saved state
+        UserDefaults.standard.set(false, forKey: settingKey)
 
         // Create and save a game state
         let originalBoard = Board(seed: 12345)
@@ -574,16 +586,26 @@ struct GameStatePersistenceTests {
     @Test("Restored state recovers from stats when snapshot missing but daily complete")
     func testRestoredRecoverFromStats() {
         GameSnapshot.clear()
+        let settingKey = Constants.SettingsKeys.continuousPlay
+        let initialSettingValue = UserDefaults.standard.object(forKey: settingKey)
         UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
         UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
         let todaySeed = seedFromDate(Date())
         UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
         defer {
             GameSnapshot.clear()
+            if let initial = initialSettingValue {
+                UserDefaults.standard.set(initial, forKey: settingKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: settingKey)
+            }
             UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
             UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
             UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
         }
+
+        // Ensure continuousPlay is OFF so restore returns the saved state
+        UserDefaults.standard.set(false, forKey: settingKey)
 
         // Mark daily complete and record stats, but don't save snapshot
         markDailyPuzzleComplete()
@@ -834,16 +856,26 @@ struct GameStatePersistenceTests {
     @Test("Restored game after win preserves board state with revealed cells")
     func testRestoredAfterWinPreservesBoardState() {
         GameSnapshot.clear()
+        let settingKey = Constants.SettingsKeys.continuousPlay
+        let initialSettingValue = UserDefaults.standard.object(forKey: settingKey)
         UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
         UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
         let todaySeed = seedFromDate(Date())
         UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
         defer {
             GameSnapshot.clear()
+            if let initial = initialSettingValue {
+                UserDefaults.standard.set(initial, forKey: settingKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: settingKey)
+            }
             UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
             UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
             UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
         }
+
+        // Ensure continuousPlay is OFF so restore returns the saved state
+        UserDefaults.standard.set(false, forKey: settingKey)
 
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
@@ -883,16 +915,26 @@ struct GameStatePersistenceTests {
     @Test("Restored game after loss preserves board state with exploded mine")
     func testRestoredAfterLossPreservesBoardState() {
         GameSnapshot.clear()
+        let settingKey = Constants.SettingsKeys.continuousPlay
+        let initialSettingValue = UserDefaults.standard.object(forKey: settingKey)
         UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
         UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
         let todaySeed = seedFromDate(Date())
         UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
         defer {
             GameSnapshot.clear()
+            if let initial = initialSettingValue {
+                UserDefaults.standard.set(initial, forKey: settingKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: settingKey)
+            }
             UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
             UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
             UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
         }
+
+        // Ensure continuousPlay is OFF so restore returns the saved state
+        UserDefaults.standard.set(false, forKey: settingKey)
 
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
@@ -923,16 +965,26 @@ struct GameStatePersistenceTests {
     @Test("Completed game with flags preserves flag positions after restore")
     func testRestoredPreservesFlagPositions() {
         GameSnapshot.clear()
+        let settingKey = Constants.SettingsKeys.continuousPlay
+        let initialSettingValue = UserDefaults.standard.object(forKey: settingKey)
         UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
         UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
         let todaySeed = seedFromDate(Date())
         UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
         defer {
             GameSnapshot.clear()
+            if let initial = initialSettingValue {
+                UserDefaults.standard.set(initial, forKey: settingKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: settingKey)
+            }
             UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
             UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
             UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
         }
+
+        // Ensure continuousPlay is OFF so restore returns the saved state
+        UserDefaults.standard.set(false, forKey: settingKey)
 
         let board = Board(seed: 12345)
         let gameState = GameState(board: board)
@@ -965,5 +1017,232 @@ struct GameStatePersistenceTests {
                    "Flag at (\(pos.row), \(pos.col)) should be preserved")
         }
         #expect(restoredState.flagCount == Board.mineCount, "All mines should remain flagged after restore")
+    }
+
+    // MARK: - Continuous Play Persistence Tests (GamePersistenceCoordinator)
+
+    @Test("continuousPlay ON + in-progress daily restores fresh daily puzzle")
+    func testContinuousPlayOnInProgressGetsFreshDaily() {
+        GameSnapshot.clear()
+        let settingKey = Constants.SettingsKeys.continuousPlay
+        let initialSettingValue = UserDefaults.standard.object(forKey: settingKey)
+        UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+        let todaySeed = seedFromDate(Date())
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        defer {
+            GameSnapshot.clear()
+            if let initial = initialSettingValue {
+                UserDefaults.standard.set(initial, forKey: settingKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: settingKey)
+            }
+            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        }
+
+        // Enable continuous play
+        UserDefaults.standard.set(true, forKey: settingKey)
+
+        // Create an in-progress game and save it
+        let board = Board(seed: todaySeed)
+        let gameState = GameState(board: board, dailySeed: todaySeed)
+        gameState.reveal(row: 0, col: 0)
+        #expect(gameState.status == .playing)
+        gameState.save()
+
+        // Verify snapshot exists
+        #expect(GameSnapshot.load() != nil, "Snapshot should exist")
+
+        // Restore with continuousPlay ON should get a fresh daily puzzle
+        let restoredState = GameState.restored()
+
+        #expect(restoredState.status == .notStarted, "continuousPlay ON should start fresh")
+        #expect(restoredState.puzzleType == .daily, "Should be a daily puzzle")
+        #expect(restoredState.elapsedTime == 0, "Should have zero elapsed time")
+    }
+
+    @Test("continuousPlay ON + completed daily restores fresh random puzzle")
+    func testContinuousPlayOnCompletedGetsRandomPuzzle() {
+        GameSnapshot.clear()
+        let settingKey = Constants.SettingsKeys.continuousPlay
+        let initialSettingValue = UserDefaults.standard.object(forKey: settingKey)
+        UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+        let todaySeed = seedFromDate(Date())
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        defer {
+            GameSnapshot.clear()
+            if let initial = initialSettingValue {
+                UserDefaults.standard.set(initial, forKey: settingKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: settingKey)
+            }
+            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        }
+
+        // Enable continuous play
+        UserDefaults.standard.set(true, forKey: settingKey)
+
+        // Complete the daily puzzle
+        let board = Board(seed: todaySeed)
+        let gameState = GameState(board: board, dailySeed: todaySeed)
+        winGame(gameState)
+        #expect(gameState.status == .won)
+        #expect(isDailyPuzzleComplete(), "Daily should be marked complete")
+
+        // Restore with continuousPlay ON after completion should get a random puzzle
+        let restoredState = GameState.restored()
+
+        #expect(restoredState.status == .notStarted, "Should start fresh")
+        #expect(restoredState.puzzleType == .random, "Should be a random puzzle when daily is complete")
+        #expect(restoredState.elapsedTime == 0, "Should have zero elapsed time")
+    }
+
+    @Test("continuousPlay OFF + in-progress daily restores exactly")
+    func testContinuousPlayOffInProgressRestoresExactly() {
+        GameSnapshot.clear()
+        let settingKey = Constants.SettingsKeys.continuousPlay
+        let initialSettingValue = UserDefaults.standard.object(forKey: settingKey)
+        UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+        let todaySeed = seedFromDate(Date())
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        defer {
+            GameSnapshot.clear()
+            if let initial = initialSettingValue {
+                UserDefaults.standard.set(initial, forKey: settingKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: settingKey)
+            }
+            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        }
+
+        // Disable continuous play
+        UserDefaults.standard.set(false, forKey: settingKey)
+
+        // Create an in-progress game and save it
+        let board = Board(seed: todaySeed)
+        let gameState = GameState(board: board, dailySeed: todaySeed)
+        gameState.reveal(row: 0, col: 0)
+        #expect(gameState.status == .playing)
+
+        // Flag a cell
+        var flaggedRow = 0, flaggedCol = 0
+        outer: for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                if case .hidden = gameState.board.cells[r][c].state {
+                    gameState.toggleFlag(row: r, col: c)
+                    flaggedRow = r
+                    flaggedCol = c
+                    break outer
+                }
+            }
+        }
+
+        gameState.save()
+
+        // Restore with continuousPlay OFF should restore exact state
+        let restoredState = GameState.restored()
+
+        #expect(restoredState.status == .playing, "Should restore playing status")
+        #expect(restoredState.puzzleType == .daily, "Should be daily puzzle")
+        #expect(restoredState.flagCount == 1, "Should restore flag count")
+        #expect(restoredState.board.cells[flaggedRow][flaggedCol].state == .flagged,
+               "Should restore flag position")
+    }
+
+    @Test("continuousPlay OFF + completed daily restores win/loss state")
+    func testContinuousPlayOffCompletedRestoresState() {
+        GameSnapshot.clear()
+        let settingKey = Constants.SettingsKeys.continuousPlay
+        let initialSettingValue = UserDefaults.standard.object(forKey: settingKey)
+        UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+        let todaySeed = seedFromDate(Date())
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        defer {
+            GameSnapshot.clear()
+            if let initial = initialSettingValue {
+                UserDefaults.standard.set(initial, forKey: settingKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: settingKey)
+            }
+            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        }
+
+        // Disable continuous play
+        UserDefaults.standard.set(false, forKey: settingKey)
+
+        // Complete the daily puzzle
+        let board = Board(seed: todaySeed)
+        let gameState = GameState(board: board, dailySeed: todaySeed)
+        winGame(gameState)
+        let elapsedTimeAtWin = gameState.elapsedTime
+        #expect(gameState.status == .won)
+
+        // Restore with continuousPlay OFF after completion should restore the won state
+        let restoredState = GameState.restored()
+
+        #expect(restoredState.status == .won, "Should restore won status")
+        #expect(restoredState.puzzleType == .daily, "Should be daily puzzle")
+        #expect(restoredState.elapsedTime == elapsedTimeAtWin, "Should restore elapsed time")
+    }
+
+    @Test("continuousPlay ON + yesterday's in-progress does not delay rollover")
+    func testContinuousPlayOnNoRolloverDelay() {
+        GameSnapshot.clear()
+        let settingKey = Constants.SettingsKeys.continuousPlay
+        let initialSettingValue = UserDefaults.standard.object(forKey: settingKey)
+        UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+        let todaySeed = seedFromDate(Date())
+        let yesterdaySeed = todaySeed - 1
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(yesterdaySeed)")
+        defer {
+            GameSnapshot.clear()
+            if let initial = initialSettingValue {
+                UserDefaults.standard.set(initial, forKey: settingKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: settingKey)
+            }
+            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+            UserDefaults.standard.removeObject(forKey: "dailyStats_\(yesterdaySeed)")
+        }
+
+        // Enable continuous play
+        UserDefaults.standard.set(true, forKey: settingKey)
+
+        // Create a snapshot from yesterday with .playing status
+        let yesterdayBoard = Board(seed: yesterdaySeed)
+        let snapshot = GameSnapshot(
+            board: yesterdayBoard,
+            status: .playing,
+            elapsedTime: 50.0,
+            flagCount: 2,
+            selectedRow: 3,
+            selectedCol: 3,
+            dailySeed: yesterdaySeed,
+            puzzleType: .daily
+        )
+        snapshot.save()
+
+        // Restore with continuousPlay ON should NOT delay rollover
+        // It should give a fresh daily puzzle for today, not yesterday's in-progress game
+        let restoredState = GameState.restored()
+
+        #expect(restoredState.status == .notStarted, "Should start fresh, not restore yesterday's game")
+        #expect(restoredState.puzzleType == .daily, "Should be today's daily puzzle")
+        #expect(restoredState.elapsedTime == 0, "Should have zero elapsed time")
     }
 }

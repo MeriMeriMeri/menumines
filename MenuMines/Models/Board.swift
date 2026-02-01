@@ -161,6 +161,14 @@ struct Board: Equatable, Codable {
         }
     }
 
+    /// Counts the number of flagged cells on the board.
+    var flagCount: Int {
+        cells.flatMap { $0 }.filter {
+            if case .flagged = $0.state { return true }
+            return false
+        }.count
+    }
+
     /// Flags all unflagged mine cells (used when game is won).
     mutating func flagAllMines() {
         for r in 0..<Board.rows {
