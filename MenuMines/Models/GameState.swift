@@ -145,6 +145,9 @@ final class GameState {
     private var dailySeed: Int64
     private(set) var isPaused: Bool = false
     private(set) var puzzleType: PuzzleType = .daily
+    /// Count of correctly marked mines at the time of winning (before auto-flagging).
+    /// Used for share text to show player's actual skill.
+    private var markedMinesAtWin: Int = 0
 
     private var timer: Timer?
     /// Cache the last date we checked for rollover to avoid redundant calculations
@@ -233,16 +236,12 @@ final class GameState {
     }
 
     /// Counts the number of flags placed on actual mines.
+    /// For won games, returns the count captured before auto-flagging to reflect player skill.
     private func countCorrectlyMarkedMines() -> Int {
-        var count = 0
-        for row in board.cells {
-            for cell in row {
-                if case .flagged = cell.state, cell.hasMine {
-                    count += 1
-                }
-            }
+        if status == .won {
+            return markedMinesAtWin
         }
-        return count
+        return countFlaggedMines()
     }
 
     /// Reveals the cell at the given position.
@@ -274,10 +273,26 @@ final class GameState {
             handleGameComplete(won: false)
         case .safe:
             if checkWinCondition() {
+                markedMinesAtWin = countFlaggedMines()
                 status = .won
+                board.flagAllMines()
+                flagCount = Board.mineCount
                 handleGameComplete(won: true)
             }
         }
+    }
+
+    /// Counts the number of flags currently placed on mines.
+    private func countFlaggedMines() -> Int {
+        var count = 0
+        for row in board.cells {
+            for cell in row {
+                if case .flagged = cell.state, cell.hasMine {
+                    count += 1
+                }
+            }
+        }
+        return count
     }
 
     /// Toggles the flag on the cell at the given position.
@@ -721,7 +736,10 @@ final class GameState {
             handleGameComplete(won: false)
         case .safe:
             if checkWinCondition() {
+                markedMinesAtWin = countFlaggedMines()
                 status = .won
+                board.flagAllMines()
+                flagCount = Board.mineCount
                 handleGameComplete(won: true)
             }
         }

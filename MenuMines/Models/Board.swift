@@ -161,6 +161,19 @@ struct Board: Equatable, Codable {
         }
     }
 
+    /// Flags all unflagged mine cells (used when game is won).
+    mutating func flagAllMines() {
+        for r in 0..<Board.rows {
+            for c in 0..<Board.cols {
+                if cells[r][c].hasMine {
+                    if case .hidden = cells[r][c].state {
+                        cells[r][c].state = .flagged
+                    }
+                }
+            }
+        }
+    }
+
     /// Relocates a mine from the given position to a random empty cell.
     /// Used for first-click safety.
     mutating func relocateMine(from row: Int, col: Int) {

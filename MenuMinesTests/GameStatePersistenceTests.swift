@@ -951,19 +951,19 @@ struct GameStatePersistenceTests {
             }
         }
 
-        // Win the game
+        // Win the game - all mines get auto-flagged
         winGame(gameState)
         #expect(gameState.status == .won)
-        #expect(gameState.flagCount == flaggedPositions.count)
+        #expect(gameState.flagCount == Board.mineCount, "All mines should be flagged on win")
 
         // Restore from snapshot
         let restoredState = GameState.restored()
 
-        // Verify flag positions are preserved
+        // Verify user-placed flag positions are preserved (as part of all mines being flagged)
         for pos in flaggedPositions {
             #expect(restoredState.board.cells[pos.row][pos.col].state == .flagged,
                    "Flag at (\(pos.row), \(pos.col)) should be preserved")
         }
-        #expect(restoredState.flagCount == flaggedPositions.count, "Flag count should be preserved")
+        #expect(restoredState.flagCount == Board.mineCount, "All mines should remain flagged after restore")
     }
 }
