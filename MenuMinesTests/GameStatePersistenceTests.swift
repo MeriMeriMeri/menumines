@@ -585,33 +585,14 @@ struct GameStatePersistenceTests {
 
     @Test("Restored state recovers from stats when snapshot missing but daily complete")
     func testRestoredRecoverFromStats() {
-        GameSnapshot.clear()
-        let settingKey = Constants.SettingsKeys.continuousPlay
-        let initialSettingValue = UserDefaults.standard.object(forKey: settingKey)
-        UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
-        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
-        let todaySeed = seedFromDate(Date())
-        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
-        defer {
-            GameSnapshot.clear()
-            if let initial = initialSettingValue {
-                UserDefaults.standard.set(initial, forKey: settingKey)
-            } else {
-                UserDefaults.standard.removeObject(forKey: settingKey)
-            }
-            UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
-            UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
-            UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
-        }
+        let cleanup = setupCleanPersistenceState(continuousPlay: false)
+        defer { cleanup() }
 
-        // Ensure continuousPlay is OFF so restore returns the saved state
-        UserDefaults.standard.set(false, forKey: settingKey)
-
-        // Mark daily complete and record stats, but don't save snapshot
+        // Mark daily complete and record stats, but don't save snapshot (nor daily namespace)
         markDailyPuzzleComplete()
         _ = recordStats(won: true, elapsedTime: 123.0, flagCount: 7)
 
-        // Restore should recover from stats
+        // Restore should recover from stats (fallback when no snapshots exist)
         let restoredState = GameState.restored()
 
         #expect(restoredState.status == .won, "Should restore won status from stats")
@@ -1244,5 +1225,165 @@ struct GameStatePersistenceTests {
         #expect(restoredState.status == .notStarted, "Should start fresh, not restore yesterday's game")
         #expect(restoredState.puzzleType == .daily, "Should be today's daily puzzle")
         #expect(restoredState.elapsedTime == 0, "Should have zero elapsed time")
+    }
+
+    // MARK: - Daily Namespace Snapshot Tests
+
+    @Test("Toggling continuous play OFF restores daily snapshot with full board state")
+    func testTogglingContinuousPlayOffRestoresDailySnapshot() {
+        let cleanup = setupCleanPersistenceState(continuousPlay: true)
+        defer { cleanup() }
+
+        let todaySeed = seedFromDate(Date())
+        let board = Board(seed: todaySeed)
+        let gameState = GameState(board: board, dailySeed: todaySeed)
+
+        // Win the game - this saves to daily namespace
+        winGame(gameState)
+        #expect(gameState.status == .won)
+        #expect(gameState.puzzleType == .daily)
+
+        let revealedCellCount = countRevealedCells(in: gameState.board)
+        #expect(revealedCellCount > 0, "Won game should have revealed cells")
+
+        // Reset to start a random puzzle (clears main snapshot)
+        gameState.reset()
+        #expect(gameState.puzzleType == .random, "Should be on random puzzle after reset")
+        #expect(gameState.status == .notStarted)
+
+        // Verify main snapshot was cleared
+        #expect(GameSnapshot.load() == nil, "Main snapshot should be cleared after reset to random")
+
+        // Turn continuous play OFF
+        UserDefaults.standard.set(false, forKey: Constants.SettingsKeys.continuousPlay)
+
+        // Restore - should get daily snapshot with revealed cells
+        let restoredState = GameState.restored()
+
+        #expect(restoredState.status == .won, "Should restore won status")
+        #expect(restoredState.puzzleType == .daily, "Should restore daily puzzle type")
+
+        let restoredRevealedCount = countRevealedCells(in: restoredState.board)
+        #expect(restoredRevealedCount == revealedCellCount,
+               "Restored board should have same revealed cells as completed game")
+    }
+
+    @Test("Daily namespace snapshot is cleared on day rollover")
+    func testDailyNamespaceClearedOnRollover() {
+        let cleanup = setupCleanPersistenceState()
+        let todaySeed = seedFromDate(Date())
+        let yesterdaySeed = todaySeed - 1
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(yesterdaySeed)")
+        defer {
+            cleanup()
+            UserDefaults.standard.removeObject(forKey: "dailyStats_\(yesterdaySeed)")
+        }
+
+        // Create a daily namespace snapshot with yesterday's seed (simulating day rollover scenario)
+        let yesterdayBoard = Board(seed: yesterdaySeed)
+        let snapshot = GameSnapshot(
+            board: yesterdayBoard,
+            status: .won,
+            elapsedTime: 100.0,
+            flagCount: 12,
+            selectedRow: 0,
+            selectedCol: 0,
+            dailySeed: yesterdaySeed,
+            puzzleType: .daily
+        )
+        GameSnapshot.withStorageKey(GameSnapshot.dailyNamespace) {
+            snapshot.save()
+        }
+
+        // Verify daily namespace has the snapshot
+        let savedSnapshot: GameSnapshot? = GameSnapshot.withStorageKey(GameSnapshot.dailyNamespace) {
+            GameSnapshot.loadAnyDay()
+        }
+        #expect(savedSnapshot != nil, "Daily namespace should have snapshot before rollover")
+        #expect(savedSnapshot?.dailySeed == yesterdaySeed, "Snapshot should be from yesterday")
+
+        // Create a game state and trigger rollover by opening popover (checkForDailyRollover)
+        let board = Board(seed: yesterdaySeed)
+        let gameState = GameState(board: board, dailySeed: yesterdaySeed)
+
+        // Simulate popover appearance which triggers rollover check
+        gameState.checkForDailyRollover()
+
+        // After rollover, daily namespace should be cleared
+        let afterRolloverSnapshot: GameSnapshot? = GameSnapshot.withStorageKey(GameSnapshot.dailyNamespace) {
+            GameSnapshot.loadAnyDay()
+        }
+        #expect(afterRolloverSnapshot == nil, "Daily namespace should be cleared after rollover")
+        #expect(gameState.dailySeed == todaySeed, "Game should be on today's seed after rollover")
+    }
+
+    @Test("checkContinuousPlaySetting restores daily snapshot with full board state")
+    func testCheckContinuousPlaySettingRestoresDailySnapshot() {
+        let cleanup = setupCleanPersistenceState(continuousPlay: true)
+        defer { cleanup() }
+
+        let todaySeed = seedFromDate(Date())
+        let board = Board(seed: todaySeed)
+        let gameState = GameState(board: board, dailySeed: todaySeed)
+
+        // Complete the daily puzzle - this saves to daily namespace
+        winGame(gameState)
+        #expect(gameState.status == .won)
+
+        let revealedCount = countRevealedCells(in: gameState.board)
+
+        // Reset to random puzzle
+        gameState.reset()
+        #expect(gameState.puzzleType == .random)
+
+        // Disable continuous play
+        UserDefaults.standard.set(false, forKey: Constants.SettingsKeys.continuousPlay)
+
+        // Call checkContinuousPlaySetting - should restore daily state with board
+        gameState.checkContinuousPlaySetting()
+
+        #expect(gameState.puzzleType == .daily, "Should be back on daily puzzle")
+        #expect(gameState.status == .won, "Should have won status")
+
+        let restoredRevealedCount = countRevealedCells(in: gameState.board)
+        #expect(restoredRevealedCount == revealedCount,
+               "Board should have same revealed cells as original completed game")
+    }
+
+    @Test("Multiple random puzzles don't affect daily namespace")
+    func testMultipleRandomPuzzlesDontAffectDailyNamespace() {
+        let cleanup = setupCleanPersistenceState(continuousPlay: true)
+        defer { cleanup() }
+
+        let todaySeed = seedFromDate(Date())
+        let board = Board(seed: todaySeed)
+        let gameState = GameState(board: board, dailySeed: todaySeed)
+
+        // Complete daily puzzle
+        winGame(gameState)
+        let dailyElapsedTime = gameState.elapsedTime
+
+        // Verify daily namespace has snapshot
+        let afterWinSnapshot: GameSnapshot? = GameSnapshot.withStorageKey(GameSnapshot.dailyNamespace) {
+            GameSnapshot.load()
+        }
+        #expect(afterWinSnapshot != nil, "Daily namespace should have snapshot after win")
+
+        // Play multiple random puzzles
+        for _ in 0..<3 {
+            gameState.reset()
+            #expect(gameState.puzzleType == .random)
+            // Start and play the random game a bit
+            gameState.reveal(row: 0, col: 0)
+        }
+
+        // Daily namespace should still have the original snapshot
+        let afterRandomsSnapshot: GameSnapshot? = GameSnapshot.withStorageKey(GameSnapshot.dailyNamespace) {
+            GameSnapshot.load()
+        }
+        #expect(afterRandomsSnapshot != nil, "Daily namespace should still have snapshot after random puzzles")
+        #expect(afterRandomsSnapshot?.elapsedTime == dailyElapsedTime,
+               "Daily snapshot should preserve original elapsed time")
+        #expect(afterRandomsSnapshot?.status == .won, "Daily snapshot should preserve won status")
     }
 }

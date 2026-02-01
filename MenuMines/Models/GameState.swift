@@ -311,6 +311,8 @@ final class GameState {
         selectedRow = 0
         selectedCol = 0
         GameSnapshot.clear()
+        // Clear daily namespace too since we're starting a new day
+        GameSnapshot.withStorageKey(GameSnapshot.dailyNamespace) { GameSnapshot.clear() }
     }
 
     /// Checks if continuous play was disabled while on a random puzzle.
@@ -442,7 +444,7 @@ final class GameState {
     }
 
     /// Handles game completion (win or loss).
-    /// For daily puzzles: marks complete, records stats, and saves state.
+    /// For daily puzzles: marks complete, records stats, saves state, and saves to daily namespace.
     /// For random puzzles: records stats only (no daily tracking).
     private func handleGameComplete(won: Bool) {
         stopTimer()
@@ -450,6 +452,24 @@ final class GameState {
         if puzzleType == .daily {
             // Only mark daily completion and record daily stats for daily puzzles
             markCompleteAndRecordStats(won: won, elapsedTime: elapsedTime, flagCount: flagCount)
+
+            // Save to daily namespace for restoration when continuous play is toggled off.
+            // This is intentionally a separate save from save() below - the daily namespace
+            // preserves the completed board state even when the user plays random puzzles,
+            // allowing correct visual restoration when toggling continuous play off.
+            let snapshot = GameSnapshot(
+                board: board,
+                status: status,
+                elapsedTime: elapsedTime,
+                flagCount: flagCount,
+                selectedRow: selectedRow,
+                selectedCol: selectedCol,
+                dailySeed: dailySeed,
+                puzzleType: puzzleType
+            )
+            GameSnapshot.withStorageKey(GameSnapshot.dailyNamespace) {
+                snapshot.save()
+            }
         }
 
         recordGameResult(won: won)

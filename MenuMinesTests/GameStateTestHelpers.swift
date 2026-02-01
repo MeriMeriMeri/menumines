@@ -67,3 +67,51 @@ func findHiddenCell(in gameState: GameState) -> (row: Int, col: Int)? {
     }
     return nil
 }
+
+/// Helper to count revealed cells in a board
+func countRevealedCells(in board: Board) -> Int {
+    var count = 0
+    for row in board.cells {
+        for cell in row {
+            if case .revealed = cell.state {
+                count += 1
+            }
+        }
+    }
+    return count
+}
+
+/// Helper to set up clean persistence state for testing.
+/// Clears all snapshots and optionally sets continuous play.
+/// Returns a cleanup closure to restore original state in defer block.
+func setupCleanPersistenceState(continuousPlay: Bool? = nil) -> () -> Void {
+    let settingKey = Constants.SettingsKeys.continuousPlay
+    let initialSettingValue = UserDefaults.standard.object(forKey: settingKey)
+    let todaySeed = seedFromDate(Date())
+
+    // Clear all persistence state
+    GameSnapshot.clear()
+    GameSnapshot.withStorageKey(GameSnapshot.dailyNamespace) { GameSnapshot.clear() }
+    UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+    UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+    UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+
+    // Set continuous play if specified
+    if let continuousPlay = continuousPlay {
+        UserDefaults.standard.set(continuousPlay, forKey: settingKey)
+    }
+
+    // Return cleanup closure
+    return {
+        GameSnapshot.clear()
+        GameSnapshot.withStorageKey(GameSnapshot.dailyNamespace) { GameSnapshot.clear() }
+        if let initial = initialSettingValue {
+            UserDefaults.standard.set(initial, forKey: settingKey)
+        } else {
+            UserDefaults.standard.removeObject(forKey: settingKey)
+        }
+        UserDefaults.standard.removeObject(forKey: "dailyCompletionSeed")
+        UserDefaults.standard.removeObject(forKey: "dailyStatsRecordedSeed")
+        UserDefaults.standard.removeObject(forKey: "dailyStats_\(todaySeed)")
+    }
+}

@@ -192,10 +192,19 @@ The app maintains consistent behavior across resume, pause, completion, and reco
 - Enforced in: HeaderView emoji, FooterView menu, keyboard shortcut (⌘R)
 
 ### Persistence
-- **GameSnapshot**: Saves/restores full game state (board, status, time, flags, selection)
-- **dailyCompletionSeed**: Tracks if today's puzzle was completed
-- **dailyStatsRecordedSeed**: Prevents duplicate stats recording
-- **dailyStats_<seed>**: Stores DailyStats struct for each completed day
+
+**Storage Keys:**
+- `gameSnapshot`: Active game state (cleared when starting random puzzles)
+- `gameSnapshot.daily`: Completed daily puzzle with full board state (preserved until day changes)
+- `dailyCompletionSeed`: Tracks if today's puzzle was completed
+- `dailyStatsRecordedSeed`: Prevents duplicate stats recording
+- `dailyStats_<seed>`: Stores DailyStats struct for each completed day
+
+**IMPORTANT: The daily namespace (`gameSnapshot.daily`) is absolutely necessary.**
+
+When a user completes a daily puzzle with continuous play ON, then plays random puzzles, then turns continuous play OFF, they must see their completed daily puzzle with the exact revealed cell pattern—not a fresh hidden board. The stats fallback only stores metadata (won/lost, time, flags) but NOT the board state. The daily namespace preserves the full board state so the visual representation is correct when toggling continuous play off.
+
+Do NOT attempt to simplify by removing the daily namespace in favor of stats-only restoration.
 
 ### Error Recovery
 When app launches:

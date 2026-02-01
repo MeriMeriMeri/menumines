@@ -46,6 +46,8 @@ struct GameSnapshot: Codable {
     }
 
     private static let baseStorageKey = "gameSnapshot"
+    /// Namespace for preserving completed daily puzzle state when playing random puzzles.
+    static let dailyNamespace = "daily"
     @TaskLocal private static var storageKeySuffix: String?
 
     private static var storageKey: String {
@@ -163,10 +165,11 @@ enum GamePersistenceCoordinator {
     /// continuousPlay OFF: Restore exact saved state.
     /// - If snapshot exists for today: restore it
     /// - If snapshot is from previous day and game is playing: restore it (delay rollover)
-    /// - If daily complete: restore from stats
+    /// - If daily namespace snapshot exists: restore it (preserves board state when toggling continuous play off)
+    /// - If daily complete: restore from stats (fallback without board state)
     /// - Otherwise: fresh daily puzzle
     private static func restoreSavedState(todaySeed: Int64) -> GameState {
-        // Try to restore from snapshot (only daily puzzles are persisted)
+        // Try to restore from active snapshot (only daily puzzles are persisted)
         if let snapshot = GameSnapshot.loadAnyDay() {
             if snapshot.dailySeed == todaySeed {
                 return restoreFromSnapshot(snapshot)
@@ -181,7 +184,15 @@ enum GamePersistenceCoordinator {
             GameSnapshot.clear()
         }
 
-        // Check if daily is complete and restore completed state from stats if available
+        // Try daily namespace snapshot (preserved even when playing random puzzles)
+        let dailySnapshot: GameSnapshot? = GameSnapshot.withStorageKey(GameSnapshot.dailyNamespace) {
+            GameSnapshot.load()  // load() validates against today's seed
+        }
+        if let snapshot = dailySnapshot {
+            return restoreFromSnapshot(snapshot)
+        }
+
+        // Fallback to stats (won't have board state, but better than nothing)
         if isDailyPuzzleComplete() {
             let board = Board(seed: todaySeed)
             if let restoredState = restoreFromStats(seed: todaySeed, board: board) {
