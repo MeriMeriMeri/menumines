@@ -93,9 +93,17 @@ struct CellView: View {
         if cell.isExploded {
             Color.red
         } else if case .revealed = cell.state {
-            Color(nsColor: .controlBackgroundColor)
+            revealedBackground
         } else {
             RaisedCellBackground(colorScheme: colorScheme)
+        }
+    }
+
+    private var revealedBackground: Color {
+        if colorScheme == .dark {
+            Color(nsColor: .controlBackgroundColor)
+        } else {
+            Color(nsColor: .controlBackgroundColor).opacity(0.6)
         }
     }
 
