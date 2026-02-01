@@ -126,20 +126,20 @@ struct MenuMinesApp: App {
     }
 }
 
-/// Menu bar icon view with base grid icon and state-specific variant.
+/// Menu bar icon view showing state-specific icon with subtle indicators.
 struct MenuBarIconView: View {
     let state: MenuBarIconState
 
     private var iconName: String {
         switch state {
         case .normal:
-            return "circle.grid.3x3.fill"
+            return "square.grid.3x3.fill"
         case .incomplete:
-            return "circle.grid.3x3.fill"
+            return "square.grid.3x3"
         case .paused:
-            return "pause.circle.fill"
+            return "square.grid.3x3.topleft.filled"
         case .lost:
-            return "xmark.circle.fill"
+            return "square.grid.3x3.bottomright.filled"
         }
     }
 

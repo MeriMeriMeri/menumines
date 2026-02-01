@@ -23,9 +23,9 @@ enum MenuBarIconState: Equatable {
         case .normal:
             return nil
         case .incomplete:
-            return "ellipsis.circle.fill"
+            return "circle.fill"
         case .paused:
-            return "pause.circle.fill"
+            return "pause.fill"
         case .lost:
             return "xmark.circle.fill"
         }

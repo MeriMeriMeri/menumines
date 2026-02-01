@@ -15,6 +15,7 @@ struct FooterView: View {
 
     var body: some View {
         HStack {
+            // Left side: Share button
             if isGameComplete {
                 Button(showCopiedFeedback ? String(localized: "share_copied") : String(localized: "share_button")) {
                     onShare()
@@ -26,10 +27,12 @@ struct FooterView: View {
                     }
                 }
                 .buttonStyle(.bordered)
+                .fixedSize()
                 .accessibilityLabel(String(localized: "share_button"))
             }
 
             Spacer()
+                .layoutPriority(1)
 
             Button {
                 showControls.toggle()
@@ -37,6 +40,7 @@ struct FooterView: View {
                 Image(systemName: "questionmark.circle")
             }
             .buttonStyle(.borderless)
+            .fixedSize()
             .popover(isPresented: $showControls) {
                 ControlsPopoverView()
             }
@@ -87,6 +91,7 @@ struct FooterView: View {
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
+            .fixedSize()
             .accessibilityLabel(String(localized: "footer_menu_accessibility_label"))
         }
         .frame(maxWidth: .infinity)
