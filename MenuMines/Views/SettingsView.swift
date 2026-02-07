@@ -14,51 +14,35 @@ struct SettingsView: View {
     var body: some View {
         Form {
             Section {
-                Toggle(
-                    String(localized: "settings_show_menu_bar_indicators"),
-                    isOn: $showMenuBarIndicators
-                )
-            } footer: {
-                Text(String(localized: "settings_show_menu_bar_indicators_footer"))
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                Toggle(isOn: $showMenuBarIndicators) {
+                    Text(String(localized: "settings_show_menu_bar_indicators"))
+                    Text(String(localized: "settings_show_menu_bar_indicators_footer"))
+                        .foregroundStyle(.secondary)
+                }
             }
 
             Section {
-                Toggle(
-                    String(localized: "settings_show_streaks"),
-                    isOn: $showStreaks
-                )
-            } footer: {
-                Text(String(localized: "settings_show_streaks_footer"))
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                Toggle(isOn: $showStreaks) {
+                    Text(String(localized: "settings_show_streaks"))
+                    Text(String(localized: "settings_show_streaks_footer"))
+                        .foregroundStyle(.secondary)
+                }
             }
 
             Section {
-                Toggle(
-                    String(localized: "settings_confirm_before_reset"),
-                    isOn: $confirmBeforeReset
-                )
-            } footer: {
-                Text(String(localized: "settings_confirm_before_reset_footer"))
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                Toggle(isOn: $confirmBeforeReset) {
+                    Text(String(localized: "settings_confirm_before_reset"))
+                    Text(String(localized: "settings_confirm_before_reset_footer"))
+                        .foregroundStyle(.secondary)
+                }
             }
 
             Section {
-                Toggle(
-                    String(localized: "settings_continuous_play"),
-                    isOn: $continuousPlay
-                )
-            } footer: {
-                Text(String(localized: "settings_continuous_play_footer"))
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.leading)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                Toggle(isOn: $continuousPlay) {
+                    Text(String(localized: "settings_continuous_play"))
+                    Text(String(localized: "settings_continuous_play_footer"))
+                        .foregroundStyle(.secondary)
+                }
             }
 
             #if SPARKLE_ENABLED
