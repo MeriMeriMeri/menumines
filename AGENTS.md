@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-MenuMines is a menu bar Minesweeper game for macOS. It features a 9x9 board with 15 mines, generating the same daily puzzle for all players using deterministic seeding.
+MenuMines is a menu bar Minesweeper game for macOS. It features a 9x9 board with 12 mines, generating the same daily puzzle for all players using deterministic seeding.
 
 ## Technology Stack
 

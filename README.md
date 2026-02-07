@@ -27,7 +27,7 @@ Download the latest release from the Releases page.
 Requires Xcode 15+ and macOS 14+ (Sonoma).
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/MeriMeriMeri/menumines.git
 cd menumines
 xcodebuild -scheme MenuMines -configuration Release
 ```
@@ -120,7 +120,7 @@ Add both keys to GitHub Secrets as described above.
 
 ## How to Play
 
-Clear the 8x8 board without hitting any of the 10 hidden mines.
+Clear the 9x9 board without hitting any of the 12 hidden mines.
 
 ### Controls
 
@@ -171,4 +171,4 @@ To enable VoiceOver, press Cmd+F5 or go to System Settings → Accessibility →
 
 ## License
 
-GPL-3.0 - See [LICENSE](LICENSE) for details.
+PolyForm Noncommercial 1.0.0 - See [LICENSE](LICENSE) for details.
