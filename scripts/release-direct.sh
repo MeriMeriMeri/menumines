@@ -361,12 +361,17 @@ if [[ -z "$SIGN_UPDATE" ]]; then
     cd "$PROJECT_DIR"
 fi
 
-# Sign the DMG
-SPARKLE_SIGNATURE=$("$SIGN_UPDATE" "$DMG_PATH" --ed-key-file "$SPARKLE_KEY_FILE")
+# Sign the DMG - sign_update outputs: sparkle:edSignature="..." length="..."
+SIGN_OUTPUT=$("$SIGN_UPDATE" "$DMG_PATH" --ed-key-file "$SPARKLE_KEY_FILE")
+log_info "sign_update output: $SIGN_OUTPUT"
+
+# Extract just the signature value
+SPARKLE_SIGNATURE=$(echo "$SIGN_OUTPUT" | sed -n 's/.*sparkle:edSignature="\([^"]*\)".*/\1/p')
 log_info "Sparkle signature: $SPARKLE_SIGNATURE"
 
-# Get file size
-DMG_SIZE=$(stat -f%z "$DMG_PATH")
+# Extract length from sign_update output, fall back to stat
+SIGN_LENGTH=$(echo "$SIGN_OUTPUT" | sed -n 's/.*length="\([^"]*\)".*/\1/p')
+DMG_SIZE=${SIGN_LENGTH:-$(stat -f%z "$DMG_PATH")}
 log_info "DMG size: $DMG_SIZE bytes"
 
 # ──────────────────────────────────────────────────────────────────────────────

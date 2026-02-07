@@ -268,14 +268,17 @@ jobs:
             SIGN_UPDATE="$RUNNER_TEMP/sparkle-build/Build/Products/Release/sign_update"
           fi
 
-          # Sign the DMG
-          SIGNATURE=$("$SIGN_UPDATE" "$GITHUB_WORKSPACE/$DMG_PATH" \
+          # Sign the DMG - sign_update outputs: sparkle:edSignature="..." length="..."
+          SIGN_OUTPUT=$("$SIGN_UPDATE" "$GITHUB_WORKSPACE/$DMG_PATH" \
             --ed-key-file "$RUNNER_TEMP/sparkle_private_key")
 
+          # Extract just the signature value
+          SIGNATURE=$(echo "$SIGN_OUTPUT" | sed -n 's/.*sparkle:edSignature="\([^"]*\)".*/\1/p')
           echo "SPARKLE_SIGNATURE=$SIGNATURE" >> "$GITHUB_ENV"
 
-          # Get file size
-          DMG_SIZE=$(stat -f%z "$GITHUB_WORKSPACE/$DMG_PATH")
+          # Extract length from sign_update output, fall back to stat
+          SIGN_LENGTH=$(echo "$SIGN_OUTPUT" | sed -n 's/.*length="\([^"]*\)".*/\1/p')
+          DMG_SIZE=${SIGN_LENGTH:-$(stat -f%z "$GITHUB_WORKSPACE/$DMG_PATH")}
           echo "DMG_SIZE=$DMG_SIZE" >> "$GITHUB_ENV"
 
       - name: Generate Appcast
