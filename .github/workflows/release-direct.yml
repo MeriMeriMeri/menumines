@@ -314,8 +314,10 @@ jobs:
 
       - name: Rename DMG
         run: |
-          mv "$DMG_PATH" "build/MenuMines-$VERSION.dmg"
-          echo "FINAL_DMG_PATH=build/MenuMines-$VERSION.dmg" >> "$GITHUB_ENV"
+          cp "$DMG_PATH" "build/MenuMines-$VERSION.dmg"
+          mv "$DMG_PATH" "build/MenuMines.dmg"
+          echo "VERSIONED_DMG_PATH=build/MenuMines-$VERSION.dmg" >> "$GITHUB_ENV"
+          echo "STABLE_DMG_PATH=build/MenuMines.dmg" >> "$GITHUB_ENV"
 
       # ── Create GitHub Release ──
 
@@ -327,7 +329,8 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            ${{ env.FINAL_DMG_PATH }}
+            ${{ env.VERSIONED_DMG_PATH }}
+            ${{ env.STABLE_DMG_PATH }}
             ${{ env.EXPORT_PATH }}/appcast.xml
           body: |
             ## MenuMines v${{ env.VERSION }} - Direct Distribution
