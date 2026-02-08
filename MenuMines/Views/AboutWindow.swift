@@ -65,7 +65,7 @@ private struct AboutView: View {
                 .foregroundStyle(.tertiary)
         }
         .padding(24)
-        .frame(width: 280)
+        .frame(width: 300)
     }
 }
 

@@ -96,7 +96,7 @@
 /* About window */
 "about_title" = "MenuMines";
 "about_version" = "Version %@";
-"about_description" = "A daily Minesweeper puzzle";
+"about_description" = "A new Minesweeper puzzle in your menu bar every day.\nSame puzzle for everyone — compare with friends!";
 "about_support_email" = "support@merimerimeri.com";
 "about_copyright" = "© 2026";
 
