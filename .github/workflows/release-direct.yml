@@ -9,6 +9,9 @@ on:
       version:
         description: 'Version number (e.g., 1.1.0)'
         required: true
+      release_notes:
+        description: 'HTML release notes for Sparkle update dialog (optional)'
+        required: false
 
 permissions:
   contents: write
@@ -244,9 +247,16 @@ jobs:
 
           xcrun stapler staple "$DMG_PATH"
 
+      # ── Create ZIP for Sparkle ──
+
+      - name: Create ZIP for Sparkle
+        run: |
+          ditto -c -k --keepParent "$RUNNER_TEMP/dmg-staging/MenuMines.app" "build/MenuMines-$VERSION.zip"
+          echo "ZIP_PATH=build/MenuMines-$VERSION.zip" >> "$GITHUB_ENV"
+
       # ── Sign for Sparkle & Generate Appcast ──
 
-      - name: Sign DMG for Sparkle
+      - name: Sign ZIP for Sparkle
         env:
           SPARKLE_PRIVATE_KEY: ${{ secrets.SPARKLE_PRIVATE_KEY }}
         run: |
@@ -268,8 +278,8 @@ jobs:
             SIGN_UPDATE="$RUNNER_TEMP/sparkle-build/Build/Products/Release/sign_update"
           fi
 
-          # Sign the DMG - sign_update outputs: sparkle:edSignature="..." length="..."
-          SIGN_OUTPUT=$("$SIGN_UPDATE" "$GITHUB_WORKSPACE/$DMG_PATH" \
+          # Sign the ZIP - sign_update outputs: sparkle:edSignature="..." length="..."
+          SIGN_OUTPUT=$("$SIGN_UPDATE" "$GITHUB_WORKSPACE/$ZIP_PATH" \
             --ed-key-file "$RUNNER_TEMP/sparkle_private_key")
 
           # Extract just the signature value
@@ -278,11 +288,14 @@ jobs:
 
           # Extract length from sign_update output, fall back to stat
           SIGN_LENGTH=$(echo "$SIGN_OUTPUT" | sed -n 's/.*length="\([^"]*\)".*/\1/p')
-          DMG_SIZE=${SIGN_LENGTH:-$(stat -f%z "$GITHUB_WORKSPACE/$DMG_PATH")}
-          echo "DMG_SIZE=$DMG_SIZE" >> "$GITHUB_ENV"
+          ZIP_SIZE=${SIGN_LENGTH:-$(stat -f%z "$GITHUB_WORKSPACE/$ZIP_PATH")}
+          echo "ZIP_SIZE=$ZIP_SIZE" >> "$GITHUB_ENV"
 
       - name: Generate Appcast
         run: |
+          # Use custom release notes or sensible default
+          RELEASE_NOTES="${RELEASE_NOTES_HTML:-<h2>MenuMines v$VERSION</h2><p>Bug fixes and improvements.</p>}"
+
           cat > "$EXPORT_PATH/appcast.xml" <<EOF
           <?xml version="1.0" encoding="utf-8"?>
           <rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
@@ -295,20 +308,20 @@ jobs:
                 <title>Version $VERSION</title>
                 <sparkle:version>$BUILD_NUMBER</sparkle:version>
                 <sparkle:shortVersionString>$VERSION</sparkle:shortVersionString>
-                <sparkle:releaseNotesLink>
-                  https://github.com/${{ github.repository }}/releases/tag/v$VERSION-direct
-                </sparkle:releaseNotesLink>
+                <description><![CDATA[$RELEASE_NOTES]]></description>
                 <pubDate>$(date -u +"%a, %d %b %Y %H:%M:%S +0000")</pubDate>
                 <enclosure
-                  url="https://github.com/${{ github.repository }}/releases/download/v$VERSION-direct/MenuMines-$VERSION.dmg"
+                  url="https://github.com/${{ github.repository }}/releases/download/v$VERSION-direct/MenuMines-$VERSION.zip"
                   sparkle:edSignature="$SPARKLE_SIGNATURE"
-                  length="$DMG_SIZE"
+                  length="$ZIP_SIZE"
                   type="application/octet-stream" />
                 <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
               </item>
             </channel>
           </rss>
           EOF
+        env:
+          RELEASE_NOTES_HTML: ${{ github.event.inputs.release_notes }}
 
       # ── Rename DMG for Release ──
 
@@ -331,6 +344,7 @@ jobs:
           files: |
             ${{ env.VERSIONED_DMG_PATH }}
             ${{ env.STABLE_DMG_PATH }}
+            ${{ env.ZIP_PATH }}
             ${{ env.EXPORT_PATH }}/appcast.xml
           body: |
             ## MenuMines v${{ env.VERSION }} - Direct Distribution

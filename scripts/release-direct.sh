@@ -23,6 +23,7 @@ set -euo pipefail
 # Optional environment variables:
 #   SENTRY_DSN            - Sentry DSN for crash reporting
 #   SPARKLE_PUBLIC_ED_KEY - Sparkle public key (usually in Xcode project)
+#   RELEASE_NOTES_HTML    - Custom HTML release notes for Sparkle update dialog
 #
 # Usage:
 #   ./scripts/release-direct.sh 1.0.1
@@ -331,6 +332,17 @@ xcrun stapler staple "$DMG_PATH"
 log_info "DMG notarized and stapled"
 
 # ──────────────────────────────────────────────────────────────────────────────
+# Create ZIP for Sparkle updates
+# ──────────────────────────────────────────────────────────────────────────────
+
+log_step "Creating ZIP for Sparkle updates"
+
+ZIP_PATH="$BUILD_DIR/MenuMines-$VERSION.zip"
+ditto -c -k --keepParent "$DMG_STAGING/MenuMines.app" "$ZIP_PATH"
+
+log_info "ZIP created at $ZIP_PATH"
+
+# ──────────────────────────────────────────────────────────────────────────────
 # Sign for Sparkle
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -361,8 +373,8 @@ if [[ -z "$SIGN_UPDATE" ]]; then
     cd "$PROJECT_DIR"
 fi
 
-# Sign the DMG - sign_update outputs: sparkle:edSignature="..." length="..."
-SIGN_OUTPUT=$("$SIGN_UPDATE" "$DMG_PATH" --ed-key-file "$SPARKLE_KEY_FILE")
+# Sign the ZIP - sign_update outputs: sparkle:edSignature="..." length="..."
+SIGN_OUTPUT=$("$SIGN_UPDATE" "$ZIP_PATH" --ed-key-file "$SPARKLE_KEY_FILE")
 log_info "sign_update output: $SIGN_OUTPUT"
 
 # Extract just the signature value
@@ -371,8 +383,8 @@ log_info "Sparkle signature: $SPARKLE_SIGNATURE"
 
 # Extract length from sign_update output, fall back to stat
 SIGN_LENGTH=$(echo "$SIGN_OUTPUT" | sed -n 's/.*length="\([^"]*\)".*/\1/p')
-DMG_SIZE=${SIGN_LENGTH:-$(stat -f%z "$DMG_PATH")}
-log_info "DMG size: $DMG_SIZE bytes"
+ZIP_SIZE=${SIGN_LENGTH:-$(stat -f%z "$ZIP_PATH")}
+log_info "ZIP size: $ZIP_SIZE bytes"
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Generate appcast.xml
@@ -382,6 +394,9 @@ log_step "Generating appcast.xml"
 
 REPO=$(gh repo view --json nameWithOwner -q '.nameWithOwner')
 PUB_DATE=$(date -u +"%a, %d %b %Y %H:%M:%S +0000")
+
+# Use custom release notes or sensible default
+RELEASE_NOTES="${RELEASE_NOTES_HTML:-<h2>MenuMines v$VERSION</h2><p>Bug fixes and improvements.</p>}"
 
 cat > "$BUILD_DIR/appcast.xml" <<EOF
 <?xml version="1.0" encoding="utf-8"?>
@@ -395,14 +410,12 @@ cat > "$BUILD_DIR/appcast.xml" <<EOF
       <title>Version $VERSION</title>
       <sparkle:version>$BUILD_NUMBER</sparkle:version>
       <sparkle:shortVersionString>$VERSION</sparkle:shortVersionString>
-      <sparkle:releaseNotesLink>
-        https://github.com/$REPO/releases/tag/v$VERSION-direct
-      </sparkle:releaseNotesLink>
+      <description><![CDATA[$RELEASE_NOTES]]></description>
       <pubDate>$PUB_DATE</pubDate>
       <enclosure
-        url="https://github.com/$REPO/releases/download/v$VERSION-direct/MenuMines-$VERSION.dmg"
+        url="https://github.com/$REPO/releases/download/v$VERSION-direct/MenuMines-$VERSION.zip"
         sparkle:edSignature="$SPARKLE_SIGNATURE"
-        length="$DMG_SIZE"
+        length="$ZIP_SIZE"
         type="application/octet-stream" />
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
     </item>
@@ -420,6 +433,7 @@ if [[ "$DRY_RUN" == "true" ]]; then
     log_step "Dry run complete"
     log_info "Build artifacts:"
     log_info "  - DMG: $DMG_PATH"
+    log_info "  - ZIP: $ZIP_PATH"
     log_info "  - Appcast: $BUILD_DIR/appcast.xml"
     log_info "  - Archive: $ARCHIVE_PATH"
     exit 0
@@ -450,6 +464,7 @@ RELEASE_ARGS=(
     --title "$RELEASE_NAME"
     --notes "$RELEASE_BODY"
     "$DMG_PATH"
+    "$ZIP_PATH"
     "$BUILD_DIR/appcast.xml"
 )
 
@@ -482,5 +497,6 @@ echo -e "${GREEN}✓${NC} Release URL: https://github.com/$REPO/releases/tag/$TA
 echo ""
 echo "Build artifacts:"
 echo "  - DMG: $DMG_PATH"
+echo "  - ZIP: $ZIP_PATH"
 echo "  - Appcast: $BUILD_DIR/appcast.xml"
 echo "  - Archive: $ARCHIVE_PATH"
