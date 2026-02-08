@@ -71,6 +71,44 @@ let seed = Int64(year * 10000 + month * 100 + day)
 ### Agent App Configuration
 Set `LSUIElement = YES` in Info.plist to hide from Dock. The UI must provide a Quit button since there's no Dock icon to right-click.
 
+## Direct Distribution & Sparkle Auto-Updates
+
+The app ships two variants: **App Store** (MenuMines target) and **Direct** (MenuMinesDirect target). The Direct build uses Sparkle 2.x for auto-updates.
+
+### How Updates Work
+
+- **DMG** is for first-time manual downloads (drag-to-Applications UX)
+- **ZIP** is for Sparkle auto-updates — Sparkle handles ZIP natively without XPC installer services
+- The `appcast.xml` `<enclosure>` points to the ZIP, not the DMG
+- Release notes use inline `<description><![CDATA[...]]></description>` in the appcast (not `<sparkle:releaseNotesLink>` which renders the full GitHub page in Sparkle's WebKit view)
+- Custom release notes can be passed via `RELEASE_NOTES_HTML` env var; defaults to a generic message
+
+### Entitlements
+
+The two targets use separate entitlements files:
+
+- `MenuMines.entitlements` — App Store target: sandboxed (`com.apple.security.app-sandbox`)
+- `MenuMines-Direct.entitlements` — Direct target: **not sandboxed**, only `network.client`
+
+The Direct build must NOT be sandboxed. Sparkle's installer fails with sandbox enabled because its XPC services cannot communicate through the sandbox boundary. The App Store target stays sandboxed as required by Apple.
+
+### Release Flow
+
+Both `scripts/release-direct.sh` and `.github/workflows/release-direct.yml` follow the same pipeline:
+
+1. Build & archive with `MenuMines-Direct` scheme / `Release-Direct` configuration
+2. Notarize the app, then create and notarize the DMG
+3. Create a ZIP from the same staged `MenuMines.app` for Sparkle
+4. Sign the **ZIP** (not DMG) with Sparkle's `sign_update` tool
+5. Generate `appcast.xml` with inline release notes and ZIP enclosure
+6. Upload DMG + ZIP + appcast to GitHub release
+
+### Key Files
+
+- `MenuMines/Info-Direct.plist` — `SUFeedURL`, `SUPublicEDKey`, `SUEnableAutomaticChecks`
+- `MenuMines/UpdateManager.swift` — `SPUStandardUpdaterController` init (behind `SPARKLE_ENABLED` flag)
+- `MenuMines/MenuMines-Direct.entitlements` — unsandboxed entitlements for Direct build
+
 ## Build Commands
 
 ```bash
