@@ -20,7 +20,7 @@ Download the latest release from the Releases page.
 1. Download `MenuMines.dmg`
 2. Open the DMG and drag MenuMines to Applications
 3. Launch MenuMines from Applications
-4. Click the mine icon in your menu bar to play
+4. Click the MenuMines grid icon in your menu bar to play
 
 ### Build from Source
 
@@ -29,10 +29,15 @@ Requires Xcode 15+ and macOS 14+ (Sonoma).
 ```bash
 git clone https://github.com/MeriMeriMeri/menumines.git
 cd menumines
-xcodebuild -scheme MenuMines -configuration Release
+xcodebuild build \
+  -scheme MenuMines \
+  -configuration Debug \
+  -destination 'platform=macOS' \
+  CODE_SIGNING_ALLOWED=NO \
+  CODE_SIGN_IDENTITY=""
 ```
 
-The built app will be in `build/Release/MenuMines.app`.
+Build products are generated in Xcode DerivedData (default) unless you override output paths.
 
 ## Distribution
 
@@ -85,7 +90,7 @@ The `release-direct.yml` workflow:
 | `ASC_KEY_ID` | App Store Connect API key ID |
 | `ASC_ISSUER_ID` | App Store Connect API issuer ID |
 | `APPLE_TEAM_ID` | Apple Developer Team ID |
-| `SENTRY_DSN` | Sentry DSN for error tracking |
+| `SENTRY_DSN` | Optional: Sentry DSN for error tracking |
 
 #### Direct Distribution (release-direct.yml)
 
@@ -98,7 +103,7 @@ The `release-direct.yml` workflow:
 | `APPLE_TEAM_ID` | Apple Developer Team ID |
 | `SPARKLE_PRIVATE_KEY` | Sparkle Ed25519 private key |
 | `SPARKLE_PUBLIC_ED_KEY` | Sparkle Ed25519 public key |
-| `SENTRY_DSN` | Sentry DSN for error tracking |
+| `SENTRY_DSN` | Optional: Sentry DSN for error tracking |
 
 ### Generating Sparkle Keys
 
@@ -152,6 +157,8 @@ Every day, MenuMines generates a new puzzle using a deterministic seed based on 
 - Everyone gets the same board on the same day
 - You can compare times with friends
 - Come back tomorrow for a fresh challenge
+
+Continuous Play is enabled by default. After completing the daily puzzle, you can keep playing unlimited random puzzles. Only the daily puzzle counts toward streaks.
 
 Note: if the first click lands on a mine, the mine is relocated using system randomness. In that edge case, boards may diverge across players after the first click.
 
