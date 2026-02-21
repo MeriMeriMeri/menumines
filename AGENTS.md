@@ -69,7 +69,7 @@ let seed = Int64(year * 10000 + month * 100 + day)
 ```
 
 ### Agent App Configuration
-Set `LSUIElement = YES` in Info.plist to hide from Dock. The UI must provide a Quit button since there's no Dock icon to right-click.
+Set `LSUIElement = YES` in Info.plist to hide from Dock. The UI must provide a Quit button since there's no Dock icon to right-click. `LSApplicationCategoryType` is set to `public.app-category.utilities` (not `puzzle-games`) to prevent macOS Game Mode from activating.
 
 ## Direct Distribution & Sparkle Auto-Updates
 
