@@ -1,3 +1,4 @@
+import ServiceManagement
 import SwiftUI
 
 struct SettingsView: View {
@@ -11,8 +12,33 @@ struct SettingsView: View {
     @AppStorage(Constants.SettingsKeys.continuousPlay) private var continuousPlay = true
     @AppStorage(Constants.SettingsKeys.showStreaks) private var showStreaks = true
 
+    private var launchAtLogin: Binding<Bool> {
+        Binding(
+            get: { SMAppService.mainApp.status == .enabled },
+            set: { newValue in
+                do {
+                    if newValue {
+                        try SMAppService.mainApp.register()
+                    } else {
+                        try SMAppService.mainApp.unregister()
+                    }
+                } catch {
+                    print("Launch at login failed: \(error)")
+                }
+            }
+        )
+    }
+
     var body: some View {
         Form {
+            Section {
+                Toggle(isOn: launchAtLogin) {
+                    Text(String(localized: "settings_launch_at_login"))
+                    Text(String(localized: "settings_launch_at_login_footer"))
+                        .foregroundStyle(.secondary)
+                }
+            }
+
             Section {
                 Toggle(isOn: $showMenuBarIndicators) {
                     Text(String(localized: "settings_show_menu_bar_indicators"))

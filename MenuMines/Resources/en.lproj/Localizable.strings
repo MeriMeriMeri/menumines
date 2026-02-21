@@ -15,6 +15,8 @@
 "status_lost" = "Game over";
 
 /* SettingsView */
+"settings_launch_at_login" = "Launch at Login";
+"settings_launch_at_login_footer" = "Automatically open MenuMines when you log in.";
 "settings_show_menu_bar_indicators" = "Show menu bar status indicators";
 "settings_show_menu_bar_indicators_footer" = "When off, the menu bar icon stays constant.";
 "settings_show_streaks" = "Show streaks";
