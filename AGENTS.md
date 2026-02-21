@@ -110,6 +110,10 @@ Both `scripts/release-direct.sh` and `.github/workflows/release-direct.yml` foll
 - `MenuMines/UpdateManager.swift` — `SPUStandardUpdaterController` init (behind `SPARKLE_ENABLED` flag)
 - `MenuMines/MenuMines-Direct.entitlements` — unsandboxed entitlements for Direct build
 
+## Releasing
+
+See the [Distribution section in README.md](README.md#distribution) for release workflows, tag conventions, and required GitHub Secrets.
+
 ## Build Commands
 
 ```bash
