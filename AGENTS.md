@@ -13,6 +13,7 @@ MenuMines is a menu bar Minesweeper game for macOS. It features a 9x9 board with
   - `MenuBarExtra` with `.window` style for rich popover UI
   - `GameplayKit` `GKLinearCongruentialRandomSource` for seeded RNG
   - `NSEvent.addLocalMonitorForEvents` for keyboard input
+  - `SMAppService.mainApp` for Launch at Login (no UserDefaults — system is source of truth)
 
 ## Directory Structure
 
