@@ -77,6 +77,19 @@ The `release-direct.yml` workflow:
 6. Generates `appcast.xml`
 7. Creates a GitHub Release with DMG and appcast
 
+### Direct Release Lessons (Sparkle + Notarization)
+
+A few hard-won constraints to keep in mind when shipping outside the App Store:
+
+- **Treat “Direct” as a separate product**: keep a distinct target/build config (and often bundle ID) so entitlements, signing, and update behavior don’t accidentally affect the App Store build.
+- **Sign *everything* inside the app bundle**: the main app, frameworks, login items/helpers, and any embedded tools all need consistent Developer ID signing.
+- **Notarization is a pipeline, not a checkbox**: common failures come from missing hardened runtime, incorrect entitlements, unsigned nested binaries, or packaging the wrong artifact.
+- **DMG matters**: users experience the DMG first. Make sure the DMG is **signed**, **notarized**, and (ideally) **stapled** so Gatekeeper behaves nicely offline.
+- **Sparkle updates require a stable feed + signing key hygiene**:
+  - keep the **appcast URL stable** and versioned entries correct
+  - keep the **Sparkle private key private** (rotate if ever exposed)
+- **Versioning must be consistent**: ensure the version/build numbers Sparkle reads match what you publish in releases/appcast.
+
 ### Required GitHub Secrets
 
 #### App Store (release.yml)
