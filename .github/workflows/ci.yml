@@ -3,6 +3,18 @@ name: CI
 on:
   push:
     branches: [main]
+    paths:
+      - 'MenuMines/**'
+      - 'MenuMinesTests/**'
+      - 'MenuMines.xcodeproj/**'
+      - '.github/workflows/ci.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'MenuMines/**'
+      - 'MenuMinesTests/**'
+      - 'MenuMines.xcodeproj/**'
+      - '.github/workflows/ci.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
