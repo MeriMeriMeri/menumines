@@ -56,6 +56,7 @@
 		A10001A8229E01A8 /* GameStateTimerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001A9229E01A9 /* GameStateTimerTests.swift */; };
 		A10001AA229E01AA /* GameStateChordRevealTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001AB229E01AB /* GameStateChordRevealTests.swift */; };
 		A10001AC229E01AC /* GameStateShareTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001AD229E01AD /* GameStateShareTests.swift */; };
+		A1000300229E0300 /* SettingsViewLayoutTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000301229E0301 /* SettingsViewLayoutTests.swift */; };
 		A10001AE229E01AE /* GameStatePauseTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001AF229E01AF /* GameStatePauseTests.swift */; };
 		A10001B0229E01B0 /* GameStateCodableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001B1229E01B1 /* GameStateCodableTests.swift */; };
 		A10001B2229E01B2 /* GameStatePersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10001B3229E01B3 /* GameStatePersistenceTests.swift */; };
@@ -128,6 +129,7 @@
 		A10001A9229E01A9 /* GameStateTimerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStateTimerTests.swift; sourceTree = "<group>"; };
 		A10001AB229E01AB /* GameStateChordRevealTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStateChordRevealTests.swift; sourceTree = "<group>"; };
 		A10001AD229E01AD /* GameStateShareTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStateShareTests.swift; sourceTree = "<group>"; };
+		A1000301229E0301 /* SettingsViewLayoutTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewLayoutTests.swift; sourceTree = "<group>"; };
 		A10001AF229E01AF /* GameStatePauseTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStatePauseTests.swift; sourceTree = "<group>"; };
 		A10001B1229E01B1 /* GameStateCodableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStateCodableTests.swift; sourceTree = "<group>"; };
 		A10001B3229E01B3 /* GameStatePersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameStatePersistenceTests.swift; sourceTree = "<group>"; };
@@ -252,6 +254,7 @@
 				A10001A9229E01A9 /* GameStateTimerTests.swift */,
 				A10001AB229E01AB /* GameStateChordRevealTests.swift */,
 				A10001AD229E01AD /* GameStateShareTests.swift */,
+				A1000301229E0301 /* SettingsViewLayoutTests.swift */,
 				A10001AF229E01AF /* GameStatePauseTests.swift */,
 				A10001B1229E01B1 /* GameStateCodableTests.swift */,
 				A10001B3229E01B3 /* GameStatePersistenceTests.swift */,
@@ -449,6 +452,7 @@
 				A10001A8229E01A8 /* GameStateTimerTests.swift in Sources */,
 				A10001AA229E01AA /* GameStateChordRevealTests.swift in Sources */,
 				A10001AC229E01AC /* GameStateShareTests.swift in Sources */,
+				A1000300229E0300 /* SettingsViewLayoutTests.swift in Sources */,
 				A10001AE229E01AE /* GameStatePauseTests.swift in Sources */,
 				A10001B0229E01B0 /* GameStateCodableTests.swift in Sources */,
 				A10001B2229E01B2 /* GameStatePersistenceTests.swift in Sources */,

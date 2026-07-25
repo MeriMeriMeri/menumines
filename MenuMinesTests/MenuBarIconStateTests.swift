@@ -47,6 +47,48 @@ struct GameKeyboardRoutingTests {
     }
 }
 
+@Suite("Build Channel Tests")
+struct BuildChannelTests {
+
+    @Test("A Sparkle build is the direct download regardless of anything else")
+    func testSparkleBuildIsDirect() {
+        #expect(resolveBuildChannel(isSparkleBuild: true, hasStoreReceipt: false, isTestFlightSigned: false) == .direct)
+        #expect(resolveBuildChannel(isSparkleBuild: true, hasStoreReceipt: true, isTestFlightSigned: true) == .direct)
+    }
+
+    @Test("A receipt plus the TestFlight certificate is a TestFlight build")
+    func testTestFlightBuild() {
+        #expect(resolveBuildChannel(isSparkleBuild: false, hasStoreReceipt: true, isTestFlightSigned: true) == .testFlight)
+    }
+
+    @Test("A receipt without the TestFlight certificate is the App Store build")
+    func testAppStoreBuild() {
+        #expect(resolveBuildChannel(isSparkleBuild: false, hasStoreReceipt: true, isTestFlightSigned: false) == .appStore)
+    }
+
+    @Test("No receipt means no store delivered it, so it is not claimed as App Store")
+    func testNoReceiptIsNotAppStore() {
+        let channel = resolveBuildChannel(isSparkleBuild: false, hasStoreReceipt: false, isTestFlightSigned: false)
+        #expect(channel == .development)
+        #expect(channel != .appStore, "Mislabelling a local build as the shipped one is the failure that matters")
+    }
+
+    @Test("Pre-release channels are the ones flagged to the user")
+    func testPreReleaseFlagging() {
+        #expect(BuildChannel.testFlight.isPreRelease)
+        #expect(BuildChannel.development.isPreRelease)
+        #expect(!BuildChannel.appStore.isPreRelease)
+        #expect(!BuildChannel.direct.isPreRelease)
+    }
+
+    @Test("Every channel has a non-empty name")
+    func testChannelsAreNamed() {
+        for channel in [BuildChannel.development, .direct, .testFlight, .appStore] {
+            #expect(!channel.displayName.isEmpty)
+        }
+    }
+}
+
 @Suite("Modal Hang Filter Tests")
 struct ModalHangFilterTests {
 

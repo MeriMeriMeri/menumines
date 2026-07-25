@@ -5,7 +5,12 @@ import SwiftUI
 struct SettingsView: View {
     enum Layout {
         static let width: CGFloat = 420
-        static let height: CGFloat = 480
+        /// Ceiling enforced by `SettingsViewLayoutTests`, not a fixed window size.
+        ///
+        /// The height is left to the content because the form is not the same size in every
+        /// build: the direct-distribution build carries an extra Updates section. Pinning the
+        /// window to one height meant whichever configuration was taller quietly scrolled.
+        static let maxHeight: CGFloat = 640
     }
 
     @AppStorage(Constants.SettingsKeys.showMenuBarIndicators) private var showMenuBarIndicators = true
@@ -98,9 +103,36 @@ struct SettingsView: View {
                 Text(String(localized: "settings_updates_section"))
             }
             #endif
+
+            Section {
+                LabeledContent(String(localized: "build_info_channel")) {
+                    Text(channel.displayName)
+                        .fontWeight(channel.isPreRelease ? .semibold : .regular)
+                        .foregroundStyle(channel.isPreRelease ? Color.orange : Color.primary)
+                }
+            } header: {
+                Text(String(localized: "build_info_section"))
+            } footer: {
+                Text(buildFooter)
+                    .foregroundStyle(.secondary)
+            }
         }
         .formStyle(.grouped)
-        .frame(width: Layout.width, height: Layout.height)
+        .frame(width: Layout.width)
+    }
+
+    private var channel: BuildChannel {
+        BuildChannel.current
+    }
+
+    private var buildFooter: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "—"
+        let build = info?["CFBundleVersion"] as? String ?? "—"
+        let versionDescription = String(format: String(localized: "build_info_version"), version, build)
+
+        guard channel.isPreRelease else { return versionDescription }
+        return versionDescription + "\n" + String(localized: "build_info_prerelease_note")
     }
 }
 

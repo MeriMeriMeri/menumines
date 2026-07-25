@@ -369,13 +369,31 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Sparkle resolves /releases/latest/download/appcast.xml, and only these releases
-      # carry an appcast.xml, so the Direct channel has to own the "Latest" pointer.
-      # Claimed explicitly because App Store releases publish to the same repo.
+      # Sparkle resolves /releases/latest/download/appcast.xml, and only these releases carry
+      # an appcast.xml, so the Direct channel has to own the "Latest" pointer. Claimed
+      # explicitly because App Store releases publish to the same repo. Needed for builds
+      # already in the wild, which are pinned to the /latest/ feed URL.
       - name: Mark Direct Release as Latest
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: gh release edit "v${VERSION}-direct" --latest
+
+      # Also publish the feed at a fixed URL that no other release can take over. Tying the
+      # feed to "Latest" is what silently broke auto-updates for two months when an App Store
+      # release claimed that pointer. Marked as a prerelease so it is excluded from the
+      # "Latest" calculation and cannot cause the same problem in reverse.
+      - name: Publish Appcast at a Stable URL
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if ! gh release view appcast >/dev/null 2>&1; then
+            gh release create appcast \
+              --title "Sparkle Appcast (not a release)" \
+              --notes "Permanent home for the Sparkle update feed. Not a downloadable version of MenuMines — see the \`-direct\` releases for those." \
+              --prerelease \
+              --latest=false
+          fi
+          gh release upload appcast "$EXPORT_PATH/appcast.xml" --clobber
 
       # ── Upload Artifacts ──
 

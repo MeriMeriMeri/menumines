@@ -256,15 +256,22 @@ jobs:
             RELEASE_NOTES="Uploaded build ${BUILD_NUMBER} to TestFlight."
           fi
 
+          # The .pkg is deliberately not attached. It is an App Store submission package,
+          # signed for upload to App Store Connect and not notarized, so Gatekeeper
+          # quarantines it as malware if anyone downloads and opens it. Install this build
+          # from TestFlight or the App Store; the .pkg remains a workflow artifact.
+          RELEASE_NOTES="${RELEASE_NOTES}
+
+          Install from TestFlight or the Mac App Store. For a direct download, see the latest \`-direct\` release."
+
           # --latest=false is load-bearing. The Direct build's Sparkle feed is
           # /releases/latest/download/appcast.xml, and appcast.xml only ships on -direct
           # releases. An App Store release taking the "Latest" pointer 404s that feed and
           # silently breaks auto-updates for every Direct user.
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" "$PKG_PATH" --clobber
-            gh release edit "$TAG" --latest=false
+            gh release edit "$TAG" --notes "$RELEASE_NOTES" --latest=false
           else
-            gh release create "$TAG" "$PKG_PATH" \
+            gh release create "$TAG" \
               --target "$GITHUB_SHA" \
               --title "MenuMines $VERSION" \
               --notes "$RELEASE_NOTES" \

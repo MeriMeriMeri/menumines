@@ -37,6 +37,14 @@ private struct AboutView: View {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
     }
 
+    private var buildNumber: String {
+        Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "—"
+    }
+
+    private var channel: BuildChannel {
+        BuildChannel.current
+    }
+
     var body: some View {
         VStack(spacing: 16) {
             Image(nsImage: NSApp.applicationIconImage)
@@ -49,9 +57,14 @@ private struct AboutView: View {
                     .font(.title)
                     .fontWeight(.semibold)
 
-                Text(String(format: String(localized: "about_version"), appVersion))
+                Text(String(format: String(localized: "build_info_version"), appVersion, buildNumber))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+
+                Text(channel.displayName)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(channel.isPreRelease ? Color.orange : Color.secondary)
             }
 
             Text(String(localized: "about_description"))

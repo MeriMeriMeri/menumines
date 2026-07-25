@@ -154,3 +154,13 @@
 "check_for_updates_button" = "Check for Updates";
 "settings_updates_section" = "Updates";
 "settings_auto_check_updates" = "Automatically check for updates";
+
+/* Build channel */
+"build_channel_development" = "Development Build";
+"build_channel_direct" = "Direct Download";
+"build_channel_testflight" = "TestFlight Build";
+"build_channel_app_store" = "Mac App Store";
+"build_info_section" = "Build";
+"build_info_version" = "Version %@ (%@)";
+"build_info_channel" = "Channel";
+"build_info_prerelease_note" = "This is a pre-release build and is not the version customers are running.";

@@ -8,8 +8,11 @@
 	<string>Copyright © 2026 MeriMeriMeri Software. All rights reserved.</string>
 	<key>SENTRY_DSN</key>
 	<string>$(SENTRY_DSN)</string>
+	<!-- Pinned to the fixed `appcast` release rather than /releases/latest/. The "Latest"
+	     pointer is shared with the App Store release channel, and when an App Store release
+	     took it the feed 404'd and auto-updates broke silently for two months. -->
 	<key>SUFeedURL</key>
-	<string>https://github.com/smeriwether/menumines/releases/latest/download/appcast.xml</string>
+	<string>https://github.com/smeriwether/menumines/releases/download/appcast/appcast.xml</string>
 	<key>SUPublicEDKey</key>
 	<string>$(SPARKLE_PUBLIC_ED_KEY)</string>
 	<key>SUEnableAutomaticChecks</key>
