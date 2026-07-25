@@ -1,9 +1,21 @@
 import Foundation
 
-/// Distinguishes between daily puzzles and random continuous play puzzles.
+/// Distinguishes today's daily puzzle from the two kinds of unranked play.
 enum PuzzleType: String, Codable {
+    /// Today's puzzle. The only kind that counts toward completion, stats and streaks.
     case daily
+    /// A generated board for continuous play once the daily is done.
     case random
+    /// A replay of an earlier day's board.
+    ///
+    /// Deliberately unranked: letting a replay record a result would mean a missed day could
+    /// be filled in afterwards, which would make streaks meaningless.
+    case practice
+
+    /// Whether finishing this puzzle should be recorded anywhere.
+    var isRanked: Bool {
+        self == .daily
+    }
 }
 
 /// Represents the outcome of a single completed game.

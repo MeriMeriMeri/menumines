@@ -160,7 +160,9 @@ struct MenuMinesApp: App {
         }
 
         Window(String(localized: "stats_window_title"), id: "stats") {
-            StatsWindow()
+            // Passing the object itself reads no observable property, so this does not
+            // reintroduce the per-second scene invalidation described above.
+            StatsWindow(gameState: gameState)
         }
         .windowResizability(.contentSize)
         .defaultPosition(.center)
@@ -702,6 +704,8 @@ private struct ScreenshotFooterView: View {
             return String(localized: "puzzle_type_daily")
         case .random:
             return String(localized: "puzzle_type_random")
+        case .practice:
+            return String(localized: "puzzle_type_practice")
         }
     }
 
@@ -711,6 +715,8 @@ private struct ScreenshotFooterView: View {
             return "calendar"
         case .random:
             return "shuffle"
+        case .practice:
+            return "clock.arrow.circlepath"
         }
     }
 

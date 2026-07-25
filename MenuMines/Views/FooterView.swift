@@ -22,6 +22,8 @@ struct FooterView: View {
             String(localized: "puzzle_type_daily")
         case .random:
             String(localized: "puzzle_type_random")
+        case .practice:
+            String(localized: "puzzle_type_practice")
         }
     }
 
@@ -31,6 +33,8 @@ struct FooterView: View {
             "calendar"
         case .random:
             "shuffle"
+        case .practice:
+            "clock.arrow.circlepath"
         }
     }
 

@@ -134,6 +134,39 @@ struct DailyBoardFairnessTests {
         #expect(copy.reveal(row: mine.row, col: mine.col) == .mine)
     }
 
+    @Test("A replay uses the board from that day")
+    func testReplayUsesThatDaysBoard() {
+        let past: Int64 = 20260701
+        let state = GameState(board: Board(dailySeed: 20260725), dailySeed: 20260725, puzzleType: .daily)
+
+        state.startPractice(seed: past)
+
+        #expect(state.puzzleType == .practice)
+        #expect(state.dailySeed == past)
+        #expect(state.board == Board(dailySeed: past))
+        #expect(state.status == .notStarted)
+    }
+
+    @Test("Restarting a replay restarts that same board")
+    func testReplayResetKeepsTheSameDay() {
+        let past: Int64 = 20260701
+        let state = GameState(board: Board(dailySeed: past), dailySeed: past, puzzleType: .practice)
+
+        #expect(state.canReset, "A replay has no result to protect, so it stays restartable")
+
+        state.reset()
+
+        #expect(state.puzzleType == .practice)
+        #expect(state.dailySeed == past, "Reset should not drop the player onto a different day")
+    }
+
+    @Test("Only today's puzzle is ranked")
+    func testOnlyDailyIsRanked() {
+        #expect(PuzzleType.daily.isRanked)
+        #expect(!PuzzleType.practice.isRanked, "A replay must never fill in a missed day")
+        #expect(!PuzzleType.random.isRanked)
+    }
+
     @Test("Random puzzles keep first-click safety")
     func testRandomPuzzleStillProtectsFirstClick() {
         let seed: Int64 = -987654321

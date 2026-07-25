@@ -49,6 +49,9 @@ final class GameState {
     /// Whether reset is allowed.
     /// Reset is locked once today's puzzle is completed unless continuous play is enabled.
     var canReset: Bool {
+        // The lock exists to stop today's result being rerolled. A replay has no result to
+        // protect, so it stays restartable even once today's puzzle is settled.
+        if puzzleType == .practice { return true }
         if isDailyPuzzleComplete() {
             return isContinuousPlayEnabled
         }
@@ -179,10 +182,37 @@ final class GameState {
     /// If continuous play is enabled and daily puzzle is complete, starts a random puzzle.
     /// Otherwise resets to today's daily puzzle.
     /// Does nothing if reset is locked (daily puzzle already completed and continuous play disabled).
+    /// Starts a replay of an earlier day's board.
+    ///
+    /// Unranked by construction: nothing about the result is recorded, so a missed day cannot
+    /// be filled in after the fact and streaks keep meaning what they say.
+    /// - Parameter seed: The daily seed to replay, in `YYYYMMDD` form.
+    func startPractice(seed: Int64) {
+        stopTimer()
+        announcer.cancelPendingAnnouncement()
+
+        board = Board(dailySeed: seed)
+        dailySeed = seed
+        puzzleType = .practice
+        status = .notStarted
+        elapsedTime = 0
+        flagCount = 0
+        selectedRow = 0
+        selectedCol = 0
+        markedMinesAtWin = 0
+        // Leave the stored daily alone; the player is only visiting this board.
+    }
+
     func reset() {
         guard canReset else { return }
         stopTimer()
         announcer.cancelPendingAnnouncement()
+
+        // Restarting a replay should restart that board, not drop the player somewhere else.
+        if puzzleType == .practice {
+            startPractice(seed: dailySeed)
+            return
+        }
 
         // If continuous play is enabled and daily is complete, start a random puzzle
         if isContinuousPlayEnabled && isDailyPuzzleComplete() {
@@ -288,7 +318,7 @@ final class GameState {
     func checkForDailyRollover() {
         let todaySeed = seedFromDate(Date())
 
-        if puzzleType == .random {
+        if puzzleType != .daily {
             guard !isDailyPuzzleComplete(forSeed: todaySeed) else { return }
             guard status != .playing else { return }
 
@@ -480,7 +510,9 @@ final class GameState {
             }
         }
 
-        recordGameResult(won: won)
+        if puzzleType.isRanked {
+            recordGameResult(won: won)
+        }
         save()
     }
 }

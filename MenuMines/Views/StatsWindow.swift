@@ -2,7 +2,10 @@ import SwiftUI
 
 /// Window for displaying game statistics.
 struct StatsWindow: View {
+    let gameState: GameState
+
     @State private var showResetConfirmation = false
+    @State private var replayedSeed: Int64?
     @State private var selectedTab: StatsTab = .summary
     @AppStorage(Constants.SettingsKeys.showStreaks) private var showStreaks = true
 
@@ -37,6 +40,14 @@ struct StatsWindow: View {
         }
         .frame(width: 360)
         .fixedSize()
+        .alert(
+            replayedSeed.map { String(format: String(localized: "replay_started_title"), replayDateDescription(for: $0)) } ?? "",
+            isPresented: Binding(get: { replayedSeed != nil }, set: { if !$0 { replayedSeed = nil } })
+        ) {
+            Button(String(localized: "reset_confirmation_cancel"), role: .cancel) { replayedSeed = nil }
+        } message: {
+            Text(String(localized: "replay_started_message"))
+        }
         .alert(String(localized: "stats_reset_confirmation_title"), isPresented: $showResetConfirmation) {
             Button(String(localized: "stats_reset_confirmation_cancel"), role: .cancel) {}
             Button(String(localized: "stats_reset_confirmation_confirm"), role: .destructive) {
@@ -83,8 +94,14 @@ struct StatsWindow: View {
     }
 
     private var historySection: some View {
-        DailyCompletionCalendarView(resultsBySeed: store.dailyResultsBySeed)
-            .padding()
+        DailyCompletionCalendarView(
+            resultsBySeed: store.dailyResultsBySeed,
+            onReplay: { seed in
+                gameState.startPractice(seed: seed)
+                replayedSeed = seed
+            }
+        )
+        .padding()
     }
 
     @ViewBuilder
@@ -244,6 +261,11 @@ struct StatsWindow: View {
         .padding()
     }
 
+    private func replayDateDescription(for seed: Int64) -> String {
+        guard let date = dateFromSeed(seed) else { return "" }
+        return formattedDate(date)
+    }
+
     private func formattedDate(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
@@ -275,6 +297,7 @@ private enum StatsTab: String, CaseIterable, Identifiable {
 
 private struct DailyCompletionCalendarView: View {
     let resultsBySeed: [Int64: GameResult]
+    let onReplay: (Int64) -> Void
 
     @State private var displayedMonth = Self.currentMonthStart()
 
@@ -343,10 +366,16 @@ private struct DailyCompletionCalendarView: View {
                     CalendarDayCell(
                         cell: cell,
                         result: result(for: cell),
-                        isToday: isToday(cell)
+                        isToday: isToday(cell),
+                        onReplay: replayAction(for: cell)
                     )
                 }
             }
+
+            Text(String(localized: "stats_calendar_replay_hint"))
+                .font(.caption2)
+                .foregroundStyle(.tertiary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -400,6 +429,16 @@ private struct DailyCompletionCalendarView: View {
         return resultsByLocalDay[Self.calendar.startOfDay(for: date)]
     }
 
+    /// Returns an action only for days that are actually replayable. Today is the ranked
+    /// puzzle and must be played as such, and future days have no board yet.
+    private func replayAction(for cell: CalendarCell) -> (() -> Void)? {
+        guard let date = cell.date, !isToday(cell) else { return nil }
+        guard date < Date() else { return nil }
+
+        let seed = seedFromDate(date)
+        return { onReplay(seed) }
+    }
+
     private func isToday(_ cell: CalendarCell) -> Bool {
         guard let date = cell.date else { return false }
         return Self.calendar.isDate(date, inSameDayAs: Date())
@@ -434,8 +473,25 @@ private struct CalendarDayCell: View {
     let cell: CalendarCell
     let result: GameResult?
     let isToday: Bool
+    let onReplay: (() -> Void)?
 
     var body: some View {
+        if let onReplay {
+            Button(action: onReplay) { tile }
+                .buttonStyle(.plain)
+                .help(String(localized: "stats_calendar_replay_hint"))
+                .accessibilityLabel(replayAccessibilityLabel)
+                .accessibilityAddTraits(.isButton)
+        } else {
+            tile
+        }
+    }
+
+    private var replayAccessibilityLabel: String {
+        String(format: String(localized: "stats_calendar_day_replay"), accessibilityLabel)
+    }
+
+    private var tile: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 4)
                 .fill(fillColor)
@@ -454,7 +510,7 @@ private struct CalendarDayCell: View {
         }
         .frame(height: 26)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(accessibilityLabel)
+        .accessibilityLabel(onReplay == nil ? accessibilityLabel : "")
         .accessibilityHidden(cell.date == nil)
     }
 
@@ -587,5 +643,5 @@ enum StatsRecentResults {
 // MARK: - Previews
 
 #Preview("Stats - Empty") {
-    StatsWindow()
+    StatsWindow(gameState: GameState(board: Board(dailySeed: 20260725)))
 }

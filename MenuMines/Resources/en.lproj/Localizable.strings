@@ -164,3 +164,10 @@
 "build_info_version" = "Version %@ (%@)";
 "build_info_channel" = "Channel";
 "build_info_prerelease_note" = "This is a pre-release build and is not the version customers are running.";
+
+/* Past daily replays */
+"puzzle_type_practice" = "Replay";
+"stats_calendar_replay_hint" = "Click a past day to replay that board. Replays are not recorded.";
+"stats_calendar_day_replay" = "Replay %@";
+"replay_started_title" = "Replaying %@";
+"replay_started_message" = "Open MenuMines from the menu bar to play. This replay is not recorded.";
