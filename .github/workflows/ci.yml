@@ -27,6 +27,20 @@ jobs:
           xcodebuild -version
           swift --version
 
+      # Releases inject MARKETING_VERSION from ./VERSION, so a stale project value only
+      # misleads locally — which is where it went unnoticed at 1.0 for eighteen releases.
+      - name: Verify Version Consistency
+        run: |
+          FILE_VERSION="$(tr -d '[:space:]' < VERSION)"
+          PROJECT_VERSIONS="$(grep -o 'MARKETING_VERSION = [^;]*;' MenuMines.xcodeproj/project.pbxproj \
+            | sed -E 's/MARKETING_VERSION = (.*);/\1/' | sort -u)"
+
+          if [ "$PROJECT_VERSIONS" != "$FILE_VERSION" ]; then
+            echo "::error::./VERSION is $FILE_VERSION but the project has: $(echo "$PROJECT_VERSIONS" | tr '\n' ' '). Run scripts/set-version.sh $FILE_VERSION."
+            exit 1
+          fi
+          echo "Version $FILE_VERSION is consistent across VERSION and the Xcode project."
+
       - name: Cache DerivedData
         uses: actions/cache@v4
         with:

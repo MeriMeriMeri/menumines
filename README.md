@@ -48,26 +48,46 @@ MenuMines supports two distribution channels with separate builds:
 | App Store | MenuMines | App Store | Apple Distribution |
 | Direct | MenuMinesDirect | Sparkle | Developer ID |
 
-### App Store Release
+### Versioning
 
-Triggered by pushing a `v*` tag (e.g., `v1.0.0`):
+The `VERSION` file at the repo root is the single source of truth. Both pipelines read it and
+**refuse to build a tag that disagrees with it**, which is what keeps the two channels on the
+same number — they previously drifted from 1.0.15 to 1.0.17 without anyone noticing.
+
+Bump it with the script, which also keeps `MARKETING_VERSION` in the Xcode project in step so
+local builds report the same version a release would:
 
 ```bash
-git tag v1.0.0
-git push origin v1.0.0
+scripts/set-version.sh 1.0.19
 ```
 
-The `release.yml` workflow runs tests, creates temporary App Store signing assets through the App Store Connect API, archives, exports a signed `.pkg`, uploads it to App Store Connect/TestFlight, and attaches the package to a GitHub Release.
+Then commit before tagging. CI fails if `VERSION` and the project file disagree.
+
+### App Store Release
+
+Triggered by pushing a `v*` tag matching `VERSION`:
+
+```bash
+git tag v1.0.19 && git push origin v1.0.19
+```
+
+The `release.yml` workflow runs tests, creates temporary App Store signing assets through the
+App Store Connect API, archives, exports a signed `.pkg`, uploads it to App Store
+Connect/TestFlight along with debug symbols to Sentry, and publishes a GitHub Release.
+
+The `.pkg` is deliberately **not** attached to that release. It is signed for submission and
+is not notarized, so Gatekeeper quarantines it as malware for anyone who downloads it; it is
+available as a workflow artifact instead. The release is also created with `--latest=false`,
+because the `Latest` pointer belongs to the Direct channel (see below).
 
 You can also run the workflow manually from GitHub Actions and provide a version number.
 
 ### Direct Distribution Release
 
-Triggered by pushing a `v*-direct` tag (e.g., `v1.0.0-direct`):
+Triggered by pushing a `v*-direct` tag whose version matches `VERSION`:
 
 ```bash
-git tag v1.0.0-direct
-git push origin v1.0.0-direct
+git tag v1.0.19-direct && git push origin v1.0.19-direct
 ```
 
 The `release-direct.yml` workflow:
@@ -78,6 +98,12 @@ The `release-direct.yml` workflow:
 5. Signs the release for Sparkle auto-updates
 6. Generates `appcast.xml`
 7. Creates a GitHub Release with DMG and appcast
+8. Publishes `appcast.xml` to the fixed `appcast` release, which is what `SUFeedURL` points at
+
+The feed lives at a fixed URL rather than `/releases/latest/download/`. That pointer is shared
+with the App Store channel, and when an App Store release claimed it the feed 404'd and
+auto-updates broke silently for two months. The workflow still marks the Direct release as
+`Latest` for builds already in the wild that are pinned to the old URL.
 
 ### Direct Release Lessons (Sparkle + Notarization)
 

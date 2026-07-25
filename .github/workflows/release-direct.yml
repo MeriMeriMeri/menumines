@@ -128,6 +128,16 @@ jobs:
             VERSION="${GITHUB_REF_NAME#v}"
             VERSION="${VERSION%-direct}"
           fi
+
+          # ./VERSION is the single source of truth both channels build from. Rejecting a
+          # tag that disagrees is what stops the App Store and Direct builds drifting onto
+          # different numbers, which went unnoticed from 1.0.15 to 1.0.17.
+          FILE_VERSION="$(tr -d '[:space:]' < VERSION)"
+          if [ "$VERSION" != "$FILE_VERSION" ]; then
+            echo "::error::Tag says $VERSION but ./VERSION says $FILE_VERSION. Run scripts/set-version.sh $VERSION and commit before tagging."
+            exit 1
+          fi
+
           BUILD_NUMBER=${{ github.run_number }}
 
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
