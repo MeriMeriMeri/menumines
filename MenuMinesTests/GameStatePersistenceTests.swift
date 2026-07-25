@@ -757,11 +757,11 @@ struct GameStatePersistenceTests {
 
         gameState.reset()
 
-        for r in 0..<Board.rows {
-            for c in 0..<Board.cols {
-                #expect(gameState.board.cells[r][c].state == .hidden)
-            }
-        }
+        // A reset daily is back to its canonical starting position, which is deliberately
+        // not a blank board: the day's safe opening is revealed for everyone, so that the
+        // board every player solves is identical.
+        #expect(gameState.board == Board(dailySeed: gameState.dailySeed),
+                "Reset should restore the day's canonical starting board")
     }
 
     @Test("isPaused is false after reset")

@@ -200,7 +200,7 @@ enum GamePersistenceCoordinator {
 
         // Fallback to stats (won't have board state, but better than nothing)
         if isDailyPuzzleComplete() {
-            let board = Board(seed: todaySeed)
+            let board = Board(dailySeed: todaySeed)
             if let restoredState = restoreFromStats(seed: todaySeed, board: board) {
                 return restoredState
             }

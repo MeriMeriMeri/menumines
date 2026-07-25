@@ -60,7 +60,7 @@ struct GameStateWinLoseTests {
 
         // Now test that first click on (0,0) doesn't lose
         let board = Board(seed: testSeed)
-        let gameState = GameState(board: board)
+        let gameState = GameState(board: board, dailySeed: testSeed, puzzleType: .random)
 
         // Verify the board originally has a mine at (0,0)
         #expect(board.cells[0][0].hasMine)
@@ -85,7 +85,7 @@ struct GameStateWinLoseTests {
         }
 
         let board = Board(seed: testSeed)
-        let gameState = GameState(board: board)
+        let gameState = GameState(board: board, dailySeed: testSeed, puzzleType: .random)
 
         // First click on (0,0) which has a mine
         gameState.reveal(row: 0, col: 0)
@@ -112,7 +112,7 @@ struct GameStateWinLoseTests {
         for seed in seeds {
             for (row, col) in positions {
                 let board = Board(seed: seed)
-                let gameState = GameState(board: board)
+                let gameState = GameState(board: board, dailySeed: seed, puzzleType: .random)
 
                 gameState.reveal(row: row, col: col)
 
@@ -135,7 +135,7 @@ struct GameStateWinLoseTests {
     @Test("First click clears 3x3 area of mines")
     func testFirstClickClears3x3Area() {
         let board = Board(seed: 12345)
-        let gameState = GameState(board: board)
+        let gameState = GameState(board: board, dailySeed: 12345, puzzleType: .random)
 
         // Click center
         gameState.reveal(row: 4, col: 4)

@@ -30,6 +30,51 @@ struct Board: Equatable, Codable {
     /// Creates a new board with mines placed deterministically based on the seed.
     /// - Parameter seed: The seed for deterministic mine placement.
     init(seed: Int64) {
+        self.init(seed: seed, keepingClear: [])
+    }
+
+    /// Creates the canonical board for a daily seed, already opened at its safe cell.
+    ///
+    /// Every player gets this exact board. That is only possible because the opening is
+    /// baked in at generation time rather than cleared on the player's first click:
+    /// relocating mines around wherever someone happened to click made the layout depend on
+    /// that click, so two people playing "the same" daily were playing different boards and
+    /// their shared grids never matched.
+    /// - Parameter dailySeed: The daily seed, in `YYYYMMDD` form.
+    init(dailySeed: Int64) {
+        let opening = Board.openingCell(forSeed: dailySeed)
+        self.init(seed: dailySeed, keepingClear: Board.positionsSurrounding(opening))
+        _ = reveal(row: opening.row, col: opening.col)
+    }
+
+    /// The cell every player starts from on a given day.
+    ///
+    /// Kept off the edges so the opening cascade has room to reveal a useful area.
+    static func openingCell(forSeed seed: Int64) -> (row: Int, col: Int) {
+        let rng = GKLinearCongruentialRandomSource(seed: UInt64(bitPattern: seed &* 31))
+        return (
+            row: 1 + rng.nextInt(upperBound: Board.rows - 2),
+            col: 1 + rng.nextInt(upperBound: Board.cols - 2)
+        )
+    }
+
+    /// The opening cell and its neighbours, which must stay mine-free so the opening
+    /// reveals a zero-adjacent cascade rather than a lone numbered cell.
+    private static func positionsSurrounding(_ cell: (row: Int, col: Int)) -> Set<Int> {
+        var positions = Set<Int>()
+        for dr in -1...1 {
+            for dc in -1...1 {
+                let r = cell.row + dr
+                let c = cell.col + dc
+                if r >= 0, r < Board.rows, c >= 0, c < Board.cols {
+                    positions.insert(r * Board.cols + c)
+                }
+            }
+        }
+        return positions
+    }
+
+    private init(seed: Int64, keepingClear clearPositions: Set<Int>) {
         cells = (0..<Board.rows).map { _ in
             (0..<Board.cols).map { _ in
                 Cell(state: .hidden, hasMine: false)
@@ -40,10 +85,12 @@ struct Board: Equatable, Codable {
 
         var minePositions = Set<Int>()
         let totalCells = Board.rows * Board.cols
-        precondition(Board.mineCount <= totalCells, "Cannot place \(Board.mineCount) mines in \(totalCells) cells")
+        let placeable = totalCells - clearPositions.count
+        precondition(Board.mineCount <= placeable, "Cannot place \(Board.mineCount) mines in \(placeable) cells")
 
         while minePositions.count < Board.mineCount {
             let position = rng.nextInt(upperBound: totalCells)
+            guard !clearPositions.contains(position) else { continue }
             minePositions.insert(position)
         }
 

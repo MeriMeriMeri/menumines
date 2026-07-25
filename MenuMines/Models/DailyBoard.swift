@@ -9,7 +9,7 @@ func dailyBoard() -> Board {
 /// Returns a board for a specific date using a UTC date-based seed.
 func boardForDate(_ date: Date) -> Board {
     let seed = seedFromDate(date)
-    return Board(seed: seed)
+    return Board(dailySeed: seed)
 }
 
 /// Computes a deterministic seed from a date using UTC timezone.

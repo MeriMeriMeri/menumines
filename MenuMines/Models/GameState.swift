@@ -102,7 +102,13 @@ final class GameState {
 
         let isFirstClick = (status == .notStarted)
         if isFirstClick {
-            board.clearAreaForOpening(centerRow: row, centerCol: col, seed: dailySeed)
+            // Daily boards already ship with a safe opening revealed, and must not be
+            // touched: clearing an area around the player's click is what made two people
+            // playing the same day play different boards. Random puzzles are not compared
+            // to anyone, so they keep the forgiving first-click-is-always-safe behaviour.
+            if puzzleType == .random {
+                board.clearAreaForOpening(centerRow: row, centerCol: col, seed: dailySeed)
+            }
             startTimer()
             status = .playing
         }
@@ -184,7 +190,7 @@ final class GameState {
         } else {
             // Reset to today's daily puzzle
             let seed = seedFromDate(Date())
-            board = Board(seed: seed)
+            board = Board(dailySeed: seed)
             dailySeed = seed
             puzzleType = .daily
             status = .notStarted

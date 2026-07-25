@@ -187,8 +187,16 @@ Use these tools to verify accessibility:
 
 - Board size: 9x9 (81 cells)
 - Mine count: 12
-- First click is always safe (relocate mine if needed)
-- If the first click hits a mine, relocation uses system randomness (boards can diverge after that first click)
+- **Daily puzzles**: the board is fully determined by the seed and is never modified during
+  play. Mines are placed avoiding a seed-derived opening cell, and that opening is revealed
+  when the board is created, so every player starts from the identical position. Opening a
+  mine loses — nothing is relocated to protect the player.
+- **Random puzzles**: first click is always safe; mines are relocated out of a 3x3 around the
+  click via `clearAreaForOpening`, so the board depends on where the player clicked.
+
+The split exists because relocating mines around the first click made two people playing the
+same daily play *different* boards, which also meant their shared grids never matched. Do not
+reintroduce relocation for daily puzzles — `DailyBoardFairnessTests` guards this.
 
 ## Workflow
 
