@@ -61,7 +61,9 @@ struct HeaderView: View {
     }
 
     private var flagCountAccessibilityLabel: String {
-        let remaining = Board.mineCount - flagCount
+        // Flagging is uncapped, so an over-flagged board would otherwise announce
+        // a negative number of mines remaining.
+        let remaining = max(0, Board.mineCount - flagCount)
         if remaining == 1 {
             return String(format: String(localized: "flag_count_accessibility_one_remaining"), flagCount)
         }

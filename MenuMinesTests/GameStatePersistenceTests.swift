@@ -1420,4 +1420,69 @@ struct GameStatePersistenceTests {
                "Daily snapshot should preserve original elapsed time")
         #expect(afterRandomsSnapshot?.status == .won, "Daily snapshot should preserve won status")
     }
+
+    // MARK: - Marked Mine Count Tests
+
+    @Test("Marked mine count survives a relaunch")
+    func testMarkedMineCountSurvivesRelaunch() {
+        let cleanup = setupCleanPersistenceState(continuousPlay: false)
+        defer { cleanup() }
+
+        let seed = seedFromDate(Date())
+        let gameState = GameState(board: Board(seed: seed), dailySeed: seed)
+
+        // Flags need a started game, and the first reveal relocates mines, so mark after it.
+        gameState.reveal(row: 0, col: 0)
+        #expect(gameState.status == .playing)
+
+        var flagged = 0
+        for r in 0..<Board.rows {
+            for c in 0..<Board.cols where flagged < 3 {
+                if gameState.board.cells[r][c].hasMine {
+                    gameState.toggleFlag(row: r, col: c)
+                    flagged += 1
+                }
+            }
+        }
+        #expect(flagged == 3)
+
+        winGame(gameState)
+        #expect(gameState.status == .won)
+        #expect(gameState.markedMinesAtWin == 3)
+
+        let shareDate = dateFromSeed(seed) ?? Date()
+        let restored = GameState.restored()
+
+        #expect(restored.status == .won)
+        #expect(
+            restored.markedMinesAtWin == 3,
+            "Winning auto-flags every mine, so the player's count has to come from the snapshot"
+        )
+        #expect(restored.shareText(for: shareDate) == gameState.shareText(for: shareDate))
+    }
+
+    @Test("Snapshots written before marked mines were tracked decode to zero")
+    func testLegacySnapshotDecodesMarkedMinesToZero() throws {
+        let snapshot = GameSnapshot(
+            board: Board(seed: 20260101),
+            status: .won,
+            elapsedTime: 42,
+            flagCount: 12,
+            selectedRow: 0,
+            selectedCol: 0,
+            dailySeed: 20260101,
+            puzzleType: .daily,
+            markedMinesAtWin: 7
+        )
+        let encoded = try JSONEncoder().encode(snapshot)
+        var object = try #require(try JSONSerialization.jsonObject(with: encoded) as? [String: Any])
+        object.removeValue(forKey: "markedMinesAtWin")
+
+        let legacy = try JSONSerialization.data(withJSONObject: object)
+        let decoded = try JSONDecoder().decode(GameSnapshot.self, from: legacy)
+
+        #expect(decoded.markedMinesAtWin == 0)
+        #expect(decoded.status == .won)
+        #expect(decoded.elapsedTime == 42)
+    }
 }

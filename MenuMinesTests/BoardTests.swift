@@ -362,7 +362,7 @@ final class BoardTests: XCTestCase {
         }
 
         // The original position should no longer have a mine
-        XCTAssertFalse(minePositionsAfter.contains(mineRow * 8 + mineCol))
+        XCTAssertFalse(minePositionsAfter.contains(mineRow * 9 + mineCol))
 
         // A new position should have a mine
         let newMines = minePositionsAfter.subtracting(minePositionsBefore)

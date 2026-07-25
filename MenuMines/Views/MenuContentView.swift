@@ -115,11 +115,13 @@ struct MenuContentView: View {
         .frame(width: 300, height: contentHeight, alignment: .top)
         .background(Color(nsColor: .windowBackgroundColor))
         .onAppear {
+            MenuBarPresentation.setVisible(true)
             gameState.checkForDailyRollover()
             gameState.checkContinuousPlaySetting()
             gameState.resumeTimer()
         }
         .onDisappear {
+            MenuBarPresentation.setVisible(false)
             gameState.pauseTimer()
             gameState.save()
         }

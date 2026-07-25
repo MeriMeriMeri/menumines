@@ -13,9 +13,14 @@ final class GameTimer {
     /// If a timer is already running, it is invalidated first.
     func start() {
         timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+        let timer = Timer(timeInterval: 1.0, repeats: true) { [weak self] _ in
             self?.onTick?()
         }
+        // Scheduling in .common keeps the clock running while AppKit is tracking events.
+        // On the default mode the timer silently stalls for as long as the player holds a
+        // menu open or drags, so the game clock under-reports their real time.
+        RunLoop.main.add(timer, forMode: .common)
+        self.timer = timer
     }
 
     /// Stops the timer completely.

@@ -30,7 +30,9 @@ final class GameState {
     private(set) var isPaused: Bool = false
     /// Count of correctly marked mines at the time of winning (before auto-flagging).
     /// Used for share text to show player's actual skill.
-    private var markedMinesAtWin: Int = 0
+    /// Persisted, because winning auto-flags every mine — recomputing it from a restored
+    /// board would always report a perfect 12/12 regardless of how the player actually did.
+    internal(set) var markedMinesAtWin: Int = 0
 
     /// Timer for tracking elapsed game time.
     private let gameTimer = GameTimer()
@@ -225,7 +227,11 @@ final class GameState {
         // Don't persist random puzzles - they're discarded on app close
         guard puzzleType == .daily else { return }
 
-        let snapshot = GameSnapshot(
+        makeSnapshot().save()
+    }
+
+    private func makeSnapshot() -> GameSnapshot {
+        GameSnapshot(
             board: board,
             status: status,
             elapsedTime: elapsedTime,
@@ -233,9 +239,9 @@ final class GameState {
             selectedRow: selectedRow,
             selectedCol: selectedCol,
             dailySeed: dailySeed,
-            puzzleType: puzzleType
+            puzzleType: puzzleType,
+            markedMinesAtWin: markedMinesAtWin
         )
-        snapshot.save()
     }
 
     /// Creates a GameState by restoring from a saved snapshot or stats if available,
@@ -462,16 +468,7 @@ final class GameState {
             // This is intentionally a separate save from save() below - the daily namespace
             // preserves the completed board state even when the user plays random puzzles,
             // allowing correct visual restoration when toggling continuous play off.
-            let snapshot = GameSnapshot(
-                board: board,
-                status: status,
-                elapsedTime: elapsedTime,
-                flagCount: flagCount,
-                selectedRow: selectedRow,
-                selectedCol: selectedCol,
-                dailySeed: dailySeed,
-                puzzleType: puzzleType
-            )
+            let snapshot = makeSnapshot()
             GameSnapshot.withStorageKey(GameSnapshot.dailyNamespace) {
                 snapshot.save()
             }

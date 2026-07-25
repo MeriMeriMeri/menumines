@@ -1,11 +1,11 @@
 import AppKit
+import Combine
 import Sentry
 import SwiftUI
 
 @main
 struct MenuMinesApp: App {
     @State private var gameState: GameState
-    @AppStorage(Constants.SettingsKeys.showMenuBarIndicators) private var showMenuBarIndicators = true
 
     private static var eventMonitor: Any?
 
@@ -95,10 +95,21 @@ struct MenuMinesApp: App {
         }
     }
 
+    private static func shouldHandleGameKey(_ event: NSEvent) -> Bool {
+        shouldRouteKeyToBoard(
+            modifiers: event.modifierFlags,
+            isMenuVisible: MenuBarPresentation.isVisible,
+            // Settings, Stats and About are titled windows; the menu bar popover is not.
+            keyWindowIsTitled: NSApp.keyWindow?.styleMask.contains(.titled) == true
+        )
+    }
+
     private static func setupKeyboardMonitor(for gameState: GameState) {
         guard eventMonitor == nil else { return }
 
         eventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            guard shouldHandleGameKey(event) else { return event }
+
             // Arrow keys for navigation
             switch event.keyCode {
             case 123: gameState.moveSelection(.left)
@@ -124,31 +135,20 @@ struct MenuMinesApp: App {
         }
     }
 
-    private var currentIconState: MenuBarIconState {
-        guard showMenuBarIndicators else {
-            return .normal
-        }
-        return menuBarIconState(
-            gameStatus: gameState.status,
-            isPaused: gameState.isPaused,
-            isDailyComplete: isDailyPuzzleComplete()
-        )
-    }
-
     var body: some Scene {
         appScenes
     }
 
+    // Nothing observable is read here on purpose. Reading game state in a Scene body makes
+    // every scene — the popover, Settings and the Stats window — rebuild on each change,
+    // which happens once a second while the timer runs. MenuBarIconView reads what it
+    // needs so those updates stay scoped to the status item.
     @SceneBuilder
     private var appScenes: some Scene {
         MenuBarExtra {
             MenuContentView(gameState: gameState)
         } label: {
-            MenuBarIconView(
-                state: currentIconState,
-                elapsedTime: gameState.elapsedTime,
-                currentStreak: StatsStore.shared.currentStreak
-            )
+            MenuBarIconView(gameState: gameState)
         }
         .menuBarExtraStyle(.window)
 
@@ -836,11 +836,59 @@ private enum ScreenshotFixture {
 }
 #endif
 
+/// Tracks whether the menu bar popover is on screen.
+///
+/// Keyboard shortcuts are registered process-wide, so they need a way to tell whether the
+/// board is actually in front of the player. Updated from `MenuContentView`'s appearance.
+enum MenuBarPresentation {
+    private(set) nonisolated(unsafe) static var isVisible = false
+
+    /// - Important: Must be called from the main thread.
+    static func setVisible(_ visible: Bool) {
+        isVisible = visible
+    }
+}
+
+/// Decides whether a key press belongs to the game board.
+///
+/// The board's shortcuts are bare keys — arrows, Space, F — but a local event monitor sees
+/// every key the process receives. Ungated, Space pressed to activate a button in the Stats
+/// window reveals a cell, and ⌘F flags one; both mutate a board the player cannot see and
+/// can lose the daily puzzle without any visible cause.
+func shouldRouteKeyToBoard(
+    modifiers: NSEvent.ModifierFlags,
+    isMenuVisible: Bool,
+    keyWindowIsTitled: Bool
+) -> Bool {
+    guard modifiers.isDisjoint(with: [.command, .control, .option]) else { return false }
+    guard isMenuVisible else { return false }
+    return !keyWindowIsTitled
+}
+
 /// Menu bar icon view showing state-specific icon with subtle indicators.
 struct MenuBarIconView: View {
-    let state: MenuBarIconState
-    let elapsedTime: TimeInterval
-    let currentStreak: Int
+    let gameState: GameState
+
+    @AppStorage(Constants.SettingsKeys.showMenuBarIndicators) private var showMenuBarIndicators = true
+    @State private var isVoiceOverRunning = NSWorkspace.shared.isVoiceOverEnabled
+
+    private var state: MenuBarIconState {
+        guard showMenuBarIndicators else {
+            return .normal
+        }
+        return menuBarIconState(
+            gameStatus: gameState.status,
+            isPaused: gameState.isPaused,
+            isDailyComplete: isDailyPuzzleComplete()
+        )
+    }
+
+    /// The elapsed time is only read while VoiceOver is running. Reading it unconditionally
+    /// would rebuild the status item every second for a label nothing is listening to, and
+    /// re-laying out the status item makes the attached popover jump.
+    private var announcedElapsedTime: TimeInterval {
+        isVoiceOverRunning ? gameState.elapsedTime : 0
+    }
 
     private var baseIconName: String {
         switch state {
@@ -866,11 +914,11 @@ struct MenuBarIconView: View {
         case .incomplete:
             return String(localized: "menu_bar_accessibility_incomplete")
         case .playing:
-            return String(format: String(localized: "menu_bar_accessibility_playing"), formatTime(elapsedTime))
+            return String(format: String(localized: "menu_bar_accessibility_playing"), formatTime(announcedElapsedTime))
         case .paused:
-            return String(format: String(localized: "menu_bar_accessibility_paused"), formatTime(elapsedTime))
+            return String(format: String(localized: "menu_bar_accessibility_paused"), formatTime(announcedElapsedTime))
         case .complete:
-            return String(format: String(localized: "menu_bar_accessibility_complete"), currentStreak)
+            return String(format: String(localized: "menu_bar_accessibility_complete"), StatsStore.shared.currentStreak)
         case .lost:
             return String(localized: "menu_bar_accessibility_lost")
         }
@@ -892,6 +940,9 @@ struct MenuBarIconView: View {
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabel)
         .frame(width: 22, alignment: .center)
+        .onReceive(NSWorkspace.shared.publisher(for: \.isVoiceOverEnabled)) { isEnabled in
+            isVoiceOverRunning = isEnabled
+        }
     }
 
     private func formatTime(_ seconds: TimeInterval) -> String {

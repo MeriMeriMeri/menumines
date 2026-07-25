@@ -14,13 +14,16 @@ struct GameSnapshot: Codable {
     let selectedCol: Int
     let dailySeed: Int64
     let puzzleType: PuzzleType
+    let markedMinesAtWin: Int
 
     /// Coding keys for backward-compatible decoding.
     private enum CodingKeys: String, CodingKey {
         case board, status, elapsedTime, flagCount, selectedRow, selectedCol, dailySeed, puzzleType
+        case markedMinesAtWin
     }
 
-    /// Custom decoder to provide backward compatibility for existing snapshots without puzzleType.
+    /// Custom decoder to provide backward compatibility for existing snapshots written
+    /// before `puzzleType` and `markedMinesAtWin` were stored.
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         board = try container.decode(Board.self, forKey: .board)
@@ -31,10 +34,12 @@ struct GameSnapshot: Codable {
         selectedCol = try container.decode(Int.self, forKey: .selectedCol)
         dailySeed = try container.decode(Int64.self, forKey: .dailySeed)
         puzzleType = try container.decodeIfPresent(PuzzleType.self, forKey: .puzzleType) ?? .daily
+        markedMinesAtWin = try container.decodeIfPresent(Int.self, forKey: .markedMinesAtWin) ?? 0
     }
 
     init(board: Board, status: GameStatus, elapsedTime: TimeInterval, flagCount: Int,
-         selectedRow: Int, selectedCol: Int, dailySeed: Int64, puzzleType: PuzzleType = .daily) {
+         selectedRow: Int, selectedCol: Int, dailySeed: Int64, puzzleType: PuzzleType = .daily,
+         markedMinesAtWin: Int = 0) {
         self.board = board
         self.status = status
         self.elapsedTime = elapsedTime
@@ -43,6 +48,7 @@ struct GameSnapshot: Codable {
         self.selectedCol = selectedCol
         self.dailySeed = dailySeed
         self.puzzleType = puzzleType
+        self.markedMinesAtWin = markedMinesAtWin
     }
 
     private static let baseStorageKey = "gameSnapshot"
@@ -228,6 +234,7 @@ enum GamePersistenceCoordinator {
 
         state.selectedRow = snapshot.selectedRow
         state.selectedCol = snapshot.selectedCol
+        state.markedMinesAtWin = snapshot.markedMinesAtWin
         return state
     }
 

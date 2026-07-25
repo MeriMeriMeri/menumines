@@ -33,18 +33,18 @@ struct CellView: View {
                 onLeftClick: onReveal,
                 onRightClick: onFlag,
                 onPressedChanged: { pressed in
-                    withAnimation(.easeOut(duration: 0.08)) {
-                        isPressed = pressed
-                    }
+                    isPressed = pressed
                 }
             )
         )
         .onHover { hovering in
-            withAnimation(.easeOut(duration: 0.08)) {
-                isHovered = hovering
-            }
+            isHovered = hovering
         }
+        // Declarative animations only. Wrapping these state changes in `withAnimation`
+        // opens a global transaction, so the reveal cascade the same click triggers across
+        // the other 80 cells gets animated too, which reads as the board wobbling.
         .animation(.easeOut(duration: 0.08), value: isPressed)
+        .animation(.easeOut(duration: 0.08), value: isHovered)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityHint(accessibilityHint)
@@ -296,44 +296,56 @@ private class ClickableNSView: NSView {
 
 // MARK: - Raised Cell Background
 
+/// The classic bevel that makes a covered cell look raised.
+///
+/// Drawn with `Shape`s rather than a `GeometryReader`: a shape receives its rect during
+/// drawing, while a reader forces a second layout pass. With 81 cells rebuilt on every
+/// reveal, those extra passes were a measurable share of the work done per click.
 private struct RaisedCellBackground: View {
     let colorScheme: ColorScheme
     private let bevelWidth: CGFloat = 3
 
     var body: some View {
-        GeometryReader { geometry in
-            let size = geometry.size.width
-            let inset = bevelWidth
-            let highlightOpacity: Double = colorScheme == .dark ? 0.3 : 0.5
-            let shadowOpacity: Double = colorScheme == .dark ? 0.5 : 0.3
+        ZStack {
+            Color(nsColor: .controlColor)
 
-            ZStack {
-                Color(nsColor: .controlColor)
+            CellBevel(edge: .topLeading, width: bevelWidth)
+                .fill(Color.white.opacity(colorScheme == .dark ? 0.3 : 0.5))
 
-                // Top and left highlight
-                Path { path in
-                    path.move(to: CGPoint(x: 0, y: size))
-                    path.addLine(to: CGPoint(x: 0, y: 0))
-                    path.addLine(to: CGPoint(x: size, y: 0))
-                    path.addLine(to: CGPoint(x: size - inset, y: inset))
-                    path.addLine(to: CGPoint(x: inset, y: inset))
-                    path.addLine(to: CGPoint(x: inset, y: size - inset))
-                    path.closeSubpath()
-                }
-                .fill(Color.white.opacity(highlightOpacity))
+            CellBevel(edge: .bottomTrailing, width: bevelWidth)
+                .fill(Color.black.opacity(colorScheme == .dark ? 0.5 : 0.3))
+        }
+    }
+}
 
-                // Bottom and right shadow
-                Path { path in
-                    path.move(to: CGPoint(x: size, y: 0))
-                    path.addLine(to: CGPoint(x: size, y: size))
-                    path.addLine(to: CGPoint(x: 0, y: size))
-                    path.addLine(to: CGPoint(x: inset, y: size - inset))
-                    path.addLine(to: CGPoint(x: size - inset, y: size - inset))
-                    path.addLine(to: CGPoint(x: size - inset, y: inset))
-                    path.closeSubpath()
-                }
-                .fill(Color.black.opacity(shadowOpacity))
+private struct CellBevel: Shape {
+    enum Edge {
+        case topLeading
+        case bottomTrailing
+    }
+
+    let edge: Edge
+    let width: CGFloat
+
+    func path(in rect: CGRect) -> Path {
+        Path { path in
+            switch edge {
+            case .topLeading:
+                path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+                path.addLine(to: CGPoint(x: rect.minX, y: rect.minY))
+                path.addLine(to: CGPoint(x: rect.maxX, y: rect.minY))
+                path.addLine(to: CGPoint(x: rect.maxX - width, y: rect.minY + width))
+                path.addLine(to: CGPoint(x: rect.minX + width, y: rect.minY + width))
+                path.addLine(to: CGPoint(x: rect.minX + width, y: rect.maxY - width))
+            case .bottomTrailing:
+                path.move(to: CGPoint(x: rect.maxX, y: rect.minY))
+                path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+                path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+                path.addLine(to: CGPoint(x: rect.minX + width, y: rect.maxY - width))
+                path.addLine(to: CGPoint(x: rect.maxX - width, y: rect.maxY - width))
+                path.addLine(to: CGPoint(x: rect.maxX - width, y: rect.minY + width))
             }
+            path.closeSubpath()
         }
     }
 }
