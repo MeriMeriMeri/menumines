@@ -161,6 +161,19 @@ jobs:
             CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
             SENTRY_DSN="$SENTRY_DSN"
 
+      - name: Upload Debug Symbols to Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: merimerimeri-software
+          SENTRY_PROJECT: menumines
+        run: |
+          if [ -z "$SENTRY_AUTH_TOKEN" ]; then
+            echo "::warning::SENTRY_AUTH_TOKEN is not set, so this build's dSYMs were not uploaded. Crashes will arrive unsymbolicated."
+            exit 0
+          fi
+          brew install getsentry/tools/sentry-cli
+          sentry-cli debug-files upload --include-sources "$ARCHIVE_PATH/dSYMs"
+
       - name: Generate ExportOptions.plist
         run: |
           echo "Using installer certificate $INSTALLER_CERTIFICATE_SHA1"
@@ -243,13 +256,19 @@ jobs:
             RELEASE_NOTES="Uploaded build ${BUILD_NUMBER} to TestFlight."
           fi
 
+          # --latest=false is load-bearing. The Direct build's Sparkle feed is
+          # /releases/latest/download/appcast.xml, and appcast.xml only ships on -direct
+          # releases. An App Store release taking the "Latest" pointer 404s that feed and
+          # silently breaks auto-updates for every Direct user.
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" "$PKG_PATH" --clobber
+            gh release edit "$TAG" --latest=false
           else
             gh release create "$TAG" "$PKG_PATH" \
               --target "$GITHUB_SHA" \
               --title "MenuMines $VERSION" \
-              --notes "$RELEASE_NOTES"
+              --notes "$RELEASE_NOTES" \
+              --latest=false
           fi
 
       - name: Upload Test Results

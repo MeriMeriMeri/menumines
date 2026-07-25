@@ -179,6 +179,19 @@ jobs:
             SENTRY_DSN="$SENTRY_DSN" \
             SPARKLE_PUBLIC_ED_KEY="$SPARKLE_PUBLIC_ED_KEY"
 
+      - name: Upload Debug Symbols to Sentry
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: merimerimeri-software
+          SENTRY_PROJECT: menumines
+        run: |
+          if [ -z "$SENTRY_AUTH_TOKEN" ]; then
+            echo "::warning::SENTRY_AUTH_TOKEN is not set, so this build's dSYMs were not uploaded. Crashes will arrive unsymbolicated."
+            exit 0
+          fi
+          brew install getsentry/tools/sentry-cli
+          sentry-cli debug-files upload --include-sources "$ARCHIVE_PATH/dSYMs"
+
       # ── Export ──
 
       - name: Generate ExportOptions.plist
@@ -355,6 +368,14 @@ jobs:
             For the App Store version, download from the Mac App Store.
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Sparkle resolves /releases/latest/download/appcast.xml, and only these releases
+      # carry an appcast.xml, so the Direct channel has to own the "Latest" pointer.
+      # Claimed explicitly because App Store releases publish to the same repo.
+      - name: Mark Direct Release as Latest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "v${VERSION}-direct" --latest
 
       # ── Upload Artifacts ──
 

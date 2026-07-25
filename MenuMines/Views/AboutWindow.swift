@@ -1,6 +1,7 @@
 import AppKit
 import SwiftUI
 
+@MainActor
 enum AboutWindow {
     /// Singleton window controller to maintain About window across show/hide cycles.
     /// Window is kept in memory (isReleasedWhenClosed = false) to preserve state
@@ -8,10 +9,8 @@ enum AboutWindow {
     private static var windowController: NSWindowController?
 
     static func show() {
-        NSApp.activate(ignoringOtherApps: true)
-
-        if let existingController = windowController, existingController.window?.isVisible == true {
-            existingController.window?.makeKeyAndOrderFront(nil)
+        if let existingWindow = windowController?.window, existingWindow.isVisible {
+            WindowActivation.raise(existingWindow)
             return
         }
 
@@ -27,6 +26,9 @@ enum AboutWindow {
         let controller = NSWindowController(window: window)
         windowController = controller
         controller.showWindow(nil)
+        // Raised only once the window exists; activating first leaves it behind the app
+        // the user was in.
+        WindowActivation.raise(window)
     }
 }
 

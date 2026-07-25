@@ -1,3 +1,4 @@
+import Sentry
 import ServiceManagement
 import SwiftUI
 
@@ -23,7 +24,15 @@ struct SettingsView: View {
                         try SMAppService.mainApp.unregister()
                     }
                 } catch {
-                    print("Launch at login failed: \(error)")
+                    // The toggle silently snaps back when this fails, so without a report
+                    // there is no trace of it anywhere.
+                    SentrySDK.capture(error: error) { scope in
+                        scope.setTag(value: "launch_at_login", key: "operation")
+                        scope.setContext(value: [
+                            "requested_enabled": newValue,
+                            "service_status": SMAppService.mainApp.status.rawValue
+                        ], key: "login_item")
+                    }
                 }
             }
         )

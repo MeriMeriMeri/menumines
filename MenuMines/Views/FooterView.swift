@@ -103,12 +103,13 @@ struct FooterView: View {
                 Divider()
 
                 Button(String(localized: "stats_menu_item")) {
-                    NSApp.activate(ignoringOtherApps: true)
                     openWindow(id: "stats")
+                    WindowActivation.raiseWindowBeingOpened()
                 }
 
                 Button(String(localized: "settings_menu_item")) {
                     openSettings()
+                    WindowActivation.raiseWindowBeingOpened()
                 }
                 .keyboardShortcut(",", modifiers: .command)
 

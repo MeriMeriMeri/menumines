@@ -43,6 +43,9 @@ struct MenuMinesApp: App {
             options.dsn = dsn
             options.tracesSampleRate = 1.0
             options.enableAutoSessionTracking = true
+            options.beforeSend = { event in
+                isModalWaitReportedAsHang(event) ? nil : event
+            }
         }
     }
 
@@ -836,6 +839,35 @@ private enum ScreenshotFixture {
 }
 #endif
 
+/// Brings windows opened from the menu bar to the front.
+///
+/// MenuMines is an agent app (`LSUIElement`), so it is never the frontmost application on its
+/// own and anything it opens lands behind whatever the user was already working in. Raising
+/// has to happen *after* the window exists, and SwiftUI creates it asynchronously, so the
+/// work is deferred one main-queue turn. `orderFrontRegardless` covers the case where
+/// activation alone does not lift the window over another app's.
+@MainActor
+enum WindowActivation {
+    /// Raises a window that SwiftUI is about to create, such as Settings or Stats.
+    ///
+    /// Only the key window is raised explicitly. Falling back to "whichever window is
+    /// frontmost" would pull the wrong one forward if SwiftUI has not finished opening the
+    /// new one yet; activating on its own is already enough in that case.
+    static func raiseWindowBeingOpened() {
+        DispatchQueue.main.async {
+            NSApp.activate()
+            NSApp.keyWindow?.orderFrontRegardless()
+        }
+    }
+
+    /// Raises a window we own outright, so there is nothing to wait for.
+    static func raise(_ window: NSWindow) {
+        NSApp.activate()
+        window.makeKeyAndOrderFront(nil)
+        window.orderFrontRegardless()
+    }
+}
+
 /// Tracks whether the menu bar popover is on screen.
 ///
 /// Keyboard shortcuts are registered process-wide, so they need a way to tell whether the
@@ -846,6 +878,43 @@ enum MenuBarPresentation {
     /// - Important: Must be called from the main thread.
     static func setVisible(_ visible: Bool) {
         isVisible = visible
+    }
+}
+
+/// Whether an app-hang report is really a modal dialog waiting on the user.
+///
+/// `NSAlert.runModal()` blocks the main thread in a nested run loop until someone clicks a
+/// button, which the hang detector cannot distinguish from a genuine stall. Sparkle's update
+/// prompts arrive this way and would otherwise bury real hangs in noise, so they are dropped
+/// here rather than by turning hang tracking off entirely.
+func isModalWaitReportedAsHang(_ event: Event) -> Bool {
+    guard let exception = event.exceptions?.first else { return false }
+
+    let frameFunctions = (exception.stacktrace?.frames ?? []).compactMap(\.function)
+    return isModalWaitStack(
+        exceptionType: exception.type,
+        mechanismType: exception.mechanism?.type,
+        frameFunctions: frameFunctions
+    )
+}
+
+/// Pure form of ``isModalWaitReportedAsHang(_:)``, split out so it can be tested without
+/// building a Sentry event.
+func isModalWaitStack(
+    exceptionType: String?,
+    mechanismType: String?,
+    frameFunctions: [String]
+) -> Bool {
+    let isHangReport = mechanismType?.caseInsensitiveCompare("AppHang") == .orderedSame
+        || exceptionType?.localizedCaseInsensitiveContains("hang") == true
+    guard isHangReport else { return false }
+
+    // -[NSAlert runModal], -[NSApplication runModalForWindow:], _NSTryRunModal,
+    // -[NSApplication _doModalLoop:peek:]
+    let modalMarkers = ["runmodal", "_domodalloop"]
+    return frameFunctions.contains { function in
+        let lowercased = function.lowercased()
+        return modalMarkers.contains { lowercased.contains($0) }
     }
 }
 

@@ -180,7 +180,22 @@ func getStats(for date: Date) -> DailyStats? {
 /// Retrieves the stats for a specific seed, if they exist.
 func getStats(forSeed seed: Int64) -> DailyStats? {
     guard let data = UserDefaults.standard.data(forKey: statsKey(for: seed)) else { return nil }
-    return try? JSONDecoder().decode(DailyStats.self, from: data)
+
+    do {
+        return try JSONDecoder().decode(DailyStats.self, from: data)
+    } catch {
+        // This is the fallback the app restores a completed daily from, so a decode failure
+        // here looks to the player like their result vanished. Every other decode path
+        // reports; this one used to swallow.
+        SentrySDK.capture(error: error) { scope in
+            scope.setTag(value: "daily_stats_load", key: "operation")
+            scope.setContext(value: [
+                "daily_seed": seed,
+                "data_size_bytes": data.count
+            ], key: "persistence")
+        }
+        return nil
+    }
 }
 
 /// Atomically marks the daily puzzle as complete and records stats.

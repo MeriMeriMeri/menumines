@@ -47,6 +47,71 @@ struct GameKeyboardRoutingTests {
     }
 }
 
+@Suite("Modal Hang Filter Tests")
+struct ModalHangFilterTests {
+
+    /// The frames Sparkle's update prompt produced in MENUMINES-4, innermost last.
+    private let sparkleAlertFrames = [
+        "_dispatch_main_queue_drain",
+        "-[NSAlert runModal]",
+        "_NSTryRunModal",
+        "-[NSApplication runModalForWindow:]",
+        "-[NSApplication _doModalLoop:peek:]",
+        "-[NSApplication(NSEventRouting) nextEventMatchingMask:untilDate:inMode:dequeue:]",
+        "mach_msg2_trap"
+    ]
+
+    @Test("A hang that is really a modal dialog is dropped")
+    func testModalHangIsDropped() {
+        #expect(isModalWaitStack(
+            exceptionType: "App Hanging",
+            mechanismType: "AppHang",
+            frameFunctions: sparkleAlertFrames
+        ))
+    }
+
+    @Test("A genuine main thread stall is kept")
+    func testGenuineHangIsKept() {
+        #expect(!isModalWaitStack(
+            exceptionType: "App Hanging",
+            mechanismType: "AppHang",
+            frameFunctions: [
+                "_dispatch_main_queue_drain",
+                "MenuMines.GameState.reveal(row:col:)",
+                "MenuMines.Board.reveal(row:col:)"
+            ]
+        ))
+    }
+
+    @Test("Non-hang events are never dropped, even from a modal stack")
+    func testNonHangEventsAreKept() {
+        #expect(!isModalWaitStack(
+            exceptionType: "NSInvalidArgumentException",
+            mechanismType: "NSException",
+            frameFunctions: sparkleAlertFrames
+        ))
+    }
+
+    @Test("The hang is recognised from either the mechanism or the exception type")
+    func testHangRecognisedFromEitherField() {
+        #expect(isModalWaitStack(
+            exceptionType: nil,
+            mechanismType: "AppHang",
+            frameFunctions: sparkleAlertFrames
+        ))
+        #expect(isModalWaitStack(
+            exceptionType: "App Hanging",
+            mechanismType: nil,
+            frameFunctions: sparkleAlertFrames
+        ))
+    }
+
+    @Test("An empty stack is kept rather than guessed at")
+    func testEmptyStackIsKept() {
+        #expect(!isModalWaitStack(exceptionType: "App Hanging", mechanismType: "AppHang", frameFunctions: []))
+    }
+}
+
 @Suite("MenuBarIconState Tests")
 struct MenuBarIconStateTests {
 
