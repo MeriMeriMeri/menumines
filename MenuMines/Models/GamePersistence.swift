@@ -15,11 +15,14 @@ struct GameSnapshot: Codable {
     let dailySeed: Int64
     let puzzleType: PuzzleType
     let markedMinesAtWin: Int
+    let clickCount: Int
+    let chordCount: Int
+    let largestOpening: Int
 
     /// Coding keys for backward-compatible decoding.
     private enum CodingKeys: String, CodingKey {
         case board, status, elapsedTime, flagCount, selectedRow, selectedCol, dailySeed, puzzleType
-        case markedMinesAtWin
+        case markedMinesAtWin, clickCount, chordCount, largestOpening
     }
 
     /// Custom decoder to provide backward compatibility for existing snapshots written
@@ -35,11 +38,14 @@ struct GameSnapshot: Codable {
         dailySeed = try container.decode(Int64.self, forKey: .dailySeed)
         puzzleType = try container.decodeIfPresent(PuzzleType.self, forKey: .puzzleType) ?? .daily
         markedMinesAtWin = try container.decodeIfPresent(Int.self, forKey: .markedMinesAtWin) ?? 0
+        clickCount = try container.decodeIfPresent(Int.self, forKey: .clickCount) ?? 0
+        chordCount = try container.decodeIfPresent(Int.self, forKey: .chordCount) ?? 0
+        largestOpening = try container.decodeIfPresent(Int.self, forKey: .largestOpening) ?? 0
     }
 
     init(board: Board, status: GameStatus, elapsedTime: TimeInterval, flagCount: Int,
          selectedRow: Int, selectedCol: Int, dailySeed: Int64, puzzleType: PuzzleType = .daily,
-         markedMinesAtWin: Int = 0) {
+         markedMinesAtWin: Int = 0, clickCount: Int = 0, chordCount: Int = 0, largestOpening: Int = 0) {
         self.board = board
         self.status = status
         self.elapsedTime = elapsedTime
@@ -49,6 +55,9 @@ struct GameSnapshot: Codable {
         self.dailySeed = dailySeed
         self.puzzleType = puzzleType
         self.markedMinesAtWin = markedMinesAtWin
+        self.clickCount = clickCount
+        self.chordCount = chordCount
+        self.largestOpening = largestOpening
     }
 
     private static let baseStorageKey = "gameSnapshot"
@@ -235,6 +244,9 @@ enum GamePersistenceCoordinator {
         state.selectedRow = snapshot.selectedRow
         state.selectedCol = snapshot.selectedCol
         state.markedMinesAtWin = snapshot.markedMinesAtWin
+        state.clickCount = snapshot.clickCount
+        state.chordCount = snapshot.chordCount
+        state.largestOpening = snapshot.largestOpening
         return state
     }
 

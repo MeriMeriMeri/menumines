@@ -2,6 +2,12 @@ import Foundation
 import Testing
 @testable import MenuMines
 
+/// A grid row is made only of the four difficulty emoji, which no other line contains.
+private func isGridRow(_ line: String) -> Bool {
+    let difficultyEmoji: Set<Character> = ["🟩", "🟡", "🟠", "🔴"]
+    return !line.isEmpty && line.allSatisfy { difficultyEmoji.contains($0) }
+}
+
 @Suite("GameState Share Tests")
 struct GameStateShareTests {
 
@@ -146,12 +152,10 @@ struct GameStateShareTests {
 
         let lines = shareText.split(separator: "\n", omittingEmptySubsequences: false)
 
-        // Should have: header, result (with flag count), 9 grid rows = 11 lines
-        #expect(lines.count == 11, "Share text should have 11 lines (header, result, 9 grid rows)")
+        let gridLines = lines.map(String.init).filter(isGridRow)
+        #expect(gridLines.count == Board.rows, "Share text should contain one grid row per board row")
 
-        // Grid rows should be lines 2-10 (0-indexed)
-        for i in 2..<11 {
-            let line = String(lines[i])
+        for line in gridLines {
             // Each grid line should only contain difficulty-based emojis (fully spoiler-free)
             // No ⬜️ - mines show the same colors as safe cells based on adjacent count
             let validEmojis = Set(["🟩", "🟡", "🟠", "🔴"])
@@ -169,11 +173,11 @@ struct GameStateShareTests {
                     }
                 }
                 if !found {
-                    Issue.record("Unexpected character in grid line \(i): \(line)")
+                    Issue.record("Unexpected character in grid line: \(line)")
                     break
                 }
             }
-            #expect(emojiCount == 9, "Grid line \(i) should have exactly 9 emojis, got \(emojiCount)")
+            #expect(emojiCount == 9, "Grid line should have exactly 9 emojis, got \(emojiCount): \(line)")
         }
     }
 
@@ -208,9 +212,7 @@ struct GameStateShareTests {
 
         // Verify flags don't appear in the grid rows (spoiler-free)
         let lines = shareText.split(separator: "\n", omittingEmptySubsequences: false)
-        // Grid rows are lines 2-10 (0-indexed)
-        for i in 2..<11 {
-            let gridLine = String(lines[i])
+        for gridLine in lines.map(String.init).filter(isGridRow) {
             #expect(!gridLine.contains("🚩"), "Grid should not contain flag emoji at positions (reveals mines)")
         }
     }
@@ -294,11 +296,10 @@ struct GameStateShareTests {
         // The result line should contain flag count (🚩 appears there)
         #expect(shareText.contains("🚩"), "Share text should contain flag emoji in result line")
 
-        // But flags should NOT appear in the grid rows (lines 2-10)
+        // But flags should NOT appear in the grid rows
         let lines = shareText.split(separator: "\n", omittingEmptySubsequences: false)
-        for i in 2..<11 {
-            let gridLine = String(lines[i])
-            #expect(!gridLine.contains("🚩"), "Grid row \(i) should not contain flag emoji")
+        for gridLine in lines.map(String.init).filter(isGridRow) {
+            #expect(!gridLine.contains("🚩"), "Grid row should not contain flag emoji: \(gridLine)")
         }
     }
 }

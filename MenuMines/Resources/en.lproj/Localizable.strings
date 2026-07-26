@@ -171,3 +171,4 @@
 "stats_calendar_day_replay" = "Replay %@";
 "replay_started_title" = "Replaying %@";
 "replay_started_message" = "Open MenuMines from the menu bar to play. This replay is not recorded.";
+"share_play_line" = "⚡️ %d clicks · 🔗 %d chords · 🌊 %d opened at once";

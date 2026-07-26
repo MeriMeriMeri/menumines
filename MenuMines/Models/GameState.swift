@@ -33,6 +33,12 @@ final class GameState {
     /// Persisted, because winning auto-flags every mine — recomputing it from a restored
     /// board would always report a perfect 12/12 regardless of how the player actually did.
     internal(set) var markedMinesAtWin: Int = 0
+    /// Cells the player opened themselves, excluding everything a cascade opened for free.
+    internal(set) var clickCount: Int = 0
+    /// Chord reveals the player performed.
+    internal(set) var chordCount: Int = 0
+    /// Most cells opened by a single action, cascade included.
+    internal(set) var largestOpening: Int = 0
 
     /// Timer for tracking elapsed game time.
     private let gameTimer = GameTimer()
@@ -77,6 +83,11 @@ final class GameState {
             board: board,
             elapsedTime: elapsedTime,
             markedMinesCount: countCorrectlyMarkedMines(),
+            play: PlaySummary(
+                clickCount: clickCount,
+                chordCount: chordCount,
+                largestOpening: largestOpening
+            ),
             date: date
         )
     }
@@ -117,6 +128,10 @@ final class GameState {
         }
 
         let result = board.reveal(row: row, col: col)
+        clickCount += 1
+        if case .safe(let revealed) = result {
+            largestOpening = max(largestOpening, revealed)
+        }
 
         switch result {
         case .mine:
@@ -199,7 +214,7 @@ final class GameState {
         flagCount = 0
         selectedRow = 0
         selectedCol = 0
-        markedMinesAtWin = 0
+        resetPlayTally()
         // Leave the stored daily alone; the player is only visiting this board.
     }
 
@@ -243,6 +258,7 @@ final class GameState {
         flagCount = 0
         selectedRow = 0
         selectedCol = 0
+        resetPlayTally()
         // Don't persist random puzzles
         GameSnapshot.clear()
     }
@@ -266,6 +282,14 @@ final class GameState {
         makeSnapshot().save()
     }
 
+    /// Clears the record of what the player did, so a new board starts from nothing.
+    private func resetPlayTally() {
+        markedMinesAtWin = 0
+        clickCount = 0
+        chordCount = 0
+        largestOpening = 0
+    }
+
     private func makeSnapshot() -> GameSnapshot {
         GameSnapshot(
             board: board,
@@ -276,7 +300,10 @@ final class GameState {
             selectedCol: selectedCol,
             dailySeed: dailySeed,
             puzzleType: puzzleType,
-            markedMinesAtWin: markedMinesAtWin
+            markedMinesAtWin: markedMinesAtWin,
+            clickCount: clickCount,
+            chordCount: chordCount,
+            largestOpening: largestOpening
         )
     }
 
@@ -357,6 +384,7 @@ final class GameState {
         // Reset to top-left cell selection
         selectedRow = 0
         selectedCol = 0
+        resetPlayTally()
         GameSnapshot.clear()
         // Clear daily namespace too since we're starting a new day
         GameSnapshot.withStorageKey(GameSnapshot.dailyNamespace) { GameSnapshot.clear() }
@@ -434,8 +462,15 @@ final class GameState {
         guard status == .playing else { return }
         guard row >= 0, row < Board.rows, col >= 0, col < Board.cols else { return }
 
-        switch board.chordReveal(row: row, col: col) {
+        let chordResult = board.chordReveal(row: row, col: col)
+        if case .safe(let revealed) = chordResult, revealed > 0 {
+            chordCount += 1
+            largestOpening = max(largestOpening, revealed)
+        }
+
+        switch chordResult {
         case .mine:
+            chordCount += 1
             status = .lost
             board.revealAllMines()
             handleGameComplete(won: false)

@@ -134,6 +134,51 @@ struct DailyBoardFairnessTests {
         #expect(copy.reveal(row: mine.row, col: mine.col) == .mine)
     }
 
+    @Test("The share line reflects what the player did, and differs between players")
+    func testSharePlayLineIsPersonal() {
+        let seed: Int64 = 20260725
+
+        // Two players solve the same board with different amounts of work.
+        let brisk = GameState(board: Board(dailySeed: seed), dailySeed: seed, puzzleType: .practice)
+        let thorough = GameState(board: Board(dailySeed: seed), dailySeed: seed, puzzleType: .practice)
+
+        for (row, col) in safeHiddenCells(in: brisk.board).prefix(1) {
+            brisk.reveal(row: row, col: col)
+        }
+        for (row, col) in safeHiddenCells(in: thorough.board).prefix(6) {
+            thorough.reveal(row: row, col: col)
+        }
+        brisk.pauseTimer()
+        thorough.pauseTimer()
+
+        #expect(brisk.clickCount == 1)
+        #expect(thorough.clickCount == 6)
+        #expect(brisk.largestOpening > 0, "A reveal should record how much it opened")
+    }
+
+    @Test("The play tally is cleared when a new board starts")
+    func testPlayTallyResetsWithTheBoard() {
+        let state = GameState(board: Board(dailySeed: 20260725), dailySeed: 20260725, puzzleType: .practice)
+
+        guard let cell = safeHiddenCells(in: state.board).first else {
+            Issue.record("No safe hidden cell")
+            return
+        }
+        state.reveal(row: cell.row, col: cell.col)
+        state.pauseTimer()
+        #expect(state.clickCount > 0)
+
+        state.startPractice(seed: 20260701)
+
+        #expect(state.clickCount == 0)
+        #expect(state.chordCount == 0)
+        #expect(state.largestOpening == 0)
+    }
+
+    private func safeHiddenCells(in board: Board) -> [(row: Int, col: Int)] {
+        hiddenSafeCells(in: board)
+    }
+
     @Test("A replay uses the board from that day")
     func testReplayUsesThatDaysBoard() {
         let past: Int64 = 20260701
