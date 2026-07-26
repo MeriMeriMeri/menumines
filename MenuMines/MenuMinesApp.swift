@@ -86,6 +86,10 @@ struct MenuMinesApp: App {
 
         Self.setupKeyboardMonitor(for: state)
         Self.setupTerminationObserver(for: state)
+
+        Task { @MainActor in
+            StatsSync.start()
+        }
     }
 
     private static func setupTerminationObserver(for gameState: GameState) {

@@ -207,6 +207,12 @@ final class StatsStore {
         }
         results.insert(result, at: 0)
         saveResults()
+
+        // Publish immediately rather than at next launch, so finishing on one Mac is visible
+        // on another before the streak has a chance to look broken.
+        if result.puzzleType == .daily {
+            StatsSync.pushToCloud()
+        }
     }
 
     /// Clears all statistics.
@@ -258,6 +264,30 @@ final class StatsStore {
         // Only count daily puzzles for streak calculations
         let dailySeeds = Set(dailyResults.map(\.dailySeed))
         return dailySeeds.compactMap { dateFromSeed($0) }.sorted()
+    }
+
+    // MARK: - iCloud Sync
+
+    /// Merges a set of results in from another device.
+    ///
+    /// Only daily results are exchanged. They are the ones tied to a calendar day and to
+    /// streaks, so they mean the same thing on every Mac, whereas random puzzles are just a
+    /// count of games played on one machine and syncing them would double-count.
+    /// - Returns: Whether anything local changed.
+    @MainActor
+    @discardableResult
+    func merge(dailyResults incoming: [GameResult]) -> Bool {
+        let existingSeeds = Set(dailyResults.map(\.dailySeed))
+        let additions = incoming
+            .filter { $0.puzzleType == .daily }
+            .filter { !existingSeeds.contains($0.dailySeed) }
+
+        guard !additions.isEmpty else { return false }
+
+        results.append(contentsOf: additions)
+        results.sort { $0.completedAt > $1.completedAt }
+        saveResults()
+        return true
     }
 
     // MARK: - Testing Support

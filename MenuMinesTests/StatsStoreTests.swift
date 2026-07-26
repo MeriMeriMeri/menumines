@@ -5,6 +5,64 @@ import Testing
 @Suite("StatsStore Tests", .serialized)
 struct StatsStoreTests {
 
+    // MARK: - iCloud Merge
+
+    @MainActor
+    @Test("Merging pulls in days this device has never seen")
+    func testMergeAddsUnseenDays() {
+        let store = StatsStore.forTesting(with: [
+            GameResult(won: true, elapsedTime: 60, dailySeed: 20260101, puzzleType: .daily)
+        ])
+
+        let changed = store.merge(dailyResults: [
+            GameResult(won: false, elapsedTime: 90, dailySeed: 20260102, puzzleType: .daily)
+        ])
+
+        #expect(changed)
+        #expect(store.dailyGamesPlayed == 2)
+    }
+
+    @MainActor
+    @Test("A day this device already has is not duplicated")
+    func testMergeIgnoresKnownDays() {
+        let existing = GameResult(won: true, elapsedTime: 60, dailySeed: 20260101, puzzleType: .daily)
+        let store = StatsStore.forTesting(with: [existing])
+
+        let changed = store.merge(dailyResults: [
+            GameResult(won: false, elapsedTime: 999, dailySeed: 20260101, puzzleType: .daily)
+        ])
+
+        #expect(!changed)
+        #expect(store.dailyGamesPlayed == 1)
+        #expect(store.dailyWins == 1, "The local result should win, not be overwritten by a later sync")
+    }
+
+    @MainActor
+    @Test("Random puzzles are not accepted from another device")
+    func testMergeRejectsRandomResults() {
+        let store = StatsStore.forTesting(with: [])
+
+        let changed = store.merge(dailyResults: [
+            GameResult(won: true, elapsedTime: 30, dailySeed: -12345, puzzleType: .random)
+        ])
+
+        #expect(!changed, "Random puzzles are per-machine, so syncing them would double-count")
+        #expect(store.gamesPlayed == 0)
+    }
+
+    @MainActor
+    @Test("Merged days count toward streaks")
+    func testMergedDaysExtendStreaks() {
+        let store = StatsStore.forTesting(with: [])
+        store.merge(dailyResults: [
+            GameResult(won: true, elapsedTime: 60, dailySeed: 20260101, puzzleType: .daily),
+            GameResult(won: true, elapsedTime: 60, dailySeed: 20260102, puzzleType: .daily),
+            GameResult(won: true, elapsedTime: 60, dailySeed: 20260103, puzzleType: .daily)
+        ])
+
+        #expect(store.longestStreak == 3, "A streak earned on another Mac should carry over")
+    }
+
     private let testResultsKey = "gameResults"
 
     private func clearStats() {
