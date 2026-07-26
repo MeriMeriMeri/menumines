@@ -13,6 +13,8 @@
 		219A5CF7F2A69EF871B71E2C /* GameState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001E229E001E /* GameState.swift */; };
 		2543E589DC0E74C44F7D2A0D /* StatsStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000083229E0083 /* StatsStore.swift */; };
 		A1000500229E0500 /* StatsSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000501229E0501 /* StatsSync.swift */; };
+		A1000600229E0600 /* Leaderboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000601229E0601 /* Leaderboard.swift */; };
+		A1000602229E0602 /* Leaderboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000601229E0601 /* Leaderboard.swift */; };
 		A1000502229E0502 /* StatsSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000501229E0501 /* StatsSync.swift */; };
 		34103414FF5D2B975D24A5CA /* CellView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000022229E0022 /* CellView.swift */; };
 		45A72912B6FD53A73F0C12B8 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000006229E0006 /* Assets.xcassets */; };
@@ -122,6 +124,7 @@
 		A1000081229E0081 /* GameResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameResult.swift; sourceTree = "<group>"; };
 		A1000083229E0083 /* StatsStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsStore.swift; sourceTree = "<group>"; };
 		A1000501229E0501 /* StatsSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsSync.swift; sourceTree = "<group>"; };
+		A1000601229E0601 /* Leaderboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Leaderboard.swift; sourceTree = "<group>"; };
 		A1000085229E0085 /* StatsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsWindow.swift; sourceTree = "<group>"; };
 		A1000087229E0087 /* StatsStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatsStoreTests.swift; sourceTree = "<group>"; };
 		A1000089229E0089 /* SettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsTests.swift; sourceTree = "<group>"; };
@@ -234,6 +237,7 @@
 				A1000071229E0071 /* MenuBarIconState.swift */,
 				A1000083229E0083 /* StatsStore.swift */,
 				A1000501229E0501 /* StatsSync.swift */,
+				A1000601229E0601 /* Leaderboard.swift */,
 				98646FF50DD548507DF79EFF /* GameTimer.swift */,
 				69E7024973DDFB0D12DA5C0B /* ShareTextGenerator.swift */,
 				ADBC0D03C616C4EDBC3F1A6C /* AccessibilityAnnouncer.swift */,
@@ -434,6 +438,7 @@
 				A1000070229E0070 /* MenuBarIconState.swift in Sources */,
 				A1000082229E0082 /* StatsStore.swift in Sources */,
 				A1000502229E0502 /* StatsSync.swift in Sources */,
+				A1000602229E0602 /* Leaderboard.swift in Sources */,
 				A1000021229E0021 /* CellView.swift in Sources */,
 				A1000023229E0023 /* GameBoardView.swift in Sources */,
 				A1000025229E0025 /* HeaderView.swift in Sources */,
@@ -489,6 +494,7 @@
 				7B6F917CBF187910503D305C /* MenuBarIconState.swift in Sources */,
 				2543E589DC0E74C44F7D2A0D /* StatsStore.swift in Sources */,
 				A1000500229E0500 /* StatsSync.swift in Sources */,
+				A1000600229E0600 /* Leaderboard.swift in Sources */,
 				34103414FF5D2B975D24A5CA /* CellView.swift in Sources */,
 				55595706A38B9DA60CF373DA /* GameBoardView.swift in Sources */,
 				56AB90C03535B7B699ABDC7E /* HeaderView.swift in Sources */,
@@ -649,7 +655,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = MenuMines/MenuMines.entitlements;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "ICLOUD_SYNC_ENABLED $(inherited)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "ICLOUD_SYNC_ENABLED GAME_CENTER_ENABLED $(inherited)";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
@@ -683,7 +689,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
 				CODE_SIGN_ENTITLEMENTS = MenuMines/MenuMines.entitlements;
-				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "ICLOUD_SYNC_ENABLED $(inherited)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "ICLOUD_SYNC_ENABLED GAME_CENTER_ENABLED $(inherited)";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;

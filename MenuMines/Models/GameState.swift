@@ -547,6 +547,11 @@ final class GameState {
 
         if puzzleType.isRanked {
             recordGameResult(won: won)
+            let elapsed = elapsedTime
+            let type = puzzleType
+            Task { @MainActor in
+                Leaderboard.submitDailyTime(elapsedTime: elapsed, puzzleType: type, won: won)
+            }
         }
         save()
     }

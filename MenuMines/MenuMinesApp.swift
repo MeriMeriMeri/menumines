@@ -89,6 +89,7 @@ struct MenuMinesApp: App {
 
         Task { @MainActor in
             StatsSync.start()
+            Leaderboard.authenticate()
         }
     }
 
